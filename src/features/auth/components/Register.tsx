@@ -1,23 +1,23 @@
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { loginSchema, type LoginFormData } from "../types/login.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
-import { loginRequest } from "../services/auth.service";
+import { registerRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
+import { PATHS } from "../../../routes/constants";
+import { registerSchema, type RegisterFormData } from "../types/register.types";
 
-export default function Login() {
-  const {
-    mutate: login,
-    error,
-    isPending,
-  } = useMutation({
-    mutationFn: loginRequest,
+export default function Register() {
+  const { mutate: registerFn, isPending } = useMutation({
+    mutationFn: registerRequest,
     onSuccess: (data) => {
-      console.log("data", data);
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      setErrorMessage(getErrorMessage(error));
     },
   });
 
@@ -25,22 +25,23 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(loginSchema) });
+  } = useForm({ resolver: zodResolver(registerSchema) });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const onSubmit = (data: LoginFormData) => {
-    login(data);
+  const onSubmit = (data: RegisterFormData) => {
+    registerFn(data);
   };
   return (
     <>
       <div className="flex flex-col items-center space-y-2 mb-6">
         <div className="text-3xl">🙂</div>
-        <h2 className="text-xl font-semibold">Sign in to Trackit</h2>
+        <h2 className="text-xl font-semibold">Sign Up to Trackit</h2>
         <p className="text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Sign Up
+          Already have an account?{" "}
+          <Link to={PATHS.LOGIN} className="text-blue-600 hover:underline">
+            Login
           </Link>
         </p>
       </div>
@@ -76,6 +77,20 @@ export default function Login() {
         </div>
 
         <div>
+          <label className="block text-sm mb-1">Username</label>
+          <input
+            type="text"
+            {...register("username")}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          {errors.username && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.username.message}
+            </p>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm mb-1">Password</label>
           <div className="relative">
             <input
@@ -97,17 +112,24 @@ export default function Login() {
             </p>
           )}
         </div>
-        {error && (
-          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md mt-2">
-            {getErrorMessage(error)}
-          </p>
-        )}
+        <div
+          className={`transition-opacity duration-300 ${
+            errorMessage ? "opacity-100" : "opacity-0 h-0"
+          }`}
+        >
+          {errorMessage && (
+            <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
+              {errorMessage}
+            </p>
+          )}
+        </div>
+
         <button
           type="submit"
           disabled={isPending}
           className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800"
         >
-          {isPending ? "Logging in..." : "Login"}
+          {isPending ? "Creating account..." : "Register"}
         </button>
       </form>
     </>
