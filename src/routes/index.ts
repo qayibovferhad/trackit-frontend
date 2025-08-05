@@ -1,4 +1,10 @@
-import { authRoutes } from "../features/auth/routes";
 import type { RoutesConfig } from "./types";
 
-export const allRoutes: RoutesConfig = [...authRoutes];
+export const featureRoutes = import.meta.glob("../features/*/routes.ts", {
+  eager: true,
+  import: "default",
+});
+
+export const allRoutes: RoutesConfig = Object.values(
+  featureRoutes
+).flat() as RoutesConfig;

@@ -1,12 +1,13 @@
-import type { ComponentType } from "react";
-import type { PATHS } from "./constants";
+import type { ComponentType, ReactNode } from "react";
 import type { ValueOf } from "../types/utils";
+import type { PATHS } from "./constants";
 
 export interface RouteConfig {
   path: ValueOf<typeof PATHS> | "*";
   element: ComponentType;
   children?: RouteConfig[];
   isPrivate: boolean;
+  layout?: ComponentType<{ children: ReactNode }>;
   meta?: {
     title?: string;
     requiresAuth?: boolean;

@@ -4,7 +4,7 @@ import type { RoutesConfig } from "../../routes/types";
 
 const Login = lazy(() => import("./components/Login"));
 
-export const authRoutes: RoutesConfig = [
+const authRoutes: RoutesConfig = [
   {
     path: PATHS.LOGIN,
     element: Login,
@@ -12,3 +12,5 @@ export const authRoutes: RoutesConfig = [
     isPrivate: false,
   },
 ];
+
+export default authRoutes;
