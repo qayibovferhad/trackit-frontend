@@ -8,6 +8,7 @@ import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { loginRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
+import { Button } from "@/components/ui/button";
 
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,7 +80,6 @@ export default function Login() {
             <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
           )}
         </div>
-
         <div>
           <label className="block text-sm mb-1">Password</label>
           <div className="relative">
@@ -96,6 +96,15 @@ export default function Login() {
               {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
+
+          <div className="mt-2">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           {errors.password && (
             <p className="text-xs text-red-500 mt-1">
               {errors.password.message}
@@ -107,13 +116,9 @@ export default function Login() {
             {errorMessage}
           </p>
         )}
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800"
-        >
+        <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? "Logging in..." : "Login"}
-        </button>
+        </Button>
       </form>
     </>
   );

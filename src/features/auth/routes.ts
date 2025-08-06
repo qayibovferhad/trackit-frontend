@@ -7,6 +7,8 @@ const Login = lazy(() => import("./components/Login"));
 
 const Register = lazy(() => import("./components/Register"));
 
+const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
+
 const authRoutes: RoutesConfig = [
   {
     path: PATHS.LOGIN,
@@ -18,6 +20,13 @@ const authRoutes: RoutesConfig = [
   {
     path: PATHS.REGISTER,
     element: Register,
+    children: [],
+    isPrivate: false,
+    layout: AuthLayout,
+  },
+  {
+    path: PATHS.FORGOTPASSWORD,
+    element: ForgotPassword,
     children: [],
     isPrivate: false,
     layout: AuthLayout,

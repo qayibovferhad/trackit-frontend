@@ -9,6 +9,7 @@ import { registerRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
 import { PATHS } from "../../../routes/constants";
 import { registerSchema, type RegisterFormData } from "../types/register.types";
+import { Button } from "@/components/ui/button";
 
 export default function Register() {
   const { mutate: registerFn, isPending } = useMutation({
@@ -124,13 +125,9 @@ export default function Register() {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800"
-        >
-          {isPending ? "Creating account..." : "Register"}
-        </button>
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? "Creating account..." : "Register Now"}
+        </Button>
       </form>
     </>
   );
