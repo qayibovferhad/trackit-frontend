@@ -10,6 +10,8 @@ import { loginRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
 
 export default function Login() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const {
     mutate: login,
     error,
@@ -17,7 +19,10 @@ export default function Login() {
   } = useMutation({
     mutationFn: loginRequest,
     onSuccess: (data) => {
-      console.log("data", data);
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      setErrorMessage(getErrorMessage(error));
     },
   });
 
@@ -97,9 +102,9 @@ export default function Login() {
             </p>
           )}
         </div>
-        {error && (
-          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md mt-2">
-            {getErrorMessage(error)}
+        {errorMessage && (
+          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
+            {errorMessage}
           </p>
         )}
         <button
