@@ -13,11 +13,7 @@ import { Button } from "@/components/ui/button";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const {
-    mutate: login,
-    error,
-    isPending,
-  } = useMutation({
+  const { mutate: login, isPending } = useMutation({
     mutationFn: loginRequest,
     onSuccess: (data) => {
       setErrorMessage(null);

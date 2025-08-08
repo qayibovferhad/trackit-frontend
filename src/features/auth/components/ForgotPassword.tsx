@@ -6,8 +6,16 @@ import {
   type ForgetPasswordFormData,
 } from "../types/forgotPassword.types";
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/error";
+import { useState } from "react";
+import { forgotPasswordRequest } from "../services/auth.service";
+import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes/constants";
 
 export default function ForgotPassword() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
   const {
     register,
     formState: { errors },
@@ -16,8 +24,18 @@ export default function ForgotPassword() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  function onSubmit(data: ForgetPasswordFormData) {
-    console.log("data", data);
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: forgotPasswordRequest,
+    onSuccess: (data) => {
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      setErrorMessage(getErrorMessage(error));
+    },
+  });
+  async function onSubmit(data: ForgetPasswordFormData) {
+    await mutateAsync(data);
+    navigate(PATHS.RESETPASSWORD);
   }
   return (
     <>
@@ -44,8 +62,17 @@ export default function ForgotPassword() {
             <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
           )}
         </div>
-        <Button type="submit" className="w-full">
-          Send Password Link
+        {errorMessage && (
+          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
+            {errorMessage}
+          </p>
+        )}
+        <Button
+          disabled={isPending}
+          type="submit"
+          className="w-full cursor-pointer"
+        >
+          {isPending ? "Sending..." : "Send Password Link"}
         </Button>
       </form>
     </>
