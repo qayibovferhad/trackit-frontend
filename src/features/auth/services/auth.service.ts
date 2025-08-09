@@ -2,6 +2,7 @@ import { api } from "../../../lib/axios";
 import type { ForgetPasswordFormData } from "../types/forgotPassword.types";
 import type { LoginFormData } from "../types/login.types";
 import type { RegisterFormData } from "../types/register.types";
+import type { VerifyOtpFormData } from "../types/verifyOtp.types";
 
 export const loginRequest = async (data: LoginFormData) => {
   const response = await api.post("/auth/login", data);
@@ -14,6 +15,11 @@ export const registerRequest = async (data: RegisterFormData) => {
 };
 
 export const forgotPasswordRequest = async (data: ForgetPasswordFormData) => {
-  const response = await api.post("/auth/forgot-password", data);
+  const response = await api.post("/auth/password/forgot", data);
+  return response.data;
+};
+
+export const verifyOtpRequest = async (data: VerifyOtpFormData) => {
+  const response = await api.post("/auth/password/verify-otp", data);
   return response.data;
 };

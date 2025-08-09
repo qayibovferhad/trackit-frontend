@@ -35,7 +35,7 @@ export default function ForgotPassword() {
   });
   async function onSubmit(data: ForgetPasswordFormData) {
     await mutateAsync(data);
-    navigate(PATHS.RESETPASSWORD);
+    navigate(`${PATHS.VERIFY_OTP}?email=${encodeURIComponent(data.email)}`);
   }
   return (
     <>

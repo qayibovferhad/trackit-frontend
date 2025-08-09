@@ -2,13 +2,14 @@ import { lazy } from "react";
 import { PATHS } from "../../routes/constants";
 import type { RoutesConfig } from "../../routes/types";
 import AuthLayout from "../../layouts/AuthLayout";
-import ResetPassword from "./components/ResetPassword";
 
 const Login = lazy(() => import("./components/Login"));
 
 const Register = lazy(() => import("./components/Register"));
 
 const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
+
+const VerifyOtp = lazy(() => import("./components/VerifyOtp"));
 
 const authRoutes: RoutesConfig = [
   {
@@ -26,15 +27,15 @@ const authRoutes: RoutesConfig = [
     layout: AuthLayout,
   },
   {
-    path: PATHS.FORGOTPASSWORD,
+    path: PATHS.FORGOT_PASSWORD,
     element: ForgotPassword,
     children: [],
     isPrivate: false,
     layout: AuthLayout,
   },
   {
-    path: PATHS.RESETPASSWORD,
-    element: ResetPassword,
+    path: PATHS.VERIFY_OTP,
+    element: VerifyOtp,
     children: [],
     isPrivate: false,
     layout: AuthLayout,
