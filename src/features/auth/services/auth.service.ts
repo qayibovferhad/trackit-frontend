@@ -1,12 +1,10 @@
 import { api } from "../../../lib/axios";
-import type { ForgetPasswordFormData } from "../types/forgotPassword.types";
-import type { LoginFormData } from "../types/login.types";
-import type { RegisterFormData } from "../types/register.types";
-import type { ResetPasswordFormData } from "../types/resetPassword.types";
-import type {
-  VerifyOtpFormData,
-  VerifyOtpResponse,
-} from "../types/verifyOtp.types";
+import type { ForgetPasswordFormData } from "../schemas/forgotPassword.schema";
+import type { LoginFormData } from "../schemas/login.schema";
+import type { RegisterFormData } from "../schemas/register.schema";
+import type { ResetPasswordFormData } from "../schemas/resetPassword.schema";
+import type { VerifyOtpFormData } from "../schemas/verifyOtp.schema";
+import type { VerifyOtpResponse } from "../types/auth.type";
 
 export const loginRequest = async (data: LoginFormData) => {
   const response = await api.post("/auth/login", data);

@@ -2,17 +2,20 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { registerRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
 import { PATHS } from "../../../routes/constants";
-import { registerSchema, type RegisterFormData } from "../types/register.types";
+import {
+  registerSchema,
+  type RegisterFormData,
+} from "../schemas/register.schema";
 import { Button } from "@/components/ui/button";
 import AuthHeader from "../components/AuthHeader";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { FormField } from "@/shared/components/FormField";
+import { PasswordField } from "../components/PasswordField";
 
 export default function Register() {
   const { mutate: registerFn, isPending } = useMutation({
@@ -31,7 +34,6 @@ export default function Register() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(registerSchema) });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onSubmit = (data: RegisterFormData) => {
@@ -85,28 +87,12 @@ export default function Register() {
           />
         </FormField>
 
-        <div>
-          <label className="block text-sm mb-1">Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              {...register("password")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute cursor-pointer inset-y-0 right-2 flex items-center text-gray-500 text-sm"
-            >
-              {showPassword ? <EyeOff /> : <Eye />}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-xs text-red-500 mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
+        <PasswordField
+          label="Password"
+          error={errors.password}
+          registration={register("password")}
+        />
+
         <div
           className={`transition-opacity duration-300 ${
             errorMessage ? "opacity-100" : "opacity-0 h-0"

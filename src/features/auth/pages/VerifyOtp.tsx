@@ -1,23 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   verifyOtpSchema,
   type VerifyOtpFormData,
-} from "../types/verifyOtp.types";
+} from "../schemas/verifyOtp.schema";
 import { useMutation } from "@tanstack/react-query";
 import { verifyOtpRequest } from "../services/auth.service";
 import { getErrorMessage } from "@/lib/error";
 import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";
 import { ErrorAlert } from "../components/ErrorAlert";
+import OtpInput from "../components/OtpInput";
 
 export default function VerifyOtp() {
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [otp, setOtp] = useState<string>("");
   const [params] = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const email = (params.get("email") || "").trim().toLowerCase();
@@ -39,28 +39,12 @@ export default function VerifyOtp() {
     },
   });
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-    setValue("otp", newOtp.join(""));
+  const handleOtpChange = (val: string) => {
+    setOtp(val);
+    setValue("otp", val);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: verifyOtpRequest,
     onSuccess: (data) => {
       setErrorMessage(null);
@@ -83,31 +67,19 @@ export default function VerifyOtp() {
       />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex flex-col items-center gap-1">
-          <div className="flex justify-center gap-2">
-            {otp.map((value, index) => (
-              <input
-                key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:border-purple-500"
-                value={value}
-                onChange={(e) => handleChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-              />
-            ))}
-          </div>
+          <OtpInput value={otp} onChange={handleOtpChange} />
           {errors.otp && (
             <p className="text-sm text-red-600 mt-1">{errors.otp.message}</p>
           )}
         </div>
         <ErrorAlert message={errorMessage} />
 
-        <Button type="submit" className="w-full cursor-pointer">
-          Verify Now
+        <Button
+          disabled={isPending}
+          type="submit"
+          className="w-full cursor-pointer"
+        >
+          {isPending ? "Verifying" : "Verify Now"}
         </Button>
       </form>
     </>

@@ -7,7 +7,3 @@ export const verifyOtpSchema = z.object({
 });
 
 export type VerifyOtpFormData = z.infer<typeof verifyOtpSchema>;
-
-export type VerifyOtpResponse = {
-  resetToken: string;
-};

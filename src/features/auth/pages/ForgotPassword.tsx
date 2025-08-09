@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import {
   forgotPasswordSchema,
   type ForgetPasswordFormData,
-} from "../types/forgotPassword.types";
+} from "../schemas/forgotPassword.schema";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { getErrorMessage } from "@/lib/error";
