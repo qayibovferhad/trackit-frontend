@@ -12,6 +12,8 @@ import { useMutation } from "@tanstack/react-query";
 import { verifyOtpRequest } from "../services/auth.service";
 import { getErrorMessage } from "@/lib/error";
 import { PATHS } from "@/routes/constants";
+import AuthHeader from "../components/AuthHeader";
+import { ErrorAlert } from "../components/ErrorAlert";
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
@@ -74,16 +76,11 @@ export default function VerifyOtp() {
   };
   return (
     <>
-      {" "}
-      <div className="flex flex-col items-center space-y-2 mb-6">
-        <div className="text-3xl text-amber-50 p-5 bg-purple-400 `border border-purple-400 rounded-full">
-          <Mail />
-        </div>
-        <h2 className="text-xl font-semibold tracking-wide">
-          Verify email address
-        </h2>
-        <p className="text-sm text-gray-600">Enter OTP send to your email</p>
-      </div>
+      <AuthHeader
+        icon={<Mail />}
+        title="Verify email address"
+        subtitle="Enter OTP send to your email"
+      />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex flex-col items-center gap-1">
           <div className="flex justify-center gap-2">
@@ -107,11 +104,8 @@ export default function VerifyOtp() {
             <p className="text-sm text-red-600 mt-1">{errors.otp.message}</p>
           )}
         </div>
-        {errorMessage && (
-          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
-            {errorMessage}
-          </p>
-        )}
+        <ErrorAlert message={errorMessage} />
+
         <Button type="submit" className="w-full cursor-pointer">
           Verify Now
         </Button>

@@ -12,6 +12,9 @@ import { useState } from "react";
 import { forgotPasswordRequest } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/routes/constants";
+import AuthHeader from "../components/AuthHeader";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { FormField } from "@/shared/components/FormField";
 
 export default function ForgotPassword() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,7 +29,7 @@ export default function ForgotPassword() {
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: forgotPasswordRequest,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setErrorMessage(null);
     },
     onError: (error) => {
@@ -39,34 +42,20 @@ export default function ForgotPassword() {
   }
   return (
     <>
-      <div className="flex flex-col items-center space-y-2 mb-6">
-        <div className="text-3xl text-amber-50 p-5 bg-purple-400 border border-purple-400 rounded-full">
-          <Lock />
-        </div>
-        <h2 className="text-xl font-semibold tracking-wide">
-          Forgot Password?
-        </h2>
-        <p className="text-sm text-gray-600">
-          We'll send new password link to email
-        </p>
-      </div>
+      <AuthHeader
+        icon={<Lock />}
+        title="Forgot Password?"
+        subtitle="We'll send new password link to email"
+      />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm mb-1">Email Address</label>
+        <FormField label="Email address" error={errors.email} htmlFor="email">
           <input
             type="text"
             {...register("email")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
-          {errors.email && (
-            <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
-          )}
-        </div>
-        {errorMessage && (
-          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
-            {errorMessage}
-          </p>
-        )}
+        </FormField>
+        <ErrorAlert message={errorMessage} />
         <Button
           disabled={isPending}
           type="submit"

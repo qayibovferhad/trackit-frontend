@@ -3,15 +3,15 @@ import { PATHS } from "../../routes/constants";
 import type { RoutesConfig } from "../../routes/types";
 import AuthLayout from "../../layouts/AuthLayout";
 
-const Login = lazy(() => import("./components/Login"));
+const Login = lazy(() => import("./pages/Login"));
 
-const Register = lazy(() => import("./components/Register"));
+const Register = lazy(() => import("./pages/Register"));
 
-const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 
-const VerifyOtp = lazy(() => import("./components/VerifyOtp"));
+const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 
-const ResetPassword = lazy(() => import("./components/ResetPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const authRoutes: RoutesConfig = [
   {

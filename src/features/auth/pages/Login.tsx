@@ -9,13 +9,16 @@ import { useMutation } from "@tanstack/react-query";
 import { loginRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../lib/error";
 import { Button } from "@/components/ui/button";
+import AuthHeader from "../components/AuthHeader";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { FormField } from "@/shared/components/FormField";
 
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { mutate: login, isPending } = useMutation({
     mutationFn: loginRequest,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setErrorMessage(null);
     },
     onError: (error) => {
@@ -36,26 +39,23 @@ export default function Login() {
   };
   return (
     <>
-      <div className="flex flex-col items-center space-y-2 mb-6">
-        <div className="text-3xl">🙂</div>
-        <h2 className="text-xl font-semibold">Sign in to Trackit</h2>
-        <p className="text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Sign Up
-          </Link>
-        </p>
-      </div>
-
+      <AuthHeader
+        icon={<>🙂</>}
+        title="Sign in to Trackit"
+        subtitle={
+          <>
+            Don’t have an account?{" "}
+            <Link to="/register" className="text-blue-600 hover:underline">
+              Sign Up
+            </Link>
+          </>
+        }
+      />
       <div className="space-y-2">
         <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
           <img src={GoogleIcon} alt="Google" className="w-4 h-4 mr-2" />
           Sign up with Google
         </button>
-        {/* <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
-          <img src={GoogleIcon} alt="Facebook" className="w-4 h-4 mr-2" />
-          Sign up with Facebook
-        </button> */}
       </div>
 
       <div className="flex items-center my-6">
@@ -65,17 +65,13 @@ export default function Login() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm mb-1">Email Address</label>
+        <FormField label="Email address" error={errors.email} htmlFor="email">
           <input
             type="text"
             {...register("email")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
-          {errors.email && (
-            <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
-          )}
-        </div>
+        </FormField>
         <div>
           <label className="block text-sm mb-1">Password</label>
           <div className="relative">
@@ -107,11 +103,8 @@ export default function Login() {
             </p>
           )}
         </div>
-        {errorMessage && (
-          <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
-            {errorMessage}
-          </p>
-        )}
+
+        <ErrorAlert message={errorMessage} />
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? "Logging in..." : "Login"}
         </Button>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Locate } from "lucide-react";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import {
   resetPasswordSchema,
@@ -12,6 +12,8 @@ import { resetPasswordRequest } from "../services/auth.service";
 import { getErrorMessage } from "@/lib/error";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PATHS } from "@/routes/constants";
+import AuthHeader from "../components/AuthHeader";
+import { ErrorAlert } from "../components/ErrorAlert";
 
 export default function ResetPassword() {
   const [show, setShow] = useState({ password: false, confirm: false });
@@ -42,7 +44,7 @@ export default function ResetPassword() {
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: resetPasswordRequest,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setErrorMessage(null);
     },
     onError: (error) => {
@@ -54,17 +56,11 @@ export default function ResetPassword() {
   };
   return (
     <>
-      <div className="flex flex-col items-center space-y-2 mb-6">
-        <div className="text-3xl text-amber-50 p-5 bg-purple-400 border border-purple-400 rounded-full">
-          <Locate />
-        </div>
-        <h2 className="text-xl font-semibold tracking-wide">
-          Set your new password
-        </h2>
-        <p className="text-sm text-gray-600">
-          Please enter your new password below.
-        </p>
-      </div>
+      <AuthHeader
+        icon={<KeyRound />}
+        title="Set your new password"
+        subtitle="Please enter your new password below."
+      />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm mb-1">New Password</label>
@@ -111,6 +107,7 @@ export default function ResetPassword() {
             </p>
           )}
         </div>
+        <ErrorAlert message={errorMessage} />
         <Button
           disabled={isPending}
           type="submit"

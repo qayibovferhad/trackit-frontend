@@ -10,11 +10,14 @@ import { getErrorMessage } from "../../../lib/error";
 import { PATHS } from "../../../routes/constants";
 import { registerSchema, type RegisterFormData } from "../types/register.types";
 import { Button } from "@/components/ui/button";
+import AuthHeader from "../components/AuthHeader";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { FormField } from "@/shared/components/FormField";
 
 export default function Register() {
   const { mutate: registerFn, isPending } = useMutation({
     mutationFn: registerRequest,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setErrorMessage(null);
     },
     onError: (error) => {
@@ -36,17 +39,18 @@ export default function Register() {
   };
   return (
     <>
-      <div className="flex flex-col items-center space-y-2 mb-6">
-        <div className="text-3xl">🙂</div>
-        <h2 className="text-xl font-semibold">Sign Up to Trackit</h2>
-        <p className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link to={PATHS.LOGIN} className="text-blue-600 hover:underline">
-            Login
-          </Link>
-        </p>
-      </div>
-
+      <AuthHeader
+        icon={<>🙂</>}
+        title="Sign Up to Trackit"
+        subtitle={
+          <>
+            Already have an account?{" "}
+            <Link to={PATHS.LOGIN} className="text-blue-600 hover:underline">
+              Login
+            </Link>
+          </>
+        }
+      />
       <div className="space-y-2">
         <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
           <img src={GoogleIcon} alt="Google" className="w-4 h-4 mr-2" />
@@ -65,31 +69,21 @@ export default function Register() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm mb-1">Email Address</label>
+        <FormField label="Email address" error={errors.email} htmlFor="email">
           <input
             type="text"
             {...register("email")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
-          {errors.email && (
-            <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
-          )}
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-1">Username</label>
+        <FormField label="Username" error={errors.username} htmlFor="username">
           <input
             type="text"
             {...register("username")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
-          {errors.username && (
-            <p className="text-xs text-red-500 mt-1">
-              {errors.username.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         <div>
           <label className="block text-sm mb-1">Password</label>
@@ -118,11 +112,7 @@ export default function Register() {
             errorMessage ? "opacity-100" : "opacity-0 h-0"
           }`}
         >
-          {errorMessage && (
-            <p className="text-sm text-red-600 bg-red-100 border border-red-300 px-3 py-2 rounded-md w-full">
-              {errorMessage}
-            </p>
-          )}
+          <ErrorAlert message={errorMessage} />
         </div>
 
         <Button type="submit" disabled={isPending} className="w-full">
