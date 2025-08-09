@@ -5,4 +5,9 @@ export const verifyOtpSchema = z.object({
   email: emailSchema,
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
+
 export type VerifyOtpFormData = z.infer<typeof verifyOtpSchema>;
+
+export type VerifyOtpResponse = {
+  resetToken: string;
+};

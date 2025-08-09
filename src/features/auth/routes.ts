@@ -11,6 +11,8 @@ const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
 
 const VerifyOtp = lazy(() => import("./components/VerifyOtp"));
 
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
+
 const authRoutes: RoutesConfig = [
   {
     path: PATHS.LOGIN,
@@ -36,6 +38,13 @@ const authRoutes: RoutesConfig = [
   {
     path: PATHS.VERIFY_OTP,
     element: VerifyOtp,
+    children: [],
+    isPrivate: false,
+    layout: AuthLayout,
+  },
+  {
+    path: PATHS.RESET_PASSWORD,
+    element: ResetPassword,
     children: [],
     isPrivate: false,
     layout: AuthLayout,

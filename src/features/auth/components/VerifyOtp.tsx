@@ -62,6 +62,7 @@ export default function VerifyOtp() {
     mutationFn: verifyOtpRequest,
     onSuccess: (data) => {
       setErrorMessage(null);
+      navigate(`${PATHS.RESET_PASSWORD}?resetToken=${data.resetToken}`);
     },
     onError: (error) => {
       setErrorMessage(getErrorMessage(error));

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const resetPasswordSchema = z
   .object({
+    resetToken: z.string(),
     newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
