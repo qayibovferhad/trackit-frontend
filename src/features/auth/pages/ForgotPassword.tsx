@@ -7,7 +7,7 @@ import {
 } from "../schemas/forgotPassword.schema";
 import { Button } from "@/shared/ui/button";
 import { useMutation } from "@tanstack/react-query";
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage } from "@/shared/lib/error";
 import { useState } from "react";
 import { forgotPasswordRequest } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";

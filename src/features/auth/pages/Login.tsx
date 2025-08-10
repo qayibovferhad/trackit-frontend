@@ -6,7 +6,7 @@ import { useState } from "react";
 import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { loginRequest } from "../services/auth.service";
-import { getErrorMessage } from "../../../lib/error";
+import { getErrorMessage } from "../../../shared/lib/error";
 import { Button } from "@/shared/ui/button";
 import AuthHeader from "../components/AuthHeader";
 import { ErrorAlert } from "../components/ErrorAlert";

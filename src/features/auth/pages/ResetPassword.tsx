@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { resetPasswordRequest } from "../services/auth.service";
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage } from "@/shared/lib/error";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";

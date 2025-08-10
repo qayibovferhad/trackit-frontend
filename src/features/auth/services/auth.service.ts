@@ -1,4 +1,4 @@
-import { api } from "../../../lib/axios";
+import { api } from "../../../shared/lib/axios";
 import type { ForgetPasswordFormData } from "../schemas/forgotPassword.schema";
 import type { LoginFormData } from "../schemas/login.schema";
 import type { RegisterFormData } from "../schemas/register.schema";

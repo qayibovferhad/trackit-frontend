@@ -10,7 +10,7 @@ import {
 } from "../schemas/verifyOtp.schema";
 import { useMutation } from "@tanstack/react-query";
 import { verifyOtpRequest } from "../services/auth.service";
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage } from "@/shared/lib/error";
 import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";
 import { ErrorAlert } from "../components/ErrorAlert";

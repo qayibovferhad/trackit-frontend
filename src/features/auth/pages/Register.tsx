@@ -5,7 +5,7 @@ import { useState } from "react";
 import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { registerRequest } from "../services/auth.service";
-import { getErrorMessage } from "../../../lib/error";
+import { getErrorMessage } from "../../../shared/lib/error";
 import { PATHS } from "../../../routes/constants";
 import {
   registerSchema,
