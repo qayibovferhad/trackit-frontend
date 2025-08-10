@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
 import { SIDEBAR_WIDTH_PX } from "@/layouts/constants";
+import { Input } from "@/shared/ui/input";
 
 type TopbarProps = {
   title?: string;
@@ -53,12 +54,12 @@ export default function Topbar({
       <div className="mx-auto flex w-full max-w-xl items-center gap-2">
         <div className="flex w-full items-center gap-2 rounded-md border px-2 bg-gray-200">
           <Search size={16} />
-          <input
+          <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder="Search…"
-            className="h-9 w-full bg-transparent text-sm outline-none"
+            className="h-9 w-full bg-transparent text-sm outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
             aria-label="Search"
           />
         </div>

@@ -1,16 +1,26 @@
-import { Home, Lock, User } from "lucide-react";
+import {
+  ChartBar,
+  CircuitBoard,
+  Home,
+  Inbox,
+  Lock,
+  User,
+  Users,
+} from "lucide-react";
 import type { NavItem } from "../types/nav.types";
 
 export const MAIN_MENU: NavItem[] = [
   {
     to: "/dashboard",
-    label: "Dashboard",
+    label: "Home",
     name: "Tasks",
     icon: Home,
     exact: true,
   },
-  { to: "/teams", label: "Teams" },
-  { to: "/inbox", label: "Inbox" },
+  { to: "/teams", label: "Dashboard", icon: ChartBar },
+  { to: "/inbox", label: "Teams", icon: Users },
+  { to: "/inbox", label: "Boards", icon: CircuitBoard },
+  { to: "/inbox", label: "Inbox", icon: Inbox },
 ];
 
 export const SETTINGS_MENU: NavItem[] = [
