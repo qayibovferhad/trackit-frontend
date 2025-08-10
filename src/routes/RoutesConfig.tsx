@@ -1,6 +1,6 @@
 import { useRoutes, type RouteObject } from "react-router-dom";
 import { allRoutes } from ".";
-import PrivateRoute from "../components/PrivateRoute";
+import PrivateRoute from "../shared/components/PrivateRoute";
 import type { RouteConfig } from "./types";
 
 const createRoute = ({

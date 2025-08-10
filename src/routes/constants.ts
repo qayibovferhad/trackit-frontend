@@ -5,4 +5,6 @@ export const PATHS = {
   FORGOT_PASSWORD: "/forgot-password",
   VERIFY_OTP: "/reset-password/verify",
   RESET_PASSWORD: "/reset-password/new",
+  SETTINGS: "/settings",
+  SETTINGS_PASSWORD: "/settings/password",
 } as const;

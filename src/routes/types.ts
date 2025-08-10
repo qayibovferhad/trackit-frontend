@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type { ValueOf } from "../types/utils";
+import type { ValueOf } from "../shared/types/utils";
 import type { PATHS } from "./constants";
 
 export interface RouteConfig {

@@ -5,7 +5,7 @@ import {
   forgotPasswordSchema,
   type ForgetPasswordFormData,
 } from "../schemas/forgotPassword.schema";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { getErrorMessage } from "@/lib/error";
 import { useState } from "react";

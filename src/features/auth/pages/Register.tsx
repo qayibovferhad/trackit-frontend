@@ -11,7 +11,7 @@ import {
   registerSchema,
   type RegisterFormData,
 } from "../schemas/register.schema";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import AuthHeader from "../components/AuthHeader";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { FormField } from "@/shared/components/FormField";
