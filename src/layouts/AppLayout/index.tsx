@@ -9,6 +9,8 @@ const SIDEBAR_WIDTH = "w-64";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const menus = [...MAIN_MENU, ...SETTINGS_MENU].flat();
+  console.log(menus);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SidebarBase
@@ -22,7 +24,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }
       />
       <Topbar menus={menus} />
-      <main className="pl-64 pt-14 p-4">{children ?? <Outlet />}</main>
+      <main className={`pl-80 pt-[90px] p-4 `}>{children ?? <Outlet />}</main>
     </div>
   );
 }

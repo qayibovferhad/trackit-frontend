@@ -1,9 +1,11 @@
 import {
+  Bell,
   ChartBar,
   CircuitBoard,
   Home,
   Inbox,
   Lock,
+  Settings,
   User,
   Users,
 } from "lucide-react";
@@ -21,9 +23,28 @@ export const MAIN_MENU: NavItem[] = [
   { to: "/inbox", label: "Teams", icon: Users },
   { to: "/inbox", label: "Boards", icon: CircuitBoard },
   { to: "/inbox", label: "Inbox", icon: Inbox },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export const SETTINGS_MENU: NavItem[] = [
-  { to: "/settings/profile", label: "Profile", name: "Settings", icon: User },
+  {
+    to: "/settings",
+    label: "General Settings",
+    name: "Settings",
+    icon: Settings,
+    exact: true,
+  },
   { to: "/settings/password", label: "Password", name: "Settings", icon: Lock },
+  {
+    to: "/settings/notifications",
+    label: "Notification Settings",
+    name: "Settings",
+    icon: Bell,
+  },
+  {
+    to: "/settings/passwdeactivationord",
+    label: "Deactivation",
+    name: "Settings",
+    icon: User,
+  },
 ];

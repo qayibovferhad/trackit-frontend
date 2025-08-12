@@ -1,5 +1,5 @@
 import { Bell, ChevronLeft, Plus, Search, User2 } from "lucide-react";
-import { usePageTitle } from "../hooks/usePageTitle";
+import { usePageTitle } from "../../../shared/hooks/usePageTitle";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
