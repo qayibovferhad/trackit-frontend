@@ -34,7 +34,12 @@ export const SETTINGS_MENU: NavItem[] = [
     icon: Settings,
     exact: true,
   },
-  { to: "/settings/password", label: "Password", name: "Settings", icon: Lock },
+  {
+    to: "/settings/password",
+    label: "Password Settings",
+    name: "Settings",
+    icon: Lock,
+  },
   {
     to: "/settings/notifications",
     label: "Notification Settings",

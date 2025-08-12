@@ -6,7 +6,7 @@ export default function SettingsLayout() {
   return (
     <div className="flex">
       <Sidebar items={SETTINGS_MENU} />
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 pl-10">
         <Outlet />
       </div>
     </div>

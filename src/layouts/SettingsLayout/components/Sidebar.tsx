@@ -1,6 +1,5 @@
 import { cn } from "@/shared/lib/utils";
 import type { NavItem } from "@/shared/types/nav.types";
-import { ScrollArea } from "@/shared/ui/scroll-area";
 import { NavLink } from "react-router-dom";
 
 type SettingsSidebarProps = {
