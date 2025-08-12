@@ -47,7 +47,7 @@ export const SETTINGS_MENU: NavItem[] = [
     icon: Bell,
   },
   {
-    to: "/settings/passwdeactivationord",
+    to: "/settings/deactivation",
     label: "Deactivation",
     name: "Settings",
     icon: User,

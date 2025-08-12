@@ -7,4 +7,5 @@ export const PATHS = {
   RESET_PASSWORD: "/reset-password/new",
   SETTINGS: "/settings",
   SETTINGS_PASSWORD: "/settings/password",
+  SETTINGS_DEACTIVATION: "/settings/deactivation",
 } as const;
