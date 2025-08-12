@@ -1,6 +1,4 @@
-import { useForm } from "react-hook-form";
 import { SettingsBox } from "../components/SettingsBox";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   changePasswordSchema,
   type ChangePasswordFormData,
@@ -10,7 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Check } from "lucide-react";
 import { useZodForm } from "@/shared/hooks/useZodForm";
 
-export default function PasswordChange() {
+export default function PasswordChangeSettings() {
   const {
     register,
     formState: { errors },

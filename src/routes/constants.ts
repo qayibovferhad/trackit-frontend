@@ -8,4 +8,5 @@ export const PATHS = {
   SETTINGS: "/settings",
   SETTINGS_PASSWORD: "/settings/password",
   SETTINGS_DEACTIVATION: "/settings/deactivation",
+  SETTINGS_NOTIFICATION: "/settings/notifications",
 } as const;
