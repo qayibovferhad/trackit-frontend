@@ -6,16 +6,16 @@ import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { registerRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../shared/lib/error";
-import { PATHS } from "../../../routes/constants";
 import {
   registerSchema,
   type RegisterFormData,
 } from "../schemas/register.schema";
 import { Button } from "@/shared/ui/button";
 import AuthHeader from "../components/AuthHeader";
-import { ErrorAlert } from "../components/ErrorAlert";
 import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
+import { PATHS } from "@/shared/constants/routes";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 
 export default function Register() {
   const { mutate: registerFn, isPending } = useMutation({
@@ -98,7 +98,7 @@ export default function Register() {
             errorMessage ? "opacity-100" : "opacity-0 h-0"
           }`}
         >
-          <ErrorAlert message={errorMessage} />
+          {errorMessage && <ErrorAlert message={errorMessage} />}
         </div>
 
         <Button type="submit" disabled={isPending} className="w-full">

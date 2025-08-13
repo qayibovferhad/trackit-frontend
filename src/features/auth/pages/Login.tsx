@@ -9,14 +9,13 @@ import { loginRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../shared/lib/error";
 import { Button } from "@/shared/ui/button";
 import AuthHeader from "../components/AuthHeader";
-import { ErrorAlert } from "../components/ErrorAlert";
 import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
-
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { mutate: login, isPending } = useMutation({
+  const { mutateAsync: login, isPending } = useMutation({
     mutationFn: loginRequest,
     onSuccess: () => {
       setErrorMessage(null);
@@ -32,8 +31,10 @@ export default function Login() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
-  const onSubmit = (data: LoginFormData) => {
-    login(data);
+  const onSubmit = async (data: LoginFormData) => {
+    const res = await login(data);
+    if (res?.accessToken)
+      localStorage.setItem("access_token", res?.accessToken);
   };
   return (
     <>
@@ -86,7 +87,7 @@ export default function Login() {
           </Link>
         </div>
 
-        <ErrorAlert message={errorMessage} />
+        {errorMessage && <ErrorAlert message={errorMessage} />}
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? "Logging in..." : "Login"}
         </Button>

@@ -1,7 +1,7 @@
 import { lazy } from "react";
-import { PATHS } from "../../routes/constants";
-import type { RoutesConfig } from "../../routes/types";
 import AuthLayout from "@/layouts/AuthLayout";
+import type { RoutesConfig } from "@/shared/types/routes.types";
+import { PATHS } from "@/shared/constants/routes";
 
 const Login = lazy(() => import("./pages/Login"));
 

@@ -1,4 +1,4 @@
-import type { RoutesConfig } from "./types";
+import type { RoutesConfig } from "@/shared/types/routes.types";
 
 export const featureRoutes = import.meta.glob("../features/*/routes.ts", {
   eager: true,

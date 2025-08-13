@@ -7,3 +7,8 @@ export type NavItem = {
   exact?: boolean;
   name?: string;
 };
+
+export type NavListProps = {
+  items: NavItem[];
+  className?: string;
+};

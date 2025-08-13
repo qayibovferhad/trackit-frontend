@@ -11,10 +11,10 @@ import { getErrorMessage } from "@/shared/lib/error";
 import { useState } from "react";
 import { forgotPasswordRequest } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
-import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";
-import { ErrorAlert } from "../components/ErrorAlert";
 import { FormField } from "@/shared/components/FormField";
+import { PATHS } from "@/shared/constants/routes";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 
 export default function ForgotPassword() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -55,7 +55,7 @@ export default function ForgotPassword() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
         </FormField>
-        <ErrorAlert message={errorMessage} />
+        {errorMessage && <ErrorAlert message={errorMessage} />}
         <Button
           disabled={isPending}
           type="submit"

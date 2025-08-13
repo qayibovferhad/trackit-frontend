@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { PATHS } from "../../routes/constants";
+import { PATHS } from "../constants/routes";
 
 export default function PrivateRoute({
   children,

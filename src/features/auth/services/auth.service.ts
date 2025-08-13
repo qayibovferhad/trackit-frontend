@@ -8,6 +8,8 @@ import type { VerifyOtpResponse } from "../types/auth.type";
 
 export const loginRequest = async (data: LoginFormData) => {
   const response = await api.post("/auth/login", data);
+  console.log(response);
+
   return response.data;
 };
 

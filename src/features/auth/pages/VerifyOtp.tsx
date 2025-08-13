@@ -11,10 +11,10 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { verifyOtpRequest } from "../services/auth.service";
 import { getErrorMessage } from "@/shared/lib/error";
-import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";
-import { ErrorAlert } from "../components/ErrorAlert";
 import OtpInput from "../components/OtpInput";
+import { PATHS } from "@/shared/constants/routes";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState<string>("");
@@ -72,7 +72,7 @@ export default function VerifyOtp() {
             <p className="text-sm text-red-600 mt-1">{errors.otp.message}</p>
           )}
         </div>
-        <ErrorAlert message={errorMessage} />
+        {errorMessage && <ErrorAlert message={errorMessage} />}
 
         <Button
           disabled={isPending}

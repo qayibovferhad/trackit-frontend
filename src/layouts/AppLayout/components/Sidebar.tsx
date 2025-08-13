@@ -1,3 +1,4 @@
+import { NavList } from "@/shared/components/NavList";
 import { cn } from "@/shared/lib/utils";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Button } from "@/shared/ui/button";
@@ -5,7 +6,6 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/ui/sheet";
 import { Menu } from "lucide-react";
 import type { ReactNode } from "react";
-import { NavLink } from "react-router-dom";
 
 type SidebarBaseProps = {
   items?: NavItem[];
@@ -87,26 +87,7 @@ export function SidebarContent({
       </div>
 
       <ScrollArea className="flex-1">
-        <nav className="p-10 space-y-1">
-          {items.map(({ to, label, icon: Icon, exact }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={!!exact}
-              className={({ isActive }) =>
-                cn(
-                  "group flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition mb-5",
-                  isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "hover:bg-gray-200"
-                )
-              }
-            >
-              {Icon && <Icon className="size-5 shrink-0" />}
-              <span className="truncate">{label}</span>
-            </NavLink>
-          ))}
-        </nav>
+        <NavList items={items} className="p-10 space-y-1" />
       </ScrollArea>
     </div>
   );

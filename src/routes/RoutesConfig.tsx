@@ -1,7 +1,7 @@
 import { useRoutes, type RouteObject } from "react-router-dom";
 import { allRoutes } from ".";
 import PrivateRoute from "../shared/components/PrivateRoute";
-import type { RouteConfig } from "./types";
+import type { RouteConfig } from "@/shared/types/routes.types";
 
 const createRoute = ({
   path,
@@ -9,6 +9,7 @@ const createRoute = ({
   isPrivate,
   layout: Layout,
   children,
+  index = false,
 }: RouteConfig): RouteObject => {
   const element = isPrivate ? (
     <PrivateRoute>
@@ -18,8 +19,15 @@ const createRoute = ({
     <Component />
   );
 
+  if (index) {
+    return {
+      index: true,
+      element,
+    };
+  }
   return {
     path,
+    index,
     element: Layout ? <Layout>{element}</Layout> : element,
     ...(children && { children: children.map(createRoute) }),
   };

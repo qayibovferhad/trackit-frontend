@@ -11,10 +11,10 @@ import { useMutation } from "@tanstack/react-query";
 import { resetPasswordRequest } from "../services/auth.service";
 import { getErrorMessage } from "@/shared/lib/error";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PATHS } from "@/routes/constants";
 import AuthHeader from "../components/AuthHeader";
-import { ErrorAlert } from "../components/ErrorAlert";
 import { PasswordField } from "../components/PasswordField";
+import { PATHS } from "@/shared/constants/routes";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 
 export default function ResetPassword() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export default function ResetPassword() {
           error={errors.confirmPassword}
           registration={register("confirmPassword")}
         />
-        <ErrorAlert message={errorMessage} />
+        {errorMessage && <ErrorAlert message={errorMessage} />}
         <Button
           disabled={isPending}
           type="submit"

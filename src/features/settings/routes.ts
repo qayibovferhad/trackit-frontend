@@ -1,16 +1,21 @@
-import { PATHS } from "@/routes/constants";
-import type { RoutesConfig } from "@/routes/types";
 import AppLayout from "@/layouts/AppLayout";
 import SettingsLayout from "@/layouts/SettingsLayout";
 import DeactivationSettings from "./pages/Deactivation";
 import NotificationSettings from "./pages/Notification";
 import PasswordChangeSettings from "./pages/PasswordChange";
+import type { RoutesConfig } from "@/shared/types/routes.types";
+import { PATHS } from "@/shared/constants/routes";
 
 const routes: RoutesConfig = [
   {
     path: PATHS.SETTINGS,
     element: SettingsLayout,
     children: [
+      {
+        index: true,
+        element: PasswordChangeSettings,
+        isPrivate: true,
+      },
       {
         path: PATHS.SETTINGS_PASSWORD,
         element: PasswordChangeSettings,

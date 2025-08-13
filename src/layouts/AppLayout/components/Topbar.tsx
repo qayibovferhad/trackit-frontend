@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
-import { SIDEBAR_WIDTH_PX } from "@/layouts/constants";
 import { Input } from "@/shared/ui/input";
+
+export const SIDEBAR_WIDTH_PX = 256;
 
 type TopbarProps = {
   title?: string;

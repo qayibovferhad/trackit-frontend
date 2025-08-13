@@ -6,7 +6,6 @@ export const changePasswordSchema = z
     currentPassword: z
       .string()
       .min(1, { message: "Current password is required" }),
-
     newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
