@@ -6,3 +6,10 @@ export interface NotifState {
   weeklyReport: boolean;
   newMessage: boolean;
 }
+
+export type AccountStatus = "active" | "deactivated";
+
+export type UpdateStatusRequest = {
+  status: AccountStatus;
+  reason?: string;
+};

@@ -29,7 +29,6 @@ export default function PasswordChangeSettings() {
     onSuccess: () => {},
   });
   async function onSubmit(data: ChangePasswordFormData) {
-    console.log(data);
     await mutateAsync(data);
   }
   console.log(errors);

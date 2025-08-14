@@ -2,8 +2,39 @@ import { LogOut, Trash2 } from "lucide-react";
 import { SettingsBox } from "../components/SettingsBox";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import {
+  changeStatusRequest,
+  deleteMyAccount,
+} from "../services/settings.service";
+import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/shared/constants/routes";
+import ConfirmDeleteAccountDialog from "../components/ConfirmDeleteDialog";
 
 export default function DeactivationSettings() {
+  const [reason, setReason] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const navigate = useNavigate();
+  console.log(reason);
+
+  const deactivateMut = useMutation({
+    mutationFn: () => changeStatusRequest({ status: "deactivated", reason }),
+    onSuccess: () => {
+      navigate(PATHS.LOGIN);
+    },
+    onError: (e: any) => {},
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: deleteMyAccount,
+    onSuccess: () => {
+      navigate(PATHS.LOGIN);
+    },
+    onError: (e: any) => {},
+  });
+  const isBusy = deactivateMut.isPending || deleteMut.isPending;
+  const buttonsDisabled = !agreed || isBusy;
   return (
     <SettingsBox title="Deactivate Account">
       <div className="space-y-5">
@@ -46,6 +77,8 @@ export default function DeactivationSettings() {
           </label>
           <Input
             id="deactivate-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
             placeholder="Write your reason..."
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none
                focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
@@ -59,6 +92,8 @@ export default function DeactivationSettings() {
             <input
               type="checkbox"
               className="size-4 rounded border-gray-300 text-black focus:ring-0"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
               I agree with your{" "}
@@ -72,14 +107,18 @@ export default function DeactivationSettings() {
         <div className="flex items-center gap-3 pt-1">
           <Button
             type="button"
+            disabled={buttonsDisabled}
+            onClick={() => deactivateMut.mutate()}
             className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
             Deactivate Account
           </Button>
 
-          <Button variant="destructive" type="button">
-            Delete Account
-          </Button>
+          <ConfirmDeleteAccountDialog
+            isLoading={deleteMut.isPending}
+            disabled={buttonsDisabled}
+            onConfirm={() => deleteMut.mutate()}
+          />
         </div>
       </div>
     </SettingsBox>
