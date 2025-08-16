@@ -20,7 +20,6 @@ export function ToggleRow({
         {description && <p className="text-sm text-gray-600">{description}</p>}
       </div>
 
-      {/* Basit switch */}
       <label className="relative inline-flex cursor-pointer select-none items-center">
         <input
           type="checkbox"

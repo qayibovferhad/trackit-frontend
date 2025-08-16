@@ -1,4 +1,4 @@
-export interface NotifState {
+export interface NotificationSettingsType {
   generalEmails: boolean;
   userJoined: boolean;
   kitPurchase: boolean;
