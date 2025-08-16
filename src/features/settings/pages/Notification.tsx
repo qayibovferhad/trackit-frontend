@@ -48,7 +48,6 @@ export default function NotificationSettings() {
     mutateAsync,
     isPending,
     error: updateError,
-    isSuccess,
   } = useMutation({
     mutationFn: updateNotificationSettings,
     onSuccess: (updatedSettings) => {

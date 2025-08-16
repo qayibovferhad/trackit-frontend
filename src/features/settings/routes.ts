@@ -1,10 +1,16 @@
 import AppLayout from "@/layouts/AppLayout";
 import SettingsLayout from "@/layouts/SettingsLayout";
-import DeactivationSettings from "./pages/Deactivation";
-import NotificationSettings from "./pages/Notification";
-import PasswordChangeSettings from "./pages/PasswordChange";
 import type { RoutesConfig } from "@/shared/types/routes.types";
 import { PATHS } from "@/shared/constants/routes";
+import { lazy } from "react";
+
+const PersonalDetailsSettings = lazy(() => import("./pages/PersonalDetails"));
+
+const PasswordChangeSettings = lazy(() => import("./pages/PasswordChange"));
+
+const DeactivationSettings = lazy(() => import("./pages/Deactivation"));
+
+const NotificationSettings = lazy(() => import("./pages/Notification"));
 
 const routes: RoutesConfig = [
   {
@@ -13,7 +19,7 @@ const routes: RoutesConfig = [
     children: [
       {
         index: true,
-        element: PasswordChangeSettings,
+        element: PersonalDetailsSettings,
         isPrivate: true,
       },
       {

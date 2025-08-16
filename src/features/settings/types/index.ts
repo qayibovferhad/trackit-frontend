@@ -13,3 +13,11 @@ export type UpdateStatusRequest = {
   status: AccountStatus;
   reason?: string;
 };
+
+export interface PersonalDetailsData {
+  name: string;
+  username: string;
+  email: string;
+  phone?: string;
+  profileImage?: string;
+}
