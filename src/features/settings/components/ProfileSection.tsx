@@ -3,7 +3,7 @@ import { SettingsBox } from "./SettingsBox";
 import { Check, Upload, User } from "lucide-react";
 import { FormField } from "@/shared/components/FormField";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   updatePersonalDetails,
@@ -14,9 +14,11 @@ import {
   type ProfileDetailsFormData,
 } from "../schemas/personalDetails.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
+import type { PersonalDetails } from "../types";
+import { getErrorMessage } from "@/shared/lib/error";
 
 interface ProfileSectionProps {
-  data: any;
+  data: PersonalDetails;
   isLoading: boolean;
   refetch: () => void;
 }
@@ -49,12 +51,20 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
     register,
     formState: { errors },
     handleSubmit,
+    setValue,
   } = useZodForm(profileDetailsSchema, {
     defaultValues: {
       name: data?.name || "",
       username: data?.username || "",
     },
   });
+
+  useEffect(() => {
+    if (data) {
+      setValue("name", data.name || "");
+      setValue("username", data.username || "");
+    }
+  }, [data, setValue]);
 
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -135,7 +145,7 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
             >
               <div className="flex">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">
-                  Superpage/
+                  Trackit/
                 </span>
                 <input
                   id="username"
@@ -160,14 +170,7 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
             <Check size={16} />
             {isUpdatingDetails ? "Saving Changes..." : "Save Changes"}
           </Button>
-
-          {updateError && (
-            <ErrorAlert
-              message={
-                updateError?.message || "Failed to update personal details"
-              }
-            />
-          )}
+          {updateError && <ErrorAlert message={getErrorMessage(updateError)} />}
         </form>
       </div>
     </SettingsBox>

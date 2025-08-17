@@ -12,9 +12,10 @@ import {
   type EmailUpdateFormData,
   type PhoneUpdateFormData,
 } from "../schemas/personalDetails.schema";
+import type { PersonalDetails } from "../types";
 
 interface ContactSectionProps {
-  data: any;
+  data: PersonalDetails;
   refetch: () => void;
 }
 export default function ContactSection({ data, refetch }: ContactSectionProps) {
@@ -22,7 +23,7 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
     register: registerEmail,
     formState: { errors: emailErrors },
     handleSubmit: handleEmailSubmit,
-    setValue: setEmailFormValue,
+    reset: resetEmail,
   } = useZodForm(emailUpdateSchema, {
     defaultValues: {
       email: data?.email || "",
@@ -33,7 +34,7 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
     register: registerPhone,
     formState: { errors: phoneErrors },
     handleSubmit: handlePhoneSubmit,
-    setValue: setPhoneFormValue,
+    reset: resetPhone,
   } = useZodForm(phoneUpdateSchema, {
     defaultValues: {
       phone: data?.phone || "",
@@ -41,11 +42,13 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
   });
 
   useEffect(() => {
-    if (data) {
-      setEmailFormValue("email", data.email || "");
-      setPhoneFormValue("phone", data.phone || "");
+    if (data?.email) {
+      resetEmail({ email: data?.email || "" });
     }
-  }, [data, setEmailFormValue, setPhoneFormValue]);
+    if (data?.phone) {
+      resetPhone({ phone: data?.phone || "" });
+    }
+  }, [data, resetEmail, resetPhone]);
 
   const {
     mutateAsync: updateEmailMutation,
@@ -70,17 +73,24 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
   });
 
   const handleEmailUpdate = async (data: EmailUpdateFormData) => {
+    console.log("data", data);
+
     await updateEmailMutation(data);
   };
 
   const handlePhoneUpdate = async (data: PhoneUpdateFormData) => {
+    console.log("2332", data);
+
     await updatePhoneMutation(data);
   };
+
+  console.log(emailErrors, "emailErrors");
+
   return (
     <SettingsBox title="Email and Phone Details">
       <div className="space-y-4">
         <div>
-          <form onSubmit={handleEmailSubmit(handleEmailUpdate)}>
+          <form id="emailForm" onSubmit={handleEmailSubmit(handleEmailUpdate)}>
             <FormField
               label="Email Address"
               error={emailErrors.email}
@@ -95,7 +105,6 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
                 />
                 <Button
                   type="submit"
-                  {...registerEmail("email")}
                   disabled={isUpdatingEmail}
                   className="px-4"
                 >
@@ -113,7 +122,7 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
           )}
         </div>
         <div>
-          <form onSubmit={handlePhoneSubmit(handlePhoneUpdate)}>
+          <form id="phoneForm" onSubmit={handlePhoneSubmit(handlePhoneUpdate)}>
             <FormField
               label="Phone Number"
               error={phoneErrors.phone}

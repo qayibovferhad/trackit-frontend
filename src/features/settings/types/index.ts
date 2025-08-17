@@ -14,7 +14,7 @@ export type UpdateStatusRequest = {
   reason?: string;
 };
 
-export interface PersonalDetailsData {
+export interface PersonalDetails {
   name: string;
   username: string;
   email: string;

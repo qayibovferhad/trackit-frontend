@@ -16,8 +16,6 @@ export default function DeactivationSettings() {
   const [reason, setReason] = useState("");
   const [agreed, setAgreed] = useState(false);
   const navigate = useNavigate();
-  console.log(reason);
-
   const deactivateMut = useMutation({
     mutationFn: () => changeStatusRequest({ status: "deactivated", reason }),
     onSuccess: () => {

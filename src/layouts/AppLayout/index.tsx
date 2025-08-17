@@ -9,7 +9,6 @@ const SIDEBAR_WIDTH = "w-64";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const menus = [...MAIN_MENU, ...SETTINGS_MENU].flat();
-  console.log(menus);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

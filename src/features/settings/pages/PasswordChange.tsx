@@ -31,7 +31,6 @@ export default function PasswordChangeSettings() {
   async function onSubmit(data: ChangePasswordFormData) {
     await mutateAsync(data);
   }
-  console.log(errors);
 
   return (
     <SettingsBox title="Password Settings">
