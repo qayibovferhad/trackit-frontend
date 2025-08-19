@@ -73,18 +73,12 @@ export default function ContactSection({ data, refetch }: ContactSectionProps) {
   });
 
   const handleEmailUpdate = async (data: EmailUpdateFormData) => {
-    console.log("data", data);
-
     await updateEmailMutation(data);
   };
 
   const handlePhoneUpdate = async (data: PhoneUpdateFormData) => {
-    console.log("2332", data);
-
     await updatePhoneMutation(data);
   };
-
-  console.log(emailErrors, "emailErrors");
 
   return (
     <SettingsBox title="Email and Phone Details">
