@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { loginRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../shared/lib/error";
@@ -12,6 +11,7 @@ import AuthHeader from "../components/AuthHeader";
 import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -51,10 +51,7 @@ export default function Login() {
         }
       />
       <div className="space-y-2">
-        <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
-          <img src={GoogleIcon} alt="Google" className="w-4 h-4 mr-2" />
-          Sign up with Google
-        </button>
+        <GoogleAuthButton text="Sign in with Google" />
       </div>
 
       <div className="flex items-center my-6">

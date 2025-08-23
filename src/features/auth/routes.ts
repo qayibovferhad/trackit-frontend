@@ -13,6 +13,8 @@ const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
+const OAuthGoogleCallback = lazy(() => import("./pages/OAuthGoogleCallback"));
+
 const authRoutes: RoutesConfig = [
   {
     path: PATHS.LOGIN,
@@ -45,6 +47,13 @@ const authRoutes: RoutesConfig = [
   {
     path: PATHS.RESET_PASSWORD,
     element: ResetPassword,
+    children: [],
+    isPrivate: false,
+    layout: AuthLayout,
+  },
+  {
+    path: PATHS.GOOGLE_CALLBACK,
+    element: OAuthGoogleCallback,
     children: [],
     isPrivate: false,
     layout: AuthLayout,

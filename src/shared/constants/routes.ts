@@ -9,4 +9,5 @@ export const PATHS = {
   SETTINGS_PASSWORD: "/settings/password",
   SETTINGS_DEACTIVATION: "/settings/deactivation",
   SETTINGS_NOTIFICATION: "/settings/notifications",
+  GOOGLE_CALLBACK: "/oauth/google/callback",
 } as const;

@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import GoogleIcon from "../../../assets/icons/google-icon.png";
 import { useMutation } from "@tanstack/react-query";
 import { registerRequest } from "../services/auth.service";
 import { getErrorMessage } from "../../../shared/lib/error";
@@ -16,6 +15,7 @@ import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
 import { PATHS } from "@/shared/constants/routes";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 export default function Register() {
   const { mutate: registerFn, isPending } = useMutation({
@@ -54,14 +54,7 @@ export default function Register() {
         }
       />
       <div className="space-y-2">
-        <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
-          <img src={GoogleIcon} alt="Google" className="w-4 h-4 mr-2" />
-          Sign up with Google
-        </button>
-        {/* <button className="w-full cursor-pointer flex items-center justify-center border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50">
-          <img src={GoogleIcon} alt="Facebook" className="w-4 h-4 mr-2" />
-          Sign up with Facebook
-        </button> */}
+        <GoogleAuthButton text="Sign up with Google" />
       </div>
 
       <div className="flex items-center my-6">
