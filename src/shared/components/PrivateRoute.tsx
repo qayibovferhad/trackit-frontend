@@ -1,12 +1,17 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { PATHS } from "../constants/routes";
+import { hasAccessToken } from "../lib/authStorage";
 
 export default function PrivateRoute({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const isLoggedIn = true;
+  const location = useLocation();
 
-  return isLoggedIn ? children : <Navigate to={PATHS.LOGIN} />;
+  if (!hasAccessToken) {
+    return <Navigate to={PATHS.LOGIN} replace state={{ from: location }} />;
+  }
+
+  return <>{children}</>;
 }

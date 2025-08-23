@@ -12,6 +12,7 @@ import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import GoogleAuthButton from "../components/GoogleAuthButton";
+import { setAccessToken } from "@/shared/lib/authStorage";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -33,8 +34,7 @@ export default function Login() {
 
   const onSubmit = async (data: LoginFormData) => {
     const res = await login(data);
-    if (res?.accessToken)
-      localStorage.setItem("access_token", res?.accessToken);
+    if (res?.accessToken) setAccessToken(res?.accessToken);
   };
   return (
     <>
