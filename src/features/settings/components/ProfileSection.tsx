@@ -16,6 +16,7 @@ import {
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import type { PersonalDetails } from "../types";
 import { getErrorMessage } from "@/shared/lib/error";
+import { useUserStore } from "@/stores/userStore";
 
 interface ProfileSectionProps {
   data: PersonalDetails;

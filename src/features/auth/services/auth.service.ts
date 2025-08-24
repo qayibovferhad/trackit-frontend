@@ -4,12 +4,16 @@ import type { LoginFormData } from "../schemas/login.schema";
 import type { RegisterFormData } from "../schemas/register.schema";
 import type { ResetPasswordFormData } from "../schemas/resetPassword.schema";
 import type { VerifyOtpFormData } from "../schemas/verifyOtp.schema";
-import type { VerifyOtpResponse } from "../types/auth.type";
+import type {
+  LoginResponse,
+  User,
+  VerifyOtpResponse,
+} from "../types/auth.type";
 
-export const loginRequest = async (data: LoginFormData) => {
+export const loginRequest = async (
+  data: LoginFormData
+): Promise<LoginResponse> => {
   const response = await api.post("/auth/login", data);
-  console.log(response);
-
   return response.data;
 };
 
@@ -32,5 +36,10 @@ export const verifyOtpRequest = async (
 
 export const resetPasswordRequest = async (data: ResetPasswordFormData) => {
   const response = await api.post("/auth/password/reset", data);
+  return response.data;
+};
+
+export const getCurrentUserRequest = async (): Promise<{ user: User }> => {
+  const response = await api.post("/auth/me");
   return response.data;
 };

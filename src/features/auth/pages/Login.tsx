@@ -12,10 +12,11 @@ import { FormField } from "@/shared/components/FormField";
 import { PasswordField } from "../components/PasswordField";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import GoogleAuthButton from "../components/GoogleAuthButton";
+import { useUserStore } from "@/stores/userStore";
 import { setAccessToken } from "@/shared/lib/authStorage";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const { setUser } = useUserStore();
   const { mutateAsync: login, isPending } = useMutation({
     mutationFn: loginRequest,
     onSuccess: () => {
@@ -33,8 +34,14 @@ export default function Login() {
   } = useForm({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginFormData) => {
-    const res = await login(data);
-    if (res?.accessToken) setAccessToken(res?.accessToken);
+    const response = await login(data);
+    if (response?.accessToken && response.user) {
+      console.log(response);
+
+      setUser(response.user);
+
+      setAccessToken(response.accessToken);
+    }
   };
   return (
     <>

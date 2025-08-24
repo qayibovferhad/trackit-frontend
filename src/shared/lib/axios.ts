@@ -6,8 +6,6 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-let accessToken: string | null = getAccessToken();
-
 let isRefreshing = false;
 let pendingQueue: Array<(token: string | null) => void> = [];
 
@@ -17,7 +15,8 @@ function redirectToLogin() {
   }
 }
 api.interceptors.request.use((config) => {
-  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  const currentToken = getAccessToken();
+  if (currentToken) config.headers.Authorization = `Bearer ${currentToken}`;
   return config;
 });
 api.interceptors.response.use(

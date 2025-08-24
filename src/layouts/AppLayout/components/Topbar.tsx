@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Input } from "@/shared/ui/input";
+import { useUserStore } from "@/stores/userStore";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -23,6 +24,7 @@ export default function Topbar({
   showBack = true,
 }: TopbarProps) {
   const computedTitle = usePageTitle(menus, title);
+  const { user } = useUserStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
   const submit = () => {
@@ -87,7 +89,7 @@ export default function Topbar({
           className="flex items-center gap-2 rounded-md p-1.5 pl-2 pr-3 hover:bg-muted"
         >
           <User2 size={18} />
-          <span className="hidden sm:inline text-sm">Username</span>
+          <span className="hidden sm:inline text-sm">{user?.email}</span>
         </Button>
         {rightSlot}
       </div>
