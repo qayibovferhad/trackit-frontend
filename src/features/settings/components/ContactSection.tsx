@@ -13,7 +13,6 @@ import {
   type PhoneUpdateFormData,
 } from "../schemas/personalDetails.schema";
 import type { PersonalDetails } from "../types";
-import { useUserStore } from "@/stores/userStore";
 
 interface ContactSectionProps {
   data: PersonalDetails;

@@ -6,6 +6,15 @@ import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Input } from "@/shared/ui/input";
 import { useUserStore } from "@/stores/userStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -72,25 +81,51 @@ export default function Topbar({
         <Button
           variant="iconSoft"
           size="icon"
-          className="rounded-md p-2 hover:bg-muted"
+          className="rounded-md p-2 hover:bg-muted [&>svg]:size-6"
           aria-label="New"
         >
-          <Plus size={18} />
+          <Plus className="!size-4" />
         </Button>
         <Button
           variant="ghost"
           className="rounded-md p-2 hover:bg-muted"
           aria-label="Notifications"
         >
-          <Bell size={18} />
+          <Bell className="!size-4" />
         </Button>
-        <Button
+        {/* <Button
           variant="ghost"
           className="flex items-center gap-2 rounded-md p-1.5 pl-2 pr-3 hover:bg-muted"
         >
           <User2 size={18} />
           <span className="hidden sm:inline text-sm">{user?.email}</span>
-        </Button>
+        </Button> */}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 rounded-md p-1.5 pl-1.5 pr-3 hover:bg-muted"
+              aria-label="Account menu"
+            >
+              <Avatar className="h-9 w-9 border">
+                <AvatarImage
+                  src={user?.profileImage ?? undefined}
+                  alt={user?.name ?? user?.email ?? "User"}
+                />
+                <AvatarFallback className="text-[11px]">
+                  {user?.name ?? user?.email}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="end"
+            className="w-56"
+          ></DropdownMenuContent>
+        </DropdownMenu>
+
         {rightSlot}
       </div>
     </header>

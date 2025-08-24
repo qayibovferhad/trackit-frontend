@@ -16,7 +16,6 @@ import {
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import type { PersonalDetails } from "../types";
 import { getErrorMessage } from "@/shared/lib/error";
-import { useUserStore } from "@/stores/userStore";
 
 interface ProfileSectionProps {
   data: PersonalDetails;
@@ -33,6 +32,7 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
       mutationFn: uploadProfileImage,
       onSuccess: (imageUrl) => {
         setImagePreview(imageUrl);
+        refetch();
       },
     }
   );

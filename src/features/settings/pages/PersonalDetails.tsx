@@ -6,7 +6,7 @@ import { useUserStore } from "@/stores/userStore";
 import { useEffect } from "react";
 
 export default function PersonalDetailsSettings() {
-  const { user, setUser } = useUserStore();
+  const { setUser } = useUserStore();
   const {
     data: personalData,
     isLoading,
@@ -14,7 +14,6 @@ export default function PersonalDetailsSettings() {
   } = useQuery({
     queryKey: ["personal-details"],
     queryFn: getPersonalDetails,
-    initialData: user ? { ...user } : undefined,
     staleTime: 5 * 60 * 1000,
   });
 
