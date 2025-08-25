@@ -37,11 +37,11 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-        setAccessToken(data.accessToken);
+        setAccessToken(data.access_token);
         isRefreshing = false;
-        pendingQueue.forEach((cb) => cb(data.accessToken));
+        pendingQueue.forEach((cb) => cb(data.access_token));
         pendingQueue = [];
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        original.headers.Authorization = `Bearer ${data.access_token}`;
         return api(original);
       } catch (refreshErr) {
         isRefreshing = false;

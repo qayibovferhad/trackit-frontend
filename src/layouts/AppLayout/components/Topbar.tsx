@@ -1,4 +1,14 @@
-import { Bell, ChevronLeft, Plus, Search, User2 } from "lucide-react";
+import {
+  Bell,
+  ChevronLeft,
+  LogOut,
+  NotepadTextIcon,
+  Plus,
+  Search,
+  User2,
+  UserIcon,
+  UserPlus,
+} from "lucide-react";
 import { usePageTitle } from "../../../shared/hooks/usePageTitle";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import UserAvatar from "@/shared/components/UserAvatar";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -41,6 +52,8 @@ export default function Topbar({
     if (!value) return;
     onSearchSubmit?.(value);
   };
+
+  function logout() {}
   return (
     <header
       className="fixed top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4"
@@ -93,41 +106,106 @@ export default function Topbar({
         >
           <Bell className="!size-4" />
         </Button>
-        {/* <Button
-          variant="ghost"
-          className="flex items-center gap-2 rounded-md p-1.5 pl-2 pr-3 hover:bg-muted"
-        >
-          <User2 size={18} />
-          <span className="hidden sm:inline text-sm">{user?.email}</span>
-        </Button> */}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 rounded-md p-1.5 pl-1.5 pr-3 hover:bg-muted"
+              className="flex items-center gap-2 rounded-md p-1.5 pl-1.5 pr-3 hover:bg-muted
+               outline-none ring-0 ring-offset-0
+               focus:outline-none focus:ring-0 focus:ring-offset-0
+               focus-visible:ring-0 focus-visible:outline-none"
               aria-label="Account menu"
             >
-              <Avatar className="h-9 w-9 border">
-                <AvatarImage
-                  src={user?.profileImage ?? undefined}
-                  alt={user?.name ?? user?.email ?? "User"}
-                />
-                <AvatarFallback className="text-[11px]">
-                  {user?.name ?? user?.email}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                src={user?.profileImage}
+                name={user?.name}
+                email={user?.email}
+                size="md"
+                className="border-0"
+              />
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            align="end"
-            className="w-56"
-          ></DropdownMenuContent>
+          <DropdownMenuContent align="end" className="w-56">
+            <MenuRow
+              iconCircle
+              icon={
+                <UserAvatar
+                  src={user?.profileImage}
+                  name={user?.name}
+                  email={user?.email}
+                  size="sm"
+                  className="border-0"
+                />
+              }
+              label="My Profile"
+              onClick={() => navigate("/settings")}
+            />
+            <MenuRow
+              iconCircle
+              icon={<NotepadTextIcon className="!size-5" />}
+              label="Help and Support"
+              onClick={() => navigate("/settings")}
+            />
+            <MenuRow
+              iconCircle
+              icon={<UserPlus className="!size-5" />}
+              label="Invite Friends"
+              onClick={() => navigate("/settings")}
+            />
+            <MenuRow
+              iconCircle
+              icon={<LogOut className="!size-5" />}
+              label="Logout"
+              onClick={() => logout()}
+            />
+          </DropdownMenuContent>
         </DropdownMenu>
 
         {rightSlot}
       </div>
     </header>
+  );
+}
+
+function MenuRow({
+  icon,
+  label,
+  onClick,
+  danger,
+  iconCircle = true,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+  iconCircle?: boolean;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      className={[
+        "cursor-pointer rounded-md px-2 py-2 text-sm",
+        "flex items-center gap-3",
+        "focus:bg-muted focus:text-foreground",
+        danger ? "text-red-600 focus:text-red-600" : "",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          iconCircle
+            ? "h-7 w-7 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center"
+            : "",
+          "[&>svg]:size-4",
+        ].join(" ")}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <span className="truncate">{label}</span>
+    </DropdownMenuItem>
   );
 }
