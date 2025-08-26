@@ -20,8 +20,8 @@ export const MAIN_MENU: NavItem[] = [
     exact: true,
   },
   { to: "/teams", label: "Dashboard", icon: ChartBar },
-  { to: "/inbox", label: "Teams", icon: Users },
-  { to: "/inbox", label: "Boards", icon: CircuitBoard },
+  { to: "/teams", label: "Teams", icon: Users },
+  { to: "/boards", label: "Boards", icon: CircuitBoard },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
