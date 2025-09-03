@@ -19,7 +19,7 @@ export const MAIN_MENU: NavItem[] = [
     icon: Home,
     exact: true,
   },
-  { to: "/teams", label: "Dashboard", icon: ChartBar },
+  { to: "/dashboard", label: "Dashboard", icon: ChartBar },
   { to: "/teams", label: "Teams", icon: Users },
   { to: "/boards", label: "Boards", icon: CircuitBoard },
   { to: "/inbox", label: "Inbox", icon: Inbox },

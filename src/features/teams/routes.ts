@@ -1,17 +1,17 @@
 import { lazy } from "react";
-import AuthLayout from "@/layouts/AuthLayout";
 import type { RoutesConfig } from "@/shared/types/routes.types";
 import { PATHS } from "@/shared/constants/routes";
+import AppLayout from "@/layouts/AppLayout";
 
-const Login = lazy(() => import("../auth/pages/Login"));
+const Teams = lazy(() => import("./pages/Teams"));
 
 const teamRoutes: RoutesConfig = [
   {
     path: PATHS.TEAMS,
-    element: Login,
+    element: Teams,
     children: [],
     isPrivate: false,
-    layout: AuthLayout,
+    layout: AppLayout,
   },
 ];
 

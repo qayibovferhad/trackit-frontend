@@ -8,5 +8,3 @@ export const featureRoutes = import.meta.glob("../features/*/routes.ts", {
 export const allRoutes: RoutesConfig = Object.values(
   featureRoutes
 ).flat() as RoutesConfig;
-
-console.log("allRoutes", allRoutes);
