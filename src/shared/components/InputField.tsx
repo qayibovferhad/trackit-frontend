@@ -19,7 +19,7 @@ export function InputField({
   className = "",
 }: InputFieldProps) {
   const base =
-    "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+    "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none";
 
   return (
     <FormField label={label} error={error} htmlFor={htmlFor}>

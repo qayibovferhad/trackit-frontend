@@ -5,7 +5,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from "@/shared/ui/dialog"; // shadcn/ui
 import { cn } from "@/shared/lib/utils";
 import type { ReactNode } from "react";
@@ -40,7 +39,7 @@ export function Modal({
         onInteractOutside={(e) => forceAction && e.preventDefault()}
       >
         {(title || description) && (
-          <DialogHeader>
+          <DialogHeader className="pb-4 mb-2 border-b border-border">
             {title && <DialogTitle>{title}</DialogTitle>}
             {description && (
               <DialogDescription>{description}</DialogDescription>

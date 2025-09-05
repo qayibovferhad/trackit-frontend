@@ -1,7 +1,6 @@
 export interface Team {
   id: string;
   name: string;
-  description: string;
-  avatar: string;
+  description?: string;
   membersCount: number;
 }
