@@ -1,5 +1,3 @@
-import type { FieldError } from "react-hook-form";
-
 export function FormField({
   label,
   error,
@@ -7,17 +5,21 @@ export function FormField({
   htmlFor,
 }: {
   label: string;
-  error?: FieldError;
+  error?: any;
   children: React.ReactNode;
   htmlFor?: string;
 }) {
+  const errorMessage = error?.message || (error as any)?.root?.message;
+
   return (
     <div>
-      <label htmlFor={htmlFor} className="block text-sm mb-1">
+      <label htmlFor={htmlFor} className="block text-sm mb-1 text-gray-600">
         {label}
       </label>
       {children}
-      {error && <p className="text-xs text-red-500 mt-1">{error.message}</p>}
+      {errorMessage && (
+        <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+      )}
     </div>
   );
 }

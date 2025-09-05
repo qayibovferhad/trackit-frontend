@@ -14,7 +14,7 @@ export const teamSchema = z.object({
     .array(
       z.object({
         label: z.string(),
-        value: z.string().email("Invalid email"), // email doğrulaması
+        value: z.string().email("Invalid email"),
         id: z.string().optional(),
       })
     )

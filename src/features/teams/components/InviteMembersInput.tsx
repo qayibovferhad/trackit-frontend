@@ -1,13 +1,12 @@
 import AsyncCreatableSelect from "react-select/async-creatable";
 import type { GroupBase, MultiValue } from "react-select";
 import { useCallback, useRef } from "react";
-import { api } from "@/shared/lib/axios";
+import type { MembersOption } from "../types";
+import { searchUsers } from "../services/teams.service";
 
-type Option = { label: string; value: string; id?: string }; // value: email
-
-async function fetchEmailOptions(input: string): Promise<Option[]> {
+async function fetchEmailOptions(input: string): Promise<MembersOption[]> {
   if (!input || input.length < 2) return [];
-  const { data } = await api.get("/users/search", { params: { q: input } });
+  const data = await searchUsers(input);
   return (data?.items ?? []).map((u: any) => ({
     id: u.id,
     label: u.email,
@@ -16,8 +15,8 @@ async function fetchEmailOptions(input: string): Promise<Option[]> {
 }
 
 type Props = {
-  value?: Option[];
-  onChange: (opts: Option[]) => void;
+  value?: MembersOption[];
+  onChange: (opts: MembersOption[]) => void;
   placeholder?: string;
 };
 
@@ -28,7 +27,7 @@ export default function InviteMembersInput({
 }: Props) {
   const timeoutRef = useRef<NodeJS.Timeout>(null);
 
-  const loadOptions = useCallback((input: string): Promise<Option[]> => {
+  const loadOptions = useCallback((input: string): Promise<MembersOption[]> => {
     return new Promise((resolve) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -42,13 +41,15 @@ export default function InviteMembersInput({
   }, []);
 
   return (
-    <AsyncCreatableSelect<Option, true, GroupBase<Option>>
+    <AsyncCreatableSelect<MembersOption, true, GroupBase<MembersOption>>
       isMulti
       cacheOptions
       defaultOptions={[]}
       loadOptions={loadOptions}
       value={value}
-      onChange={(v: MultiValue<Option>) => onChange(v as Option[])}
+      onChange={(v: MultiValue<MembersOption>) =>
+        onChange(v as MembersOption[])
+      }
       placeholder={placeholder ?? "Type an email…"}
       formatCreateLabel={(s) => `Invite "${s}"`}
       noOptionsMessage={() => "No results"}

@@ -4,3 +4,5 @@ export interface Team {
   description?: string;
   membersCount: number;
 }
+
+export type MembersOption = { label: string; value: string; id?: string };

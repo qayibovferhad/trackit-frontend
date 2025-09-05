@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InputField } from "@/shared/components/InputField";
 import InviteMembersInput from "./InviteMembersInput";
 import { FormField } from "@/shared/components/FormField";
+import { Button } from "@/shared/ui/button";
 
 type AddTeamModalProps = {
   open: boolean;
@@ -29,7 +30,11 @@ export default function AddTeamModal({
     resolver: zodResolver(teamSchema),
   });
 
-  const onSubmit = async (data: AddTeamFormData) => {};
+  const onSubmit = async (data: AddTeamFormData) => {
+    console.log("data", data);
+  };
+
+  console.log("errors", errors);
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Create Team">
@@ -50,7 +55,11 @@ export default function AddTeamModal({
           htmlFor="description"
           label="Description"
         />
-        <FormField label="Invite Members" htmlFor="members">
+        <FormField
+          label="Invite Members"
+          htmlFor="members"
+          error={errors.members}
+        >
           <Controller
             name="members"
             control={control}
@@ -63,6 +72,9 @@ export default function AddTeamModal({
             )}
           />
         </FormField>
+        <Button type="submit" className="w-full">
+          Create
+        </Button>
       </form>
     </Modal>
   );
