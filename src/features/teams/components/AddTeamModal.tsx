@@ -50,7 +50,7 @@ export default function AddTeamModal({
           htmlFor="description"
           label="Description"
         />
-        <FormField label="Email address" htmlFor="members">
+        <FormField label="Invite Members" htmlFor="members">
           <Controller
             name="members"
             control={control}
