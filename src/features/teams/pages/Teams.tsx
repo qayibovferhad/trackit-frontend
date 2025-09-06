@@ -2,14 +2,9 @@ import { Button } from "@/shared/ui/button";
 import TeamCard from "../components/TeamCard";
 import AddTeamModal from "../components/AddTeamModal";
 import { useState } from "react";
-import type { AddTeamFormData } from "../schemas/teams.schema";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
-
-  const handleCreate = async (data: AddTeamFormData) => {
-    console.log("create team payload:", data);
-  };
   const teams = [
     { id: "1", name: "UI/UX Design Team", membersCount: 36 },
     { id: "2", name: "Development Team", membersCount: 36 },
@@ -51,11 +46,7 @@ export default function Teams() {
           ))}
         </div>
       </div>
-      <AddTeamModal
-        onCreate={handleCreate}
-        open={open}
-        onOpenChange={setOpen}
-      />
+      <AddTeamModal open={open} onOpenChange={setOpen} />
     </>
   );
 }

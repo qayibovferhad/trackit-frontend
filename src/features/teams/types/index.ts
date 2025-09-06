@@ -5,4 +5,14 @@ export interface Team {
   membersCount: number;
 }
 
-export type MembersOption = { label: string; value: string; id?: string };
+export type MembersOption = {
+  label: string;
+  value: string;
+  id?: string;
+  role?: "admin" | "member";
+};
+
+export interface Member {
+  email: string;
+  role: "admin" | "member";
+}

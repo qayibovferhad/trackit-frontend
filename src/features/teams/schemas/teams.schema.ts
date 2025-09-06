@@ -1,5 +1,12 @@
 import z from "zod";
 
+export const MemberSchema = z.object({
+  email: z.string().email("Invalid email"),
+  role: z.enum(["admin", "member"], {
+    errorMap: () => ({ message: "Role must be admin or member" }),
+  }),
+});
+
 export const teamSchema = z.object({
   name: z
     .string()
@@ -10,15 +17,7 @@ export const teamSchema = z.object({
     .max(300, "Description is too long")
     .optional()
     .or(z.literal("")),
-  members: z
-    .array(
-      z.object({
-        label: z.string(),
-        value: z.string().email("Invalid email"),
-        id: z.string().optional(),
-      })
-    )
-    .default([]),
+  members: z.array(MemberSchema).default([]),
 });
 
 export type AddTeamFormData = z.infer<typeof teamSchema>;

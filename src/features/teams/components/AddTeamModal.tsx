@@ -6,15 +6,13 @@ import { InputField } from "@/shared/components/InputField";
 import InviteMembersInput from "./InviteMembersInput";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
+import { createTeam } from "../services/teams.service";
+import { useMutation } from "@tanstack/react-query";
 
 type AddTeamModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onCreate: (data: AddTeamFormData) => Promise<void> | void;
-  isSubmitting?: boolean;
   defaultValues?: Partial<AddTeamFormData>;
-  forceAction?: boolean;
-  size?: "sm" | "md" | "lg";
 };
 
 export default function AddTeamModal({
@@ -25,24 +23,54 @@ export default function AddTeamModal({
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(teamSchema),
   });
 
+  const {
+    mutateAsync: addTeam,
+    error,
+    isPending,
+    isError,
+    reset: createTeamReset,
+  } = useMutation({
+    mutationFn: createTeam,
+    onSuccess: () => {},
+  });
   const onSubmit = async (data: AddTeamFormData) => {
-    console.log("data", data);
+    try {
+      await addTeam(data);
+
+      reset();
+      onOpenChange(false);
+    } catch (err) {
+      console.log("err", err);
+    }
   };
 
-  console.log("errors", errors);
+  const handleModalClose = (open: boolean) => {
+    if (!open && !isPending) {
+      reset();
+
+      createTeamReset();
+    }
+    onOpenChange(open);
+  };
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title="Create Team">
+    <Modal open={open} onOpenChange={handleModalClose} title="Create Team">
       <form
         id="add-team-form"
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-4"
       >
+        {isError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{error?.message}</p>
+          </div>
+        )}
         <InputField
           error={errors.name}
           register={register}
@@ -58,7 +86,11 @@ export default function AddTeamModal({
         <FormField
           label="Invite Members"
           htmlFor="members"
-          error={errors.members}
+          error={
+            Array.isArray(errors.members)
+              ? errors.members.find(Boolean)
+              : errors.members
+          }
         >
           <Controller
             name="members"
@@ -72,8 +104,8 @@ export default function AddTeamModal({
             )}
           />
         </FormField>
-        <Button type="submit" className="w-full">
-          Create
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Creating..." : "Create"}
         </Button>
       </form>
     </Modal>
