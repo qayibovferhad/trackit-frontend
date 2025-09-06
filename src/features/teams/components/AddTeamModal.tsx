@@ -12,12 +12,14 @@ import { useMutation } from "@tanstack/react-query";
 type AddTeamModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  onTeamCreated?: () => void;
   defaultValues?: Partial<AddTeamFormData>;
 };
 
 export default function AddTeamModal({
   open,
   onOpenChange,
+  onTeamCreated,
 }: AddTeamModalProps) {
   const {
     register,
@@ -37,14 +39,14 @@ export default function AddTeamModal({
     reset: createTeamReset,
   } = useMutation({
     mutationFn: createTeam,
-    onSuccess: () => {},
+    onSuccess: () => {
+      reset();
+      onTeamCreated?.();
+    },
   });
   const onSubmit = async (data: AddTeamFormData) => {
     try {
       await addTeam(data);
-
-      reset();
-      onOpenChange(false);
     } catch (err) {
       console.log("err", err);
     }
@@ -53,7 +55,6 @@ export default function AddTeamModal({
   const handleModalClose = (open: boolean) => {
     if (!open && !isPending) {
       reset();
-
       createTeamReset();
     }
     onOpenChange(open);

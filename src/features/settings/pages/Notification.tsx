@@ -38,10 +38,24 @@ export default function NotificationSettings() {
 
   const toggleSetting =
     (key: keyof NotificationSettingsType) => (value: boolean) => {
-      setSettings((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
+      setSettings((prev) => {
+        if (key === "generalEmails") {
+          return {
+            ...prev,
+            generalEmails: value,
+            ...(value
+              ? {}
+              : {
+                  userJoined: false,
+                  kitPurchase: false,
+                  kitLaunched: false,
+                  weeklyReport: false,
+                  newMessage: false,
+                }),
+          };
+        }
+        return { ...prev, [key]: value };
+      });
     };
 
   const {
@@ -96,6 +110,7 @@ export default function NotificationSettings() {
         description="When someone joined to your team, you'll get notified"
         checked={settings.userJoined}
         onChange={toggleSetting("userJoined")}
+        disabled={!settings.generalEmails}
       />
       <div className="h-px bg-gray-200 my-2" />
 
@@ -103,6 +118,7 @@ export default function NotificationSettings() {
         title="Emails for UI kit buying from superpage"
         description="When someone purchase your UI kit, you'll get notified"
         checked={settings.kitPurchase}
+        disabled={!settings.generalEmails}
         onChange={toggleSetting("kitPurchase")}
       />
       <div className="h-px bg-gray-200 my-2" />
@@ -111,6 +127,7 @@ export default function NotificationSettings() {
         title="Emails for every time new UI kit launched"
         description="When new UI kit is launched, you'll get notified"
         checked={settings.kitLaunched}
+        disabled={!settings.generalEmails}
         onChange={toggleSetting("kitLaunched")}
       />
 
@@ -120,6 +137,7 @@ export default function NotificationSettings() {
         title="Emails for weekly report"
         description="Every week you'll get report for your account"
         checked={settings.weeklyReport}
+        disabled={!settings.generalEmails}
         onChange={toggleSetting("weeklyReport")}
       />
 
@@ -129,6 +147,7 @@ export default function NotificationSettings() {
         title="Emails for every new message"
         description="When a person sends you message in superpage"
         checked={settings.newMessage}
+        disabled={!settings.generalEmails}
         onChange={toggleSetting("newMessage")}
       />
 

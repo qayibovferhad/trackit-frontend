@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import UserAvatar from "@/shared/components/UserAvatar";
+import { useQuery } from "@tanstack/react-query";
+import { fetchUnreadCount } from "@/features/notifications/services/notifications.service";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -99,13 +101,7 @@ export default function Topbar({
         >
           <Plus className="!size-4" />
         </Button>
-        <Button
-          variant="ghost"
-          className="rounded-md p-2 hover:bg-muted"
-          aria-label="Notifications"
-        >
-          <Bell className="!size-4" />
-        </Button>
+        <NotificationBell />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -207,5 +203,35 @@ function MenuRow({
       </span>
       <span className="truncate">{label}</span>
     </DropdownMenuItem>
+  );
+}
+
+function NotificationBell() {
+  const navigate = useNavigate();
+  const { data: unread = 0 } = useQuery({
+    queryKey: ["unread-count"],
+    queryFn: fetchUnreadCount,
+    refetchInterval: 10000,
+  });
+  console.log("unread", unread);
+
+  return (
+    <div className="relative">
+      <Button
+        variant="ghost"
+        className="rounded-md p-2 hover:bg-muted"
+        aria-label="Notifications"
+        onClick={() => navigate("/notifications")}
+      >
+        <Bell className="!size-5" />
+      </Button>
+
+      {unread > 0 && (
+        <span
+          aria-label={`${unread} unread notifications`}
+          className="absolute top-1.5 right-1.5 inline-flex h-2.5 w-2.5 rounded-full bg-red-500"
+        />
+      )}
+    </div>
   );
 }

@@ -11,4 +11,5 @@ export const PATHS = {
   SETTINGS_NOTIFICATION: "/settings/notifications",
   GOOGLE_CALLBACK: "/oauth/google/callback",
   TEAMS: "/teams",
+  NOTIFICATIONS: "/notifications",
 } as const;

@@ -1,7 +1,7 @@
 import AsyncCreatableSelect from "react-select/async-creatable";
 import type { GroupBase, MultiValue } from "react-select";
 import { useCallback, useRef } from "react";
-import type { Member, MembersOption } from "../types";
+import type { MemberInput, MembersOption } from "../types";
 import { searchUsers } from "../services/teams.service";
 import { EMAIL_REGEX } from "@/shared/constants/regex";
 
@@ -25,7 +25,7 @@ function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email);
 }
 
-function convertToMembers(options: MembersOption[]): Member[] {
+function convertToMembers(options: MembersOption[]): MemberInput[] {
   return options
     .filter((opt) => isValidEmail(opt.value))
     .map((opt) => ({
@@ -34,7 +34,7 @@ function convertToMembers(options: MembersOption[]): Member[] {
     }));
 }
 
-function convertToOptions(members: Member[]): MembersOption[] {
+function convertToOptions(members: MemberInput[]): MembersOption[] {
   return members.map((member) => ({
     label: member.email,
     value: member.email,
@@ -43,8 +43,8 @@ function convertToOptions(members: Member[]): MembersOption[] {
 }
 
 type Props = {
-  value?: Member[];
-  onChange: (members: Member[]) => void;
+  value?: MemberInput[];
+  onChange: (members: MemberInput[]) => void;
   placeholder?: string;
 };
 

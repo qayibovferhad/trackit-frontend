@@ -3,6 +3,7 @@ type ToggleRowProps = {
   description?: string;
   checked: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 };
 
 export function ToggleRow({
@@ -10,6 +11,7 @@ export function ToggleRow({
   description,
   checked,
   onChange,
+  disabled,
 }: ToggleRowProps) {
   return (
     <div className="flex items-start justify-between gap-4 py-3">
@@ -25,7 +27,7 @@ export function ToggleRow({
           type="checkbox"
           className="sr-only"
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={(e) => !disabled && onChange(e.target.checked)}
         />
         <span
           className={

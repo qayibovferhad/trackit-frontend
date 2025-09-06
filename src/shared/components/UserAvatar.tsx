@@ -50,7 +50,7 @@ export default function UserAvatar({
         alt={label}
         className={cn("h-full w-full object-cover", imageClassName)}
       />
-      <AvatarFallback className="text-[11px] bg-gray-100 text-gray-700">
+      <AvatarFallback className="text-[14px] bg-gray-100 text-gray-700">
         {initials(name || email || "")}
       </AvatarFallback>
     </Avatar>
