@@ -1,4 +1,19 @@
+import {
+  Ellipsis,
+  NotepadTextIcon,
+  Pen,
+  PlusIcon,
+  Trash,
+  Trash2,
+} from "lucide-react";
 import type { Team } from "../types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRow,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
+import { Button } from "@/shared/ui/button";
 
 export default function TeamCard({ team }: { team: Team }) {
   return (
@@ -40,18 +55,38 @@ export default function TeamCard({ team }: { team: Team }) {
             </div>
           </div>
 
-          <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="h-4 w-4 opacity-70"
-            >
-              <circle cx="12" cy="6" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="18" r="1.5" />
-            </svg>
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="flex items-center justify-center rounded-md hover:bg-muted"
+              >
+                <Ellipsis className="opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-46">
+              <DropdownMenuRow
+                iconCircle={false}
+                icon={<PlusIcon className="!size-5" />}
+                label="Invite User"
+                onClick={() => {}}
+              />
+              <DropdownMenuRow
+                iconCircle={false}
+                icon={<Pen className="!size-5" />}
+                label="Edit Team"
+                onClick={() => {}}
+              />
+              <DropdownMenuRow
+                iconCircle={false}
+                icon={<Trash2 className="!size-5" />}
+                label="Delete Team"
+                onClick={() => {}}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

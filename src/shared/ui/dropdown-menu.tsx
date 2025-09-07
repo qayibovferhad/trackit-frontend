@@ -67,3 +67,45 @@ export const DropdownMenuSeparator = React.forwardRef<
   />
 ));
 DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
+
+export function DropdownMenuRow({
+  icon,
+  label,
+  onClick,
+  danger,
+  iconCircle = true,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+  iconCircle?: boolean;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      className={[
+        "cursor-pointer rounded-md px-2 py-2 text-sm",
+        "flex items-center gap-3",
+        "focus:bg-muted focus:text-foreground",
+        danger ? "text-red-600 focus:text-red-600" : "",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          iconCircle
+            ? "h-7 w-7 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center"
+            : "",
+          "[&>svg]:size-4",
+        ].join(" ")}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <span className="truncate">{label}</span>
+    </DropdownMenuItem>
+  );
+}

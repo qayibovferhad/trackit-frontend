@@ -88,7 +88,11 @@ export default function Teams() {
         onOpenChange={setOpen}
         onTeamCreated={handleTeamCreated}
       />
-      <InvitesModal open={invitesOpen} onOpenChange={setInvitesOpen} />
+      <InvitesModal
+        open={invitesOpen}
+        onOpenChange={setInvitesOpen}
+        onInviteAction={handleInvitesAction}
+      />
     </>
   );
 }

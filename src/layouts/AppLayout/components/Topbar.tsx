@@ -5,8 +5,6 @@ import {
   NotepadTextIcon,
   Plus,
   Search,
-  User2,
-  UserIcon,
   UserPlus,
 } from "lucide-react";
 import { usePageTitle } from "../../../shared/hooks/usePageTitle";
@@ -16,13 +14,10 @@ import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Input } from "@/shared/ui/input";
 import { useUserStore } from "@/stores/userStore";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuRow,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import UserAvatar from "@/shared/components/UserAvatar";
@@ -123,7 +118,7 @@ export default function Topbar({
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-56">
-            <MenuRow
+            <DropdownMenuRow
               iconCircle
               icon={
                 <UserAvatar
@@ -137,19 +132,19 @@ export default function Topbar({
               label="My Profile"
               onClick={() => navigate("/settings")}
             />
-            <MenuRow
+            <DropdownMenuRow
               iconCircle
               icon={<NotepadTextIcon className="!size-5" />}
               label="Help and Support"
               onClick={() => navigate("/settings")}
             />
-            <MenuRow
+            <DropdownMenuRow
               iconCircle
               icon={<UserPlus className="!size-5" />}
               label="Invite Friends"
               onClick={() => navigate("/settings")}
             />
-            <MenuRow
+            <DropdownMenuRow
               iconCircle
               icon={<LogOut className="!size-5" />}
               label="Logout"
@@ -161,48 +156,6 @@ export default function Topbar({
         {rightSlot}
       </div>
     </header>
-  );
-}
-
-function MenuRow({
-  icon,
-  label,
-  onClick,
-  danger,
-  iconCircle = true,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  danger?: boolean;
-  iconCircle?: boolean;
-}) {
-  return (
-    <DropdownMenuItem
-      onSelect={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-      className={[
-        "cursor-pointer rounded-md px-2 py-2 text-sm",
-        "flex items-center gap-3",
-        "focus:bg-muted focus:text-foreground",
-        danger ? "text-red-600 focus:text-red-600" : "",
-      ].join(" ")}
-    >
-      <span
-        className={[
-          iconCircle
-            ? "h-7 w-7 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center"
-            : "",
-          "[&>svg]:size-4",
-        ].join(" ")}
-        aria-hidden="true"
-      >
-        {icon}
-      </span>
-      <span className="truncate">{label}</span>
-    </DropdownMenuItem>
   );
 }
 

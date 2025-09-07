@@ -1,13 +1,13 @@
 import { Modal } from "@/shared/ui/modal";
 import { teamSchema, type AddTeamFormData } from "../schemas/teams.schema";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { InputField } from "@/shared/components/InputField";
 import InviteMembersInput from "./InviteMembersInput";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
 import { createTeam } from "../services/teams.service";
 import { useMutation } from "@tanstack/react-query";
+import { useZodForm } from "@/shared/hooks/useZodForm";
 
 type AddTeamModalProps = {
   open: boolean;
@@ -27,9 +27,7 @@ export default function AddTeamModal({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(teamSchema),
-  });
+  } = useZodForm(teamSchema);
 
   const {
     mutateAsync: addTeam,

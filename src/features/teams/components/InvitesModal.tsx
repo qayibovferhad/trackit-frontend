@@ -7,7 +7,6 @@ import {
   declineInvite,
   fetchMyInvites,
 } from "../services/teams.service";
-import { timeAgo } from "@/shared/lib/utils";
 
 type InvitesModalProps = {
   open: boolean;
@@ -72,7 +71,9 @@ export default function InvitesModal({
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Role: <span className="font-medium">{inv.role}</span>
-                  {inv.expiresAt && <> • {timeAgo(inv.expiresAt)}</>}
+                  {inv.expiresAt && (
+                    <> • Expires: {new Date(inv.expiresAt).toLocaleString()}</>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
