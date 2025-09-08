@@ -41,7 +41,5 @@ export const resetPasswordRequest = async (data: ResetPasswordFormData) => {
 
 export const getCurrentUserRequest = async (): Promise<User> => {
   const response = await api.get("/auth/me");
-  console.log("response", response);
-
   return response.data;
 };

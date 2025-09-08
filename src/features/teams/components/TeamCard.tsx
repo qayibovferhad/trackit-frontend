@@ -1,11 +1,4 @@
-import {
-  Ellipsis,
-  NotepadTextIcon,
-  Pen,
-  PlusIcon,
-  Trash,
-  Trash2,
-} from "lucide-react";
+import { Ellipsis, Pen, PlusIcon, Trash2 } from "lucide-react";
 import type { Team } from "../types";
 import {
   DropdownMenu,
@@ -14,8 +7,16 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Button } from "@/shared/ui/button";
+import { useState } from "react";
 
-export default function TeamCard({ team }: { team: Team }) {
+export default function TeamCard({
+  team,
+  onOpenInviteUserModal,
+}: {
+  team: Team;
+  onOpenInviteUserModal: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div
       key={team.id}
@@ -55,7 +56,7 @@ export default function TeamCard({ team }: { team: Team }) {
             </div>
           </div>
 
-          <DropdownMenu>
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -71,7 +72,10 @@ export default function TeamCard({ team }: { team: Team }) {
                 iconCircle={false}
                 icon={<PlusIcon className="!size-5" />}
                 label="Invite User"
-                onClick={() => {}}
+                onClick={() => {
+                  onOpenInviteUserModal();
+                  setMenuOpen(false);
+                }}
               />
               <DropdownMenuRow
                 iconCircle={false}

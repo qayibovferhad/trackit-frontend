@@ -6,10 +6,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchMyInvitesCount, fetchTeams } from "../services/teams.service";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import InvitesModal from "../components/InvitesModal";
+import InviteUserModal from "../components/InviteUserModal";
+import type { Team } from "../types";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
+  const [invitesUserOpen, setInvitesUserOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -79,7 +83,14 @@ export default function Teams() {
         {isError && <ErrorAlert message="Failed to load teams" />}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {teams?.map((team) => (
-            <TeamCard key={team.id} team={team} />
+            <TeamCard
+              key={team.id}
+              team={team}
+              onOpenInviteUserModal={() => {
+                setSelectedTeam(team);
+                setInvitesUserOpen(true);
+              }}
+            />
           ))}
         </div>
       </div>
@@ -93,6 +104,13 @@ export default function Teams() {
         onOpenChange={setInvitesOpen}
         onInviteAction={handleInvitesAction}
       />
+      {selectedTeam && (
+        <InviteUserModal
+          open={invitesUserOpen}
+          onOpenChange={setInvitesUserOpen}
+          teamId={selectedTeam.id}
+        />
+      )}
     </>
   );
 }

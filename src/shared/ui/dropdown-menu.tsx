@@ -84,7 +84,7 @@ export function DropdownMenuRow({
   return (
     <DropdownMenuItem
       onSelect={(e) => {
-        e.preventDefault();
+        // e.preventDefault();
         onClick();
       }}
       className={[
