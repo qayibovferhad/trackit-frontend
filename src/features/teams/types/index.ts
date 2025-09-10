@@ -4,9 +4,7 @@ export interface Team {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
-
   users: TeamMember[];
-
   invites: TeamInvite[];
 }
 

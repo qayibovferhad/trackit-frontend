@@ -12,9 +12,11 @@ import { useState } from "react";
 export default function TeamCard({
   team,
   onOpenInviteUserModal,
+  onRequestDelete,
 }: {
   team: Team;
   onOpenInviteUserModal: () => void;
+  onRequestDelete: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -87,7 +89,10 @@ export default function TeamCard({
                 iconCircle={false}
                 icon={<Trash2 className="!size-5" />}
                 label="Delete Team"
-                onClick={() => {}}
+                onClick={() => {
+                  onRequestDelete();
+                  setMenuOpen(false);
+                }}
               />
             </DropdownMenuContent>
           </DropdownMenu>

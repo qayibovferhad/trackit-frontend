@@ -8,11 +8,13 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import InvitesModal from "../components/InvitesModal";
 import InviteUserModal from "../components/InviteUserModal";
 import type { Team } from "../types";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [invitesUserOpen, setInvitesUserOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const queryClient = useQueryClient();
 
@@ -90,6 +92,10 @@ export default function Teams() {
                 setSelectedTeam(team);
                 setInvitesUserOpen(true);
               }}
+              onRequestDelete={() => {
+                setSelectedTeam(team);
+                setConfirmOpen(true);
+              }}
             />
           ))}
         </div>
@@ -111,6 +117,7 @@ export default function Teams() {
           teamId={selectedTeam.id}
         />
       )}
+      <ConfirmModal open={confirmOpen} onOpenChange={setConfirmOpen} />
     </>
   );
 }
