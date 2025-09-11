@@ -39,14 +39,14 @@ export function Modal({
         onInteractOutside={(e) => forceAction && e.preventDefault()}
       >
         {(title || description) && (
-          <DialogHeader className="pb-4 mb-2 border-b border-border">
+          <DialogHeader className="pb-4 border-b border-border">
             {title && <DialogTitle>{title}</DialogTitle>}
             {description && (
               <DialogDescription>{description}</DialogDescription>
             )}
           </DialogHeader>
         )}
-        <div className="mt-2">{children}</div>
+        <div>{children}</div>
         {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>

@@ -44,3 +44,12 @@ export interface TeamInvite {
   createdAt: string;
   updatedAt: string;
 }
+
+export type EligibleUser = {
+  id: string;
+  name: string;
+  email: string;
+  profileImage?: string;
+};
+
+export type Page = { items: EligibleUser[]; nextCursor: string | null };

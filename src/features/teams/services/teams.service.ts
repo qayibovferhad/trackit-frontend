@@ -1,5 +1,5 @@
 import { api } from "@/shared/lib/axios";
-import type { MembersOption, Team } from "../types";
+import type { MembersOption, Page, Team } from "../types";
 import type { AddTeamFormData } from "../schemas/teams.schema";
 
 export const searchUsers = async (
@@ -37,3 +37,25 @@ export const declineInvite = async (token: string) => {
   const { data } = await api.post("/teams/invites/decline", { token });
   return data;
 };
+
+export async function deleteTeam(teamId: string) {
+  await api.delete(`/teams/${teamId}`);
+}
+
+export async function fetchEligibleUsersInfinite(
+  teamId: string,
+  params?: { cursor?: string | null; take?: number }
+): Promise<Page> {
+  const q = new URLSearchParams();
+  if (params?.cursor) q.set("cursor", params.cursor);
+  if (params?.take) q.set("take", String(params.take));
+  const response = await api.get(
+    `/teams/${teamId}/eligible-users?${q.toString()}`
+  );
+  return response.data;
+}
+
+export async function inviteUser(teamId: string, userId: string) {
+  const { data } = await api.post(`/teams/${teamId}/invite`, { userId });
+  return data;
+}

@@ -2,8 +2,12 @@ import { Button } from "@/shared/ui/button";
 import TeamCard from "../components/TeamCard";
 import AddTeamModal from "../components/AddTeamModal";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchMyInvitesCount, fetchTeams } from "../services/teams.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  deleteTeam,
+  fetchMyInvitesCount,
+  fetchTeams,
+} from "../services/teams.service";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import InvitesModal from "../components/InvitesModal";
 import InviteUserModal from "../components/InviteUserModal";
@@ -46,6 +50,21 @@ export default function Teams() {
   const handleInvitesAction = () => {
     queryClient.invalidateQueries({ queryKey: ["my-invites-count"] });
   };
+
+  const { mutateAsync: removeTeam, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: string) => deleteTeam(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
+      setConfirmOpen(false);
+      setSelectedTeam(null);
+    },
+  });
+
+  const handleConfirmDelete = async () => {
+    if (!selectedTeam) return;
+    await removeTeam(selectedTeam.id);
+  };
+
   return (
     <>
       <div className="px-6 pb-10">
@@ -117,7 +136,18 @@ export default function Teams() {
           teamId={selectedTeam.id}
         />
       )}
-      <ConfirmModal open={confirmOpen} onOpenChange={setConfirmOpen} />
+      {selectedTeam && (
+        <ConfirmModal
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="Delete this team?"
+          description={`“${selectedTeam.name}” will be permanently deleted.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={isDeleting}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </>
   );
 }
