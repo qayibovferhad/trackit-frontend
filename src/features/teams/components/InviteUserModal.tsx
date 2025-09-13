@@ -12,6 +12,7 @@ import {
 import type { Page } from "../types";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import { useMemo } from "react";
+import UserAvatar from "@/shared/components/UserAvatar";
 
 type InviteUserModalProps = {
   open: boolean;
@@ -19,26 +20,6 @@ type InviteUserModalProps = {
   teamId: string;
   teamName?: string;
 };
-
-function Avatar({ name, src }: { name: string; src?: string }) {
-  if (src) {
-    return (
-      <img src={src} alt={name} className="h-9 w-9 rounded-full object-cover" />
-    );
-  }
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div className="h-9 w-9 rounded-full bg-muted text-foreground/80 grid place-items-center text-xs font-medium">
-      {initials}
-    </div>
-  );
-}
 
 export default function InviteUserModal({
   open,
@@ -89,7 +70,11 @@ export default function InviteUserModal({
             {allItems.map((u) => (
               <li key={u.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <Avatar name={u.name || u.email} src={u.profileImage} />
+                  <UserAvatar
+                    name={u.name || u.email}
+                    src={u.profileImage}
+                    size="lg"
+                  />
                   <div className="leading-tight">
                     <div className="font-medium">{u.name || u.email}</div>
                     {u.name && (

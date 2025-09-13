@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui/button";
 import TeamCard from "../components/TeamCard";
-import AddTeamModal from "../components/AddTeamModal";
+import TeamModal from "../components/TeamModal";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -42,7 +42,7 @@ export default function Teams() {
     refetchOnWindowFocus: true,
   });
 
-  const handleTeamCreated = () => {
+  const handleTeamSaved = () => {
     queryClient.invalidateQueries({ queryKey: ["teams"] });
     setOpen(false);
   };
@@ -115,14 +115,19 @@ export default function Teams() {
                 setSelectedTeam(team);
                 setConfirmOpen(true);
               }}
+              onEditTeam={() => {
+                setSelectedTeam(team);
+                setOpen(true);
+              }}
             />
           ))}
         </div>
       </div>
-      <AddTeamModal
+      <TeamModal
         open={open}
         onOpenChange={setOpen}
-        onTeamCreated={handleTeamCreated}
+        onSaved={handleTeamSaved}
+        team={selectedTeam}
       />
       <InvitesModal
         open={invitesOpen}

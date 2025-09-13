@@ -14,6 +14,11 @@ export const createTeam = async (data: AddTeamFormData) => {
   return response.data;
 };
 
+export const updateTeam = async (id: string, payload: AddTeamFormData) => {
+  const response = await api.patch(`/teams/${id}`, payload);
+  return response.data;
+};
+
 export const fetchTeams = async (): Promise<Team[]> => {
   const response = await api.get("/teams");
   return response.data;

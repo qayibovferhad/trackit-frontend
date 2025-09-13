@@ -13,10 +13,12 @@ export default function TeamCard({
   team,
   onOpenInviteUserModal,
   onRequestDelete,
+  onEditTeam,
 }: {
   team: Team;
   onOpenInviteUserModal: () => void;
   onRequestDelete: () => void;
+  onEditTeam: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -83,7 +85,10 @@ export default function TeamCard({
                 iconCircle={false}
                 icon={<Pen className="!size-5" />}
                 label="Edit Team"
-                onClick={() => {}}
+                onClick={() => {
+                  onEditTeam();
+                  setMenuOpen(false);
+                }}
               />
               <DropdownMenuRow
                 iconCircle={false}
