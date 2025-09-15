@@ -1,6 +1,6 @@
 export type NotificationType =
   | "TEAM_TASK_COMPLETED"
-  | "JOIN_REQUEST"
+  | "TEAM_INVITE"
   | "TEAM_REQUEST_ACCEPTED"
   | "MONTHLY_REPORT"
   | "MENTION_TASK"
@@ -15,4 +15,9 @@ export type NotificationItem = {
   createdAt: string; // ISO
   readAt?: string | null;
   href?: string;
+  payload: {
+    teamName: string;
+    invitedByName: string;
+    teamId: string;
+  };
 };

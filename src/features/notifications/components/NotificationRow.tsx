@@ -9,13 +9,14 @@ import {
 } from "lucide-react";
 import { cn, timeAgo } from "@/shared/lib/utils";
 import type { NotificationItem, NotificationType } from "../types";
+import { Link } from "react-router-dom";
 
 function pickIcon(t: NotificationType) {
   const cls = "h-4 w-4";
   switch (t) {
     case "TEAM_TASK_COMPLETED":
       return <CheckSquare className={cls} />;
-    case "JOIN_REQUEST":
+    case "TEAM_INVITE":
       return <UserPlus className={cls} />;
     case "TEAM_REQUEST_ACCEPTED":
       return <ShieldCheck className={cls} />;
@@ -36,7 +37,7 @@ function badgeBg(t: NotificationType) {
   switch (t) {
     case "TEAM_TASK_COMPLETED":
       return "bg-violet-100 text-violet-700";
-    case "JOIN_REQUEST":
+    case "TEAM_INVITE":
       return "bg-indigo-100 text-indigo-700";
     case "TEAM_REQUEST_ACCEPTED":
       return "bg-emerald-100 text-emerald-700";
@@ -53,10 +54,33 @@ function badgeBg(t: NotificationType) {
   }
 }
 
+function formatNotificationContent(item: NotificationItem) {
+  switch (item.type) {
+    case "TEAM_INVITE":
+      return {
+        title: `${item.payload.invitedByName || ""} invited you to ${
+          item.payload.teamName
+        }`,
+        description: (
+          <Link to={`/teams`} className="hover:text-indigo-800">
+            Click to accept or view the invite
+          </Link>
+        ),
+      };
+
+    default:
+      return {
+        title: item.title || "Notification",
+        description: item.description,
+      };
+  }
+}
+
 export default function NotificationRow({ item }: { item: NotificationItem }) {
   const unread = !item.readAt;
   const icon = pickIcon(item.type);
   const time = timeAgo(item.createdAt);
+  const { title, description } = formatNotificationContent(item);
 
   return (
     <li
@@ -78,10 +102,10 @@ export default function NotificationRow({ item }: { item: NotificationItem }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="truncate text-sm font-medium">{item.title}</div>
-            {item.description && (
+            <div className="truncate text-sm font-medium">{title}</div>
+            {description && (
               <div className="truncate text-sm text-muted-foreground">
-                {item.description}
+                {description}
               </div>
             )}
           </div>
