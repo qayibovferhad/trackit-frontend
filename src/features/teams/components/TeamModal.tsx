@@ -13,7 +13,7 @@ import { useEffect } from "react";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import { getErrorMessage } from "@/shared/lib/error";
 
-type AddTeamModalProps = {
+type TeamModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSaved?: () => void;
@@ -27,7 +27,7 @@ export default function TeamModal({
   onSaved,
   team = null,
   defaultValues = {},
-}: AddTeamModalProps) {
+}: TeamModalProps) {
   const isEditMode = Boolean(team);
 
   const initialValues: Partial<AddTeamFormData> = isEditMode
@@ -101,11 +101,29 @@ export default function TeamModal({
 
   useEffect(() => {
     if (open) {
-      reset(initialValues);
+      if (isEditMode && team) {
+        reset({
+          name: team.name ?? "",
+          description: team.description ?? "",
+          members: undefined,
+        });
+      } else {
+        reset({
+          name: "",
+          description: "",
+          members: [],
+        });
+      }
     } else {
-      reset();
+      reset({
+        name: "",
+        description: "",
+        members: [],
+      });
+      createReset();
+      updateReset();
     }
-  }, [open, team?.id]);
+  }, [open, team]);
 
   const modalTitle = isEditMode ? "Edit Team" : "Create New Team";
   const submitButtonText = isEditMode ? "Update Team" : "Create Team";

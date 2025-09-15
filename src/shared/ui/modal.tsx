@@ -35,6 +35,7 @@ export function Modal({
   return (
     <Dialog open={open} onOpenChange={forceAction ? () => {} : onOpenChange}>
       <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
         className={cn(sizeMap[size])}
         onInteractOutside={(e) => forceAction && e.preventDefault()}
       >

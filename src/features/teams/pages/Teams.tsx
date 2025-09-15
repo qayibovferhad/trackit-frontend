@@ -65,6 +65,20 @@ export default function Teams() {
     await removeTeam(selectedTeam.id);
   };
 
+  const handleTeamModalOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) setSelectedTeam(null);
+  };
+  const handleInviteUserModalOpenChange = (isOpen: boolean) => {
+    setInvitesUserOpen(isOpen);
+    if (!isOpen) setSelectedTeam(null);
+  };
+
+  const handleConfirmModalOpenChange = (isOpen: boolean) => {
+    setConfirmOpen(isOpen);
+    if (!isOpen) setSelectedTeam(null);
+  };
+
   return (
     <>
       <div className="px-6 pb-10">
@@ -125,7 +139,7 @@ export default function Teams() {
       </div>
       <TeamModal
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleTeamModalOpenChange}
         onSaved={handleTeamSaved}
         team={selectedTeam}
       />
@@ -137,14 +151,14 @@ export default function Teams() {
       {selectedTeam && (
         <InviteUserModal
           open={invitesUserOpen}
-          onOpenChange={setInvitesUserOpen}
+          onOpenChange={handleInviteUserModalOpenChange}
           teamId={selectedTeam.id}
         />
       )}
       {selectedTeam && (
         <ConfirmModal
           open={confirmOpen}
-          onOpenChange={setConfirmOpen}
+          onOpenChange={handleConfirmModalOpenChange}
           title="Delete this team?"
           description={`“${selectedTeam.name}” will be permanently deleted.`}
           confirmText="Delete"

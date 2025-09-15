@@ -26,6 +26,7 @@ export function InputField({
       <input
         id={htmlFor}
         type={type}
+        autoFocus={false}
         {...register(htmlFor)}
         className={`${base} ${className}`}
       />
