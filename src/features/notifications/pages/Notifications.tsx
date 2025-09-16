@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import NotificationRow from "../components/NotificationRow";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { fetchMyNotifications } from "../services/notifications.service";
 
 export default function Notifications() {
@@ -8,7 +8,7 @@ export default function Notifications() {
     document.title = "Notification";
   }, []);
 
-  const { data = [] } = useQuery({
+  const { data = [] } = useInfiniteQuery({
     queryKey: ["my-notifications"],
     queryFn: fetchMyNotifications,
   });

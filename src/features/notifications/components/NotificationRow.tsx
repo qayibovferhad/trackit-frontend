@@ -10,6 +10,7 @@ import {
 import { cn, timeAgo } from "@/shared/lib/utils";
 import type { NotificationItem, NotificationType } from "../types";
 import { Link } from "react-router-dom";
+import { PATHS } from "@/shared/constants/routes";
 
 function pickIcon(t: NotificationType) {
   const cls = "h-4 w-4";
@@ -62,7 +63,7 @@ function formatNotificationContent(item: NotificationItem) {
           item.payload.teamName
         }`,
         description: (
-          <Link to={`/teams`} className="hover:text-indigo-800">
+          <Link to={PATHS.NOTIFICATIONS} className="hover:text-indigo-800">
             Click to accept or view the invite
           </Link>
         ),
