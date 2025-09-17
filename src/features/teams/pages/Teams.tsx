@@ -13,6 +13,7 @@ import InvitesModal from "../components/InvitesModal";
 import InviteUserModal from "../components/InviteUserModal";
 import type { Team } from "../types";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
+import PageHeader from "@/layouts/AppLayout/components/PageHeader";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
@@ -82,38 +83,36 @@ export default function Teams() {
   return (
     <>
       <div className="px-6 pb-10">
-        <div className="mb-3 flex items-center gap-3 justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">My Teams</h1>
-            <p className="text-sm text-muted-foreground">
-              {teams?.length ?? 0} Total teams are added
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setInvitesOpen(true)}>
-              Invites
-              {invitesCount > 0 && (
-                <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs text-white">
-                  {invitesCount}
-                </span>
-              )}
-            </Button>
+        <PageHeader
+          title="My Teams"
+          subtitle={`${teams?.length ?? 0} Total teams are added`}
+          actions={
+            <>
+              <Button variant="outline" onClick={() => setInvitesOpen(true)}>
+                Invites
+                {invitesCount > 0 && (
+                  <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs text-white">
+                    {invitesCount}
+                  </span>
+                )}
+              </Button>
 
-            <Button variant="soft" onClick={() => setOpen(true)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-4 w-4 mr-2"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Team
-            </Button>
-          </div>
-        </div>
+              <Button variant="soft" onClick={() => setOpen(true)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="h-4 w-4 mr-2"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Team
+              </Button>
+            </>
+          }
+        />
         {isLoading && <p>Loading teams...</p>}
         {isError && <ErrorAlert message="Failed to load teams" />}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
