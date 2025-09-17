@@ -12,4 +12,5 @@ export const PATHS = {
   GOOGLE_CALLBACK: "/oauth/google/callback",
   TEAMS: "/teams",
   NOTIFICATIONS: "/notifications",
+  BOARDS: "/boards",
 } as const;

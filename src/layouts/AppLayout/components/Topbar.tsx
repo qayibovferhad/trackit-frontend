@@ -70,7 +70,9 @@ export default function Topbar({
             <ChevronLeft size={18} />
           </Button>
         )}
-        <h1 className="truncate text-sm font-medium">{computedTitle}</h1>
+        <h1 className="truncate text-md font-medium text-gray-700">
+          {computedTitle}
+        </h1>
       </div>
 
       <div className="mx-auto flex w-full max-w-xl items-center gap-2">

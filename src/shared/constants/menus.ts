@@ -21,7 +21,7 @@ export const MAIN_MENU: NavItem[] = [
   },
   { to: "/dashboard", label: "Dashboard", icon: ChartBar },
   { to: "/teams", label: "Teams", icon: Users },
-  { to: "/boards", label: "Boards", icon: CircuitBoard },
+  { to: "/boards", label: "Boards", icon: CircuitBoard, name: "Board" },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

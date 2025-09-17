@@ -1,19 +1,16 @@
 import { useEffect } from "react";
 import NotificationRow from "../components/NotificationRow";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchMyNotifications } from "../services/notifications.service";
 
 export default function Notifications() {
   useEffect(() => {
     document.title = "Notification";
   }, []);
-
-  const { data = [] } = useInfiniteQuery({
+  const { data = [] } = useQuery({
     queryKey: ["my-notifications"],
     queryFn: fetchMyNotifications,
   });
-
-  console.log("TEAM_INVITE", data);
 
   return (
     <div className="px-6 py-6">
