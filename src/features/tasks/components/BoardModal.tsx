@@ -4,16 +4,8 @@ import { boardSchema } from "../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import { fetchTeams } from "@/features/teams/services/teams.service";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 import { FormField } from "@/shared/components/FormField";
+import { Button } from "@/shared/ui/button";
 
 type BoardModalProps = {
   open: boolean;
@@ -61,6 +53,9 @@ export default function BoardModal({ open, onOpenChange }: BoardModalProps) {
             ))}
           </select>
         </FormField>
+        <Button type="submit" className="w-full">
+          Create
+        </Button>
       </form>
     </Modal>
   );
