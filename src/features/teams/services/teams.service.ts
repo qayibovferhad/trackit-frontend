@@ -64,3 +64,8 @@ export async function inviteUser(teamId: string, userId: string) {
   const { data } = await api.post(`/teams/${teamId}/invite`, { userId });
   return data;
 }
+
+export const fetchMyAdminTeams = async (): Promise<Team[]> => {
+  const response = await api.get("/teams/my-admin-teams");
+  return response.data;
+};

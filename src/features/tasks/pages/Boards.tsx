@@ -35,7 +35,7 @@ export default function Boards() {
         <BoardsHeader onOpenChange={setOpenModal} />
       </div>
 
-      <BoardModal open={openModal} onOpenChange={setOpenModal} />
+      {openModal && <BoardModal open={openModal} onOpenChange={setOpenModal} />}
     </>
   );
 }

@@ -1,11 +1,15 @@
 import { InputField } from "@/shared/components/InputField";
 import { Modal } from "@/shared/ui/modal";
-import { boardSchema } from "../schemas/boards.schema";
+import { boardSchema, type BoardFormData } from "../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
-import { fetchTeams } from "@/features/teams/services/teams.service";
+import {
+  fetchMyAdminTeams,
+  fetchTeams,
+} from "@/features/teams/services/teams.service";
 import { useQuery } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
+import type { Team } from "@/features/teams/types";
 
 type BoardModalProps = {
   open: boolean;
@@ -22,15 +26,15 @@ export default function BoardModal({ open, onOpenChange }: BoardModalProps) {
   } = useZodForm(boardSchema);
 
   const { data: teams } = useQuery({
-    queryKey: ["teams"],
-    queryFn: fetchTeams,
+    queryKey: ["my-admin-teams"],
+    queryFn: fetchMyAdminTeams,
     staleTime: 10_000,
     gcTime: 30 * 60_000,
   });
 
-  console.log("teams", teams);
-
-  function onSubmit() {}
+  function onSubmit(data: BoardFormData) {
+    console.log("data", data);
+  }
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Create Board">
       <form
@@ -38,15 +42,20 @@ export default function BoardModal({ open, onOpenChange }: BoardModalProps) {
         id="add-team-form"
         className="space-y-4"
       >
-        <InputField label="Board Name" htmlFor="name" register={register} />
+        <InputField
+          label="Board Name"
+          htmlFor="name"
+          register={register}
+          error={errors.name}
+        />
 
-        <FormField label="Team">
+        <FormField label="Team" error={errors.teamId}>
           <select
             {...register("teamId")}
             className="w-full border rounded-md p-2 text-sm text-gray-600"
           >
             <option value="">Select a team</option>
-            {teams?.map((team: any) => (
+            {teams?.map((team: Team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
               </option>
