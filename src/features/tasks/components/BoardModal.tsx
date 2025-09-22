@@ -6,10 +6,11 @@ import {
   fetchMyAdminTeams,
   fetchTeams,
 } from "@/features/teams/services/teams.service";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
 import type { Team } from "@/features/teams/types";
+import { addBoard } from "../services/boards.service";
 
 type BoardModalProps = {
   open: boolean;
@@ -32,8 +33,12 @@ export default function BoardModal({ open, onOpenChange }: BoardModalProps) {
     gcTime: 30 * 60_000,
   });
 
-  function onSubmit(data: BoardFormData) {
-    console.log("data", data);
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: addBoard,
+  });
+  async function onSubmit(data: BoardFormData) {
+    await mutateAsync(data);
+    onOpenChange(false);
   }
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Create Board">
