@@ -57,109 +57,17 @@ export default function Boards() {
     staleTime: 10_000,
   });
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, Board[]>();
-    (boards || []).forEach((b) => {
-      const key = b.teamId ?? "no-team";
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(b);
-    });
-    return map;
-  }, [boards]);
-
   const handleTeamFilter = (id: string | "all") => {
     setSelectedTeamId(id);
   };
-
-  const isLoading = teamsLoading || boardsLoading;
 
   return (
     <>
       <div className="px-6 pb-6">
         <BoardsHeader onOpenChange={setOpenModal} />
-        <div className="mt-4 flex gap-3 items-center flex-wrap">
-          <button
-            onClick={() => handleTeamFilter("all")}
-            className={`px-3 py-1 rounded ${
-              selectedTeamId === "all"
-                ? "bg-violet-600 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            All
-          </button>
-
-          {(teams || []).map((t: Team) => (
-            <button
-              key={t.id}
-              onClick={() => handleTeamFilter(t.id)}
-              className={`px-3 py-1 rounded ${
-                selectedTeamId === t.id
-                  ? "bg-violet-600 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
       </div>
 
-      <div className="px-6 pb-10">
-        {isLoading ? (
-          <div>Loading...</div>
-        ) : (
-          <>
-            {selectedTeamId !== "all" ? (
-              <section>
-                <h3 className="text-lg font-semibold mb-3">
-                  {teams?.find((t) => t.id === selectedTeamId)?.name ?? "Team"}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {(grouped.get(selectedTeamId) || []).length === 0 ? (
-                    <div className="text-sm text-gray-500">
-                      No boards for this team. Create one!
-                    </div>
-                  ) : (
-                    (grouped.get(selectedTeamId) || []).map((b) => (
-                      <BoardCard key={b.id} board={b} />
-                    ))
-                  )}
-                </div>
-              </section>
-            ) : (
-              <>
-                {Array.from(grouped.entries()).length === 0 ? (
-                  <div className="text-sm text-gray-500">
-                    No boards yet. Create your first board!
-                  </div>
-                ) : (
-                  Array.from(grouped.entries()).map(([teamId, list]) => {
-                    const team = teams?.find((t) => t.id === teamId);
-                    const title = team ? team.name : "No Team";
-                    return (
-                      <section key={teamId} className="mb-8">
-                        <h3 className="text-lg font-semibold mb-3">{title}</h3>
-                        {list.length === 0 ? (
-                          <div className="text-sm text-gray-500">
-                            No boards for this team.
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {list.map((b) => (
-                              <BoardCard key={b.id} board={b} />
-                            ))}
-                          </div>
-                        )}
-                      </section>
-                    );
-                  })
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
+      <div className="px-6 pb-10"></div>
 
       {openModal && (
         <BoardModal

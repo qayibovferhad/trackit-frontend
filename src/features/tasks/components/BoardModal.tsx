@@ -2,10 +2,7 @@ import { InputField } from "@/shared/components/InputField";
 import { Modal } from "@/shared/ui/modal";
 import { boardSchema, type BoardFormData } from "../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
-import {
-  fetchMyAdminTeams,
-  fetchTeams,
-} from "@/features/teams/services/teams.service";
+import { fetchMyAdminTeams } from "@/features/teams/services/teams.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
@@ -22,7 +19,6 @@ export default function BoardModal({ open, onOpenChange }: BoardModalProps) {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useZodForm(boardSchema);
 
