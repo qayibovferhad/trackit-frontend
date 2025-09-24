@@ -13,7 +13,6 @@ export function NavItemLink({
   exact,
   className,
 }: NavItemLinkProps) {
-  console.log("exact", exact);
   const { pathname } = useLocation();
   const resolved = useResolvedPath(to);
 

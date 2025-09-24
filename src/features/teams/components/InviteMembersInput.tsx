@@ -16,7 +16,6 @@ async function fetchEmailOptions(input: string): Promise<MembersOption[]> {
       value: u.email,
     }));
   } catch (error) {
-    console.error("Error fetching users:", error);
     return [];
   }
 }
@@ -65,7 +64,6 @@ export default function InviteMembersInput({
 
       timeoutRef.current = setTimeout(async () => {
         const options = await fetchEmailOptions(input);
-        console.log("options", options);
 
         resolve(options);
       }, 500);

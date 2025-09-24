@@ -106,7 +106,6 @@ function InviteButton({ teamId, userId }: { teamId: string; userId: string }) {
       qc.invalidateQueries({
         queryKey: ["my-invites-count"],
       });
-      console.log("salaaam");
     },
   });
 

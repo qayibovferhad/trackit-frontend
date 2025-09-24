@@ -168,7 +168,6 @@ function NotificationBell() {
     queryFn: fetchUnreadCount,
     refetchInterval: 10000,
   });
-  console.log("unread", unread);
 
   return (
     <div className="relative">

@@ -1,13 +1,13 @@
 import { InputField } from "@/shared/components/InputField";
 import { Modal } from "@/shared/ui/modal";
-import { boardSchema, type BoardFormData } from "../schemas/boards.schema";
+import { boardSchema, type BoardFormData } from "../../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import { fetchMyAdminTeams } from "@/features/teams/services/teams.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
 import type { Team } from "@/features/teams/types";
-import { addBoard } from "../services/boards.service";
+import { addBoard } from "../../services/boards.service";
 import { useEffect } from "react";
 
 type BoardModalProps = {

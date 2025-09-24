@@ -112,8 +112,6 @@ export function SidebarContent({
     (item) => item.label?.toLowerCase() === "boards"
   );
 
-  console.log("teams", teams);
-
   return (
     <div className="flex h-full flex-col bg-gray-100">
       <div>

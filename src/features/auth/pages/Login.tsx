@@ -36,8 +36,6 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     const response = await login(data);
     if (response?.accessToken && response.user) {
-      console.log(response);
-
       setUser(response.user);
 
       setAccessToken(response.accessToken);
