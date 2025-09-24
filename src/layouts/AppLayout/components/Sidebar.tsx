@@ -1,12 +1,13 @@
-import { NavItemLink } from "@/shared/components/NavItemLink";
 import { NavList } from "@/shared/components/NavList";
 import { cn } from "@/shared/lib/utils";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Button } from "@/shared/ui/button";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/ui/sheet";
-import { ChevronDown, ChevronRight, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import BoardsItem from "./BoardsDropdown";
+import type { Team } from "@/features/teams/types";
 
 type SidebarBaseProps = {
   items?: NavItem[];
@@ -14,14 +15,18 @@ type SidebarBaseProps = {
   showMobileTrigger?: boolean;
   widthClass?: string;
   headerSlot?: ReactNode;
+  teams?: Team[];
+  isLoadingTeams: boolean;
 };
 
 export function SidebarBase({
   items = [],
   title = "Menu",
+  teams = [],
   showMobileTrigger = true,
   headerSlot,
   widthClass = "w-64",
+  isLoadingTeams,
 }: SidebarBaseProps) {
   return (
     <>
@@ -38,6 +43,8 @@ export function SidebarBase({
                 title={title}
                 items={items}
                 headerSlot={headerSlot}
+                teams={teams}
+                isLoadingTeams={isLoadingTeams}
               />
             </SheetContent>
           </Sheet>
@@ -59,7 +66,13 @@ export function SidebarBase({
         )}
         aria-label="Primary navigation"
       >
-        <SidebarContent title={title} items={items} headerSlot={headerSlot} />
+        <SidebarContent
+          title={title}
+          items={items}
+          headerSlot={headerSlot}
+          teams={teams}
+          isLoadingTeams={isLoadingTeams}
+        />
       </aside>
     </>
   );
@@ -69,10 +82,14 @@ export function SidebarContent({
   title,
   items,
   headerSlot,
+  teams = [],
+  isLoadingTeams = false,
 }: {
   title: string;
   headerSlot?: ReactNode;
   items: NavItem[];
+  teams?: Team[];
+  isLoadingTeams?: boolean;
 }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -95,6 +112,8 @@ export function SidebarContent({
     (item) => item.label?.toLowerCase() === "boards"
   );
 
+  console.log("teams", teams);
+
   return (
     <div className="flex h-full flex-col bg-gray-100">
       <div>
@@ -106,50 +125,17 @@ export function SidebarContent({
           </div>
         )}
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-1">
           <NavList items={regularItems} className="space-y-1" />
           {boardsItem && (
-            <div className="space-y-1">
-              <button
-                className={cn(
-                  "group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition mb-5 w-full justify-between",
-                  "text-gray-700 hover:bg-gray-200"
-                )}
-                onClick={() => toggleItem("boards")}
-              >
-                <div className="flex items-center gap-3">
-                  {boardsItem.icon && <boardsItem.icon className="size-5" />}
-                  <span className="truncate text-gray-700">
-                    {boardsItem.label}
-                  </span>
-                </div>
-                {expandedItems.has("boards") ? (
-                  <ChevronDown className="size-4" />
-                ) : (
-                  <ChevronRight className="size-4" />
-                )}
-              </button>
-              {expandedItems.has("boards") && (
-                <div className="ml-6 space-y-1">
-                  <NavItemLink
-                    to="/boards/team-alpha"
-                    label="Team Alpha"
-                    exact={false}
-                  />
-                  <NavItemLink
-                    to="/boards/team-beta"
-                    label="Team Beta"
-                    exact={false}
-                  />
-                  <NavItemLink
-                    to="/boards/team-gamma"
-                    label="Team Gamma"
-                    exact={false}
-                  />
-                </div>
-              )}
-            </div>
+            <BoardsItem
+              boardsItem={boardsItem}
+              isExpanded={expandedItems.has("boards")}
+              onToggle={() => toggleItem("boards")}
+              teams={teams}
+              isLoading={isLoadingTeams}
+            />
           )}
         </div>
       </ScrollArea>
