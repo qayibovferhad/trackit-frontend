@@ -46,7 +46,7 @@ export default function BoardHeader({
                 boxShadow: "none",
                 minHeight: "35px",
                 height: "35px",
-                width: "150px",
+                width: "200px",
               }),
               option: (base, state) => ({
                 ...base,

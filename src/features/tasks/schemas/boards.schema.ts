@@ -5,4 +5,10 @@ export const boardSchema = z.object({
   teamId: z.string().uuid({ message: "Team must be selected." }),
 });
 
+export const columnSchema = z.object({
+  title: z.string().min(1, { message: "Title is required." }),
+  color: z.string(),
+});
+
 export type BoardFormData = z.infer<typeof boardSchema>;
+export type ColumnFormData = z.infer<typeof columnSchema>;

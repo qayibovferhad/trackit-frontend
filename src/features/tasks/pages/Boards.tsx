@@ -1,8 +1,8 @@
 import BoardModal from "../components/board/BoardModal";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchBoards } from "../services/boards.service";
-import { useQuery } from "@tanstack/react-query";
+import { createColumn, fetchBoards } from "../services/boards.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Board, BoardOption, Column, TaskType } from "../types";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import {
@@ -21,6 +21,8 @@ import {
 import { type SingleValue } from "react-select";
 import BoardHeader from "../components/board/BoardHeader";
 import BoardColumn from "../components/column/Column";
+import AddColumnButton from "../components/column/AddColumnButton";
+import type { ColumnFormData } from "../schemas/boards.schema";
 export const initialTasks: TaskType[] = [
   {
     id: "1",
@@ -74,9 +76,12 @@ export default function Boards() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
 
+  const queryClient = useQueryClient();
+
   const { data: boards, isLoading: boardsLoading } = useQuery({
-    queryKey: ["boards", "all"],
+    queryKey: ["boards", teamId ?? ""],
     queryFn: () => fetchBoards(teamId),
+    enabled: !!teamId,
     staleTime: 10_000,
   });
 
@@ -91,6 +96,24 @@ export default function Boards() {
     })
   );
 
+  const createColumnMutation = useMutation({
+    mutationFn: (variables: { boardId: string; data: ColumnFormData }) =>
+      createColumn(variables.boardId, variables.data),
+    onSuccess: (newColumn) => {
+      setColumns((prev) => [...prev, newColumn]);
+
+      setSelectedBoard((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          columns: [...(prev.columns || []), newColumn],
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+
   const options: BoardOption[] = (boards || []).map((b: Board) => ({
     value: b.id,
     label: b.name,
@@ -98,13 +121,24 @@ export default function Boards() {
   }));
 
   useEffect(() => {
-    if (!selectedBoard && options.length > 0) {
-      setSelectedBoard(options[0].board);
-      if (options[0].board.columns) {
-        setColumns(options[0].board.columns as Column[]);
-      } else {
-        setColumns([]);
-      }
+    setSelectedBoard(null);
+    setColumns([]);
+  }, [teamId]);
+
+  useEffect(() => {
+    if (!boards || boards.length === 0) {
+      setSelectedBoard(null);
+      setColumns([]);
+      return;
+    }
+
+    const selectedStillExists =
+      selectedBoard && boards.some((b) => b.id === selectedBoard.id);
+
+    if (!selectedStillExists) {
+      const first = boards[0];
+      setSelectedBoard(first);
+      setColumns(first.columns ?? []);
     }
   }, [boards]);
 
@@ -116,6 +150,15 @@ export default function Boards() {
     } else {
       setColumns([]);
     }
+  };
+
+  const handleAddColumn = (formData: Partial<Column>) => {
+    if (!selectedBoard?.id) return;
+
+    createColumnMutation.mutate({
+      boardId: selectedBoard.id,
+      data: formData,
+    });
   };
 
   return (
@@ -131,56 +174,32 @@ export default function Boards() {
       </div>
 
       <div className="px-6 pb-10">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={() => {}}
-          onDragOver={() => {}}
-          onDragEnd={() => {}}
-          modifiers={[restrictToWindowEdges]}
-        >
-          <div className="flex gap-6 overflow-x-auto pb-4">
-            <SortableContext
-              items={columns.map((col) => col.id)}
-              strategy={horizontalListSortingStrategy}
-            >
-              {[
-                {
-                  id: "col-1",
-                  title: "To Do",
-                  color: "gray",
-                  order: 0,
-                },
-                {
-                  id: "col-2",
-                  title: "In Progress",
-                  color: "blue",
-                  order: 1,
-                },
-                {
-                  id: "col-3",
-                  title: "Review",
-                  color: "yellow",
-                  order: 2,
-                },
-                {
-                  id: "col-4",
-                  title: "Done",
-                  color: "green",
-                  order: 3,
-                },
-              ].map((column) => (
-                <BoardColumn
-                  key={column.id}
-                  column={column}
-                  tasks={initialTasks}
-                />
-              ))}
-            </SortableContext>
-
-            {/* <AddColumnButton onAdd={handleAddColumn} /> */}
-          </div>
-        </DndContext>
+        {selectedBoard && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={() => {}}
+            onDragOver={() => {}}
+            onDragEnd={() => {}}
+            modifiers={[restrictToWindowEdges]}
+          >
+            <div className="flex gap-6 overflow-x-auto pb-4">
+              <SortableContext
+                items={selectedBoard?.columns?.map((col) => col.id)}
+                strategy={horizontalListSortingStrategy}
+              >
+                {columns?.map((column) => (
+                  <BoardColumn
+                    key={column.id}
+                    column={column}
+                    tasks={initialTasks}
+                  />
+                ))}
+              </SortableContext>
+              <AddColumnButton onAdd={handleAddColumn} />
+            </div>
+          </DndContext>
+        )}
       </div>
 
       {openModal && (

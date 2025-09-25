@@ -1,5 +1,5 @@
 import { api } from "@/shared/lib/axios";
-import type { BoardFormData } from "../schemas/boards.schema";
+import type { BoardFormData, ColumnFormData } from "../schemas/boards.schema";
 import type { Board, Column } from "../types";
 
 export const addBoard = async (data: BoardFormData) => {
@@ -12,7 +12,10 @@ export const fetchBoards = async (teamId?: string | null): Promise<Board[]> => {
   return res.data;
 };
 
-export const createColumn = async (boardId: string, columnData: Column) => {
-  const res = await api.post(`/boards/${boardId}/columns`, columnData);
-  return res.data;
+export const createColumn = async (
+  boardId: string,
+  column: Partial<Column> | ColumnFormData
+): Promise<Column> => {
+  const resp = await api.post(`/boards/${boardId}/columns`, column);
+  return resp.data as Column;
 };

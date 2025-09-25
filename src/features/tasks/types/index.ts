@@ -11,6 +11,9 @@ export interface Column {
   title: string;
   color: string;
   order: number;
+  boardId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type BoardOption = { value: string; label: string; board: Board };
