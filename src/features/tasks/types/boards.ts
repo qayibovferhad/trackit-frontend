@@ -17,15 +17,3 @@ export interface Column {
 }
 
 export type BoardOption = { value: string; label: string; board: Board };
-
-export interface TaskType {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  priority: string;
-  assignee: {
-    name: string;
-    avatar: string;
-  };
-}

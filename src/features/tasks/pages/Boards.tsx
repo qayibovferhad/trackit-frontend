@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createColumn, fetchBoards } from "../services/boards.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Board, BoardOption, Column, TaskType } from "../types";
+import type { Board, BoardOption, Column } from "../types/boards";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+
 import {
   DndContext,
   KeyboardSensor,
@@ -23,6 +24,8 @@ import BoardHeader from "../components/board/BoardHeader";
 import BoardColumn from "../components/column/Column";
 import AddColumnButton from "../components/column/AddColumnButton";
 import type { ColumnFormData } from "../schemas/boards.schema";
+import TaskModal from "../components/task/TaskModal";
+import type { TaskType } from "../types/tasks";
 export const initialTasks: TaskType[] = [
   {
     id: "1",
@@ -72,6 +75,8 @@ export const initialTasks: TaskType[] = [
 ];
 export default function Boards() {
   const [openModal, setOpenModal] = useState(false);
+  const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const { id: teamId } = useParams<{ id: string }>();
   const [columns, setColumns] = useState<Column[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
@@ -152,13 +157,18 @@ export default function Boards() {
     }
   };
 
-  const handleAddColumn = (formData: Partial<Column>) => {
+  const handleAddColumn = (formData: ColumnFormData) => {
     if (!selectedBoard?.id) return;
 
     createColumnMutation.mutate({
       boardId: selectedBoard.id,
       data: formData,
     });
+  };
+
+  const handleOpenAddTaskModal = (columnId: string) => {
+    setActiveColumnId(columnId);
+    setOpenTaskModal(true);
   };
 
   return (
@@ -183,7 +193,7 @@ export default function Boards() {
             onDragEnd={() => {}}
             modifiers={[restrictToWindowEdges]}
           >
-            <div className="flex gap-6 overflow-x-auto pb-4">
+            <div className="flex gap-3 overflow-x-auto pb-4">
               <SortableContext
                 items={selectedBoard?.columns?.map((col) => col.id)}
                 strategy={horizontalListSortingStrategy}
@@ -193,9 +203,11 @@ export default function Boards() {
                     key={column.id}
                     column={column}
                     tasks={initialTasks}
+                    onAddTask={() => handleOpenAddTaskModal(column.id)}
                   />
                 ))}
               </SortableContext>
+
               <AddColumnButton onAdd={handleAddColumn} />
             </div>
           </DndContext>
@@ -207,6 +219,17 @@ export default function Boards() {
           open={openModal}
           onOpenChange={setOpenModal}
           defaultTeamId={teamId}
+        />
+      )}
+
+      {openTaskModal && (
+        <TaskModal
+          open={openTaskModal}
+          onOpenChange={(v) => {
+            setOpenTaskModal(v);
+            if (!v) setActiveColumnId(null);
+          }}
+          defaultColumnId={activeColumnId}
         />
       )}
     </>

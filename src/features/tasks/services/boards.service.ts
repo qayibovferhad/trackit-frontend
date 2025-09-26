@@ -1,6 +1,6 @@
 import { api } from "@/shared/lib/axios";
 import type { BoardFormData, ColumnFormData } from "../schemas/boards.schema";
-import type { Board, Column } from "../types";
+import type { Board, Column } from "../types/boards";
 
 export const addBoard = async (data: BoardFormData) => {
   const response = await api.post("/boards", data);

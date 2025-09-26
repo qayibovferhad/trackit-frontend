@@ -1,4 +1,4 @@
-import type { TaskType } from "../../types";
+import type { TaskType } from "../../types/tasks";
 
 export default function TaskCard({ task }: { task: TaskType }) {
   return (

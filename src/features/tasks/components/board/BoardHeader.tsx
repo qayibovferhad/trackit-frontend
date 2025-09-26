@@ -1,5 +1,5 @@
 import PageHeader from "@/layouts/AppLayout/components/PageHeader";
-import type { Board, BoardOption } from "../../types";
+import type { Board, BoardOption } from "../../types/boards";
 import Select, { type SingleValue } from "react-select";
 import { Button } from "@/shared/ui/button";
 import { Plus } from "lucide-react";

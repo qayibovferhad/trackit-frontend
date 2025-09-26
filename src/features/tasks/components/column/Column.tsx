@@ -1,16 +1,19 @@
 import { Plus, MoreHorizontal } from "lucide-react";
-import type { Column as ColumnType, TaskType } from "../../types";
+import type { Column as ColumnType } from "../../types/boards";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
+import type { TaskType } from "../../types/tasks";
 
 export default function Column({
   column,
   tasks,
+  onAddTask,
 }: {
   column: ColumnType;
   tasks: TaskType[];
+  onAddTask: (id: string) => void;
 }) {
   const {
     setNodeRef,
@@ -36,13 +39,13 @@ export default function Column({
     colorOptions.find((c) => c.name === column.color) || colorOptions[0];
 
   return (
-    <div className="w-[300px] flex-shrink-0">
+    <div className="w-[270px] flex-shrink-0">
       <div
         ref={setNodeRef}
         style={style}
         {...attributes}
         {...listeners}
-        className={`flex flex-col h-full rounded-lg border ${
+        className={`flex flex-col h-full rounded-md border ${
           colorOption.border
         } ${isDragging ? "opacity-90 shadow-lg" : "shadow-none"}`}
       >
@@ -75,6 +78,7 @@ export default function Column({
                     : `bg-${colorOption.name}-100`
                 }`}
                 aria-label="Add task"
+                onClick={() => onAddTask(column.id)}
               >
                 <Plus className={`w-4 h-4 ${colorOption.text}`} />
               </button>
