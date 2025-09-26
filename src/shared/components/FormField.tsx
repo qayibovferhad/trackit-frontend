@@ -5,16 +5,18 @@ export function FormField({
   error,
   children,
   htmlFor,
+  className,
 }: {
   label: string;
   error?: FieldError;
   children: React.ReactNode;
   htmlFor?: string;
+  className?: string;
 }) {
   const errorMessage = error?.message || (error as any)?.value?.message;
 
   return (
-    <div>
+    <div className={className}>
       <label htmlFor={htmlFor} className="block text-sm mb-1 text-gray-600">
         {label}
       </label>

@@ -4,8 +4,15 @@ export interface TaskType {
   description: string;
   date: string;
   priority: string;
-  assignee: {
-    name: string;
-    avatar: string;
-  };
+  assigneeUser: string;
+}
+
+export interface UserOption {
+  label: string;
+  value: string;
+  id?: string;
+  email?: string;
+  username?: string;
+  avatar?: string;
+  name?: string;
 }

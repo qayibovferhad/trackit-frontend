@@ -16,12 +16,12 @@ export default function TaskCard({ task }: { task: TaskType }) {
           )}
           <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
             <div className="flex items-center gap-2">
-              <img
+              {/* <img
                 src={task.assignee?.avatar}
                 alt={task.assignee?.name || "avatar"}
                 className="w-6 h-6 rounded-full object-cover"
               />
-              <span>{task.assignee?.name}</span>
+              <span>{task.assignee?.name}</span> */}
             </div>
             <div className="flex items-center gap-2">
               <span>{task.date}</span>

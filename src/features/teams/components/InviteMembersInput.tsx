@@ -1,9 +1,8 @@
-import AsyncCreatableSelect from "react-select/async-creatable";
-import type { GroupBase, MultiValue } from "react-select";
-import { useCallback, useRef } from "react";
-import type { MemberInput, MembersOption } from "../types";
-import { searchUsers } from "../services/teams.service";
 import { EMAIL_REGEX } from "@/shared/constants/regex";
+import { searchUsers } from "../services/teams.service";
+import type { MemberInput, MembersOption } from "../types";
+import { useCallback } from "react";
+import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 
 async function fetchEmailOptions(input: string): Promise<MembersOption[]> {
   if (!input || input.length < 2) return [];
@@ -14,6 +13,7 @@ async function fetchEmailOptions(input: string): Promise<MembersOption[]> {
       id: u.id,
       label: u.email,
       value: u.email,
+      role: "member" as const,
     }));
   } catch (error) {
     return [];
@@ -41,68 +41,42 @@ function convertToOptions(members: MemberInput[]): MembersOption[] {
   }));
 }
 
-type Props = {
+interface InviteMembersInputProps {
   value?: MemberInput[];
   onChange: (members: MemberInput[]) => void;
   placeholder?: string;
-};
+}
 
 export default function InviteMembersInput({
   value = [],
   onChange,
   placeholder,
-}: Props) {
-  const timeoutRef = useRef<NodeJS.Timeout>(null);
-
+}: InviteMembersInputProps) {
   const displayValue = convertToOptions(value);
 
-  const loadOptions = useCallback((input: string): Promise<MembersOption[]> => {
-    return new Promise((resolve) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+  const handleMembersChange = useCallback(
+    (selectedOptions: MembersOption[]) => {
+      const members = convertToMembers(selectedOptions);
 
-      timeoutRef.current = setTimeout(async () => {
-        const options = await fetchEmailOptions(input);
-
-        resolve(options);
-      }, 500);
-    });
-  }, []);
-
-  const isValidNewOption = useCallback((inputValue: string) => {
-    return isValidEmail(inputValue.trim());
-  }, []);
-
-  const handleChange = useCallback(
-    (selectedOptions: MultiValue<MembersOption>) => {
-      const options = selectedOptions as MembersOption[];
-      const members = convertToMembers(options);
       onChange(members);
     },
     [onChange]
   );
+
   return (
-    <AsyncCreatableSelect<MembersOption, true, GroupBase<MembersOption>>
-      isMulti
-      cacheOptions
-      defaultOptions={[]}
-      loadOptions={loadOptions}
+    <GenericAsyncSelect<MembersOption>
       value={displayValue}
-      onChange={handleChange}
+      onChange={handleMembersChange}
       placeholder={placeholder ?? "Type an email…"}
-      formatCreateLabel={(s) => `Invite "${s}"`}
-      isValidNewOption={isValidNewOption}
+      loadOptions={fetchEmailOptions}
+      isValidNewOption={(inputValue) => isValidEmail(inputValue.trim())}
       getNewOptionData={(inputValue) => ({
         label: inputValue,
         value: inputValue.trim(),
         role: "member" as const,
       })}
-      noOptionsMessage={() => "No results"}
-      onKeyDown={(e) => {
-        if (e.key === "," || e.key === "Enter") {
-        }
-      }}
+      formatCreateLabel={(s) => `Invite "${s}"`}
+      allowCreateOption={true}
     />
   );
 }

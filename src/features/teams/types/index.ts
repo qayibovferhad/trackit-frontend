@@ -17,7 +17,7 @@ export type MembersOption = {
 
 export interface MemberInput {
   email: string;
-  role: "admin" | "member";
+  role?: "admin" | "member";
 }
 
 export interface TeamMember {

@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
 import type { TaskType } from "../../types/tasks";
+import { Button } from "@/shared/ui/button";
 
 export default function Column({
   column,
@@ -70,9 +71,11 @@ export default function Column({
             </div>
 
             <div className="flex items-center gap-1">
-              <button
+              <Button
                 type="button"
-                className={`p-1 rounded hover:${
+                variant="ghost"
+                size="icon"
+                className={`size-5 p-0 rounded hover:${
                   colorOption.name === "gray"
                     ? "bg-gray-200"
                     : `bg-${colorOption.name}-100`
@@ -81,10 +84,12 @@ export default function Column({
                 onClick={() => onAddTask(column.id)}
               >
                 <Plus className={`w-4 h-4 ${colorOption.text}`} />
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={`p-1 rounded hover:${
+                variant="ghost"
+                size="icon"
+                className={`size-5 p-0 rounded hover:${
                   colorOption.name === "gray"
                     ? "bg-gray-200"
                     : `bg-${colorOption.name}-100`
@@ -92,7 +97,7 @@ export default function Column({
                 aria-label="Column menu"
               >
                 <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
