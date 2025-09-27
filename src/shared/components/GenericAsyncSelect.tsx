@@ -94,8 +94,6 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     noOptionsMessage,
   };
 
-  console.log(selectProps);
-
   if (!allowCreateOption) {
     return <AsyncSelect<T, true, GroupBase<T>> {...commonProps} />;
   }

@@ -11,6 +11,11 @@ import { FormField } from "@/shared/components/FormField";
 import type { UserOption } from "../../types/tasks";
 import { searchUsers } from "@/features/teams/services/teams.service";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
+import { useMutation } from "@tanstack/react-query";
+import { createTask } from "../../services/tasks.service";
+import { useState } from "react";
+import { getErrorMessage } from "@/shared/lib/error";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
 type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -48,14 +53,25 @@ export default function TaskModal({
   onOpenChange,
   defaultColumnId,
 }: TaskModalProps) {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    unregister,
     formState: { errors },
   } = useZodForm(taskSchema);
 
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      setErrorMessage(null);
+    },
+    onError: (err) => {
+      setErrorMessage(getErrorMessage(err));
+    },
+  });
   const assigneeValue = watch("assignee");
 
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
@@ -70,7 +86,7 @@ export default function TaskModal({
       };
       setValue("assignee", assigneeData);
     } else {
-      setValue("assignee", undefined);
+      unregister("assignee");
     }
   };
 
@@ -91,7 +107,23 @@ export default function TaskModal({
           },
         ]
       : [];
-  async function onSubmit(data: TaskFormData) {}
+  async function onSubmit(data: TaskFormData) {
+    const [hh, mm] = data.dueTime.split(":").map(Number);
+    const dueAt = new Date(data.dueDate);
+    dueAt.setHours(hh, mm, 0, 0);
+
+    const payload = {
+      title: data.title,
+      description: data.description,
+      dueAt,
+      assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
+      priority: data.priority,
+      columnId: defaultColumnId ?? undefined,
+    };
+
+    await mutateAsync(payload);
+  }
+
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Create Board Task">
       <form
@@ -115,36 +147,52 @@ export default function TaskModal({
         <div className="flex gap-2">
           <FormField
             label="Due Date"
-            htmlFor="date"
-            error={errors.date}
+            htmlFor="dueDate"
+            error={errors.dueDate}
             className="flex-1"
           >
             <input
               type="date"
               id="date"
-              {...register("date")}
+              {...register("dueDate")}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </FormField>
 
           <FormField
             label="Due Time"
-            htmlFor="time"
-            error={errors.time}
+            htmlFor="dueTime"
+            error={errors.dueTime}
             className="flex-1"
           >
             <input
               type="time"
-              id="time"
-              {...register("time")}
+              id="dueTime"
+              {...register("dueTime")}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </FormField>
         </div>
+        <FormField label="Priority" htmlFor="priority" error={errors.priority}>
+          <select
+            id="priority"
+            {...register("priority")}
+            className="w-full border border-gray-300 r rounded-md p-2 text-sm "
+            defaultValue="medium"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </FormField>
         <FormField
           label="Assign To"
           htmlFor="assignee"
-          error={errors.assignee?.email || errors.assignee?.root}
+          error={
+            Array.isArray(errors.assignee)
+              ? errors.assignee.find(Boolean)
+              : errors.assignee
+          }
         >
           <GenericAsyncSelect<UserOption>
             value={currentAssignee}
@@ -160,8 +208,10 @@ export default function TaskModal({
             noOptionsMessage={() => "No users found"}
           />
         </FormField>
+        {errorMessage && <ErrorAlert message={errorMessage} />}
+
         <Button type="submit" className="w-full">
-          Create
+          {isPending ? "Creating.." : "Create"}
         </Button>
       </form>
     </Modal>

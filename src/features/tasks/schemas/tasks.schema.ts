@@ -1,3 +1,4 @@
+import { TIME_REGEX } from "@/shared/constants/regex";
 import z from "zod";
 
 export const AssigneeSchema = z.object({
@@ -10,9 +11,22 @@ export const AssigneeSchema = z.object({
 export const taskSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
-  date: z.date(),
-  time: z.date(),
-  assignee: AssigneeSchema.optional(),
+  dueDate: z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) {
+      const d = new Date(arg);
+      return isNaN(d.getTime()) ? undefined : d;
+    }
+    return arg;
+  }, z.date({ required_error: "Due date is required." })),
+
+  dueTime: z
+    .string()
+    .min(1, { message: "Due time is required." })
+    .regex(TIME_REGEX, "Invalid time"),
+  assignee: AssigneeSchema,
+  priority: z.enum(["low", "medium", "high"], {
+    errorMap: () => ({ message: "Please select a priority." }),
+  }),
 });
 
 export type TaskFormData = z.infer<typeof taskSchema>;
