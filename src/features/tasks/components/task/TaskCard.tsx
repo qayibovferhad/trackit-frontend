@@ -1,3 +1,4 @@
+import UserAvatar from "@/shared/components/UserAvatar";
 import type { TaskType } from "../../types/tasks";
 
 export default function TaskCard({ task }: { task: TaskType }) {
@@ -6,22 +7,24 @@ export default function TaskCard({ task }: { task: TaskType }) {
       <div className="flex items-start gap-3">
         <input type="checkbox" className="mt-1 w-4 h-4 text-violet-600" />
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-gray-800 leading-tight">
+          <h4 className="text-xs font-medium text-gray-800 leading-tight whitespace-normal break-words ">
             {task.title}
           </h4>
           {task.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+            <p className="text-xs text-gray-500 mt-1 line-clamp-2 truncate max-w-[120px]">
               {task.description}
             </p>
           )}
           <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
             <div className="flex items-center gap-2">
-              {/* <img
-                src={task.assignee?.avatar}
-                alt={task.assignee?.name || "avatar"}
-                className="w-6 h-6 rounded-full object-cover"
+              <UserAvatar
+                name={task.assignee?.username}
+                src={task.assignee?.profileImage}
+                size="sm"
               />
-              <span>{task.assignee?.name}</span> */}
+              <span className="truncate max-w-[100px]">
+                {task.assignee?.username}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span>{task.date}</span>

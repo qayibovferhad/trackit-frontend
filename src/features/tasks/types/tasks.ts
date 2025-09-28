@@ -8,7 +8,10 @@ export interface TaskType {
   description: string;
   date: string;
   priority: string;
-  assigneeUser: string;
+  assignee: {
+    username: string;
+    profileImage?: string;
+  };
 }
 
 export type CreateTaskPayload = {
@@ -26,6 +29,6 @@ export interface UserOption {
   id?: string;
   email?: string;
   username?: string;
-  avatar?: string;
+  profileImage?: string;
   name?: string;
 }

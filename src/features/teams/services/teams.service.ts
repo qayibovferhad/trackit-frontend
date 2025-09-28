@@ -1,6 +1,7 @@
 import { api } from "@/shared/lib/axios";
 import type { MembersOption, Page, Team } from "../types";
 import type { AddTeamFormData } from "../schemas/teams.schema";
+import type { User } from "@/features/auth/types/auth.type";
 
 export const searchUsers = async (
   query: string
@@ -69,3 +70,12 @@ export const fetchMyAdminTeams = async (): Promise<Team[]> => {
   const response = await api.get("/teams/my-admin-teams");
   return response.data;
 };
+
+export async function getTeamMembers(
+  teamId: string,
+  search: string
+): Promise<User[]> {
+  const searchParam = search ? `?search=${encodeURIComponent(search)}` : "";
+  const { data } = await api.get(`/teams/${teamId}/members${searchParam}`);
+  return data;
+}

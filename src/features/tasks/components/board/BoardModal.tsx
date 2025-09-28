@@ -3,7 +3,7 @@ import { Modal } from "@/shared/ui/modal";
 import { boardSchema, type BoardFormData } from "../../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import { fetchMyAdminTeams } from "@/features/teams/services/teams.service";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
 import type { Team } from "@/features/teams/types";
@@ -29,6 +29,7 @@ export default function BoardModal({
     formState: { errors },
   } = useZodForm(boardSchema);
 
+  const queryClient = useQueryClient();
   const { data: teams } = useQuery({
     queryKey: ["my-admin-teams"],
     queryFn: fetchMyAdminTeams,
@@ -38,6 +39,9 @@ export default function BoardModal({
 
   const { mutateAsync } = useMutation({
     mutationFn: addBoard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
   async function onSubmit(data: BoardFormData) {
     await mutateAsync(data);

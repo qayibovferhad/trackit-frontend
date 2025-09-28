@@ -40,33 +40,34 @@ export default function Column({
     colorOptions.find((c) => c.name === column.color) || colorOptions[0];
 
   return (
-    <div className="w-[270px] flex-shrink-0">
+    <div className="flex-1 min-w-0 h-full">
       <div
         ref={setNodeRef}
         style={style}
         {...attributes}
         {...listeners}
-        className={`flex flex-col h-full rounded-md border ${
+        className={`flex flex-col h-full rounded-xl border-2 ${
           colorOption.border
-        } ${isDragging ? "opacity-90 shadow-lg" : "shadow-none"}`}
+        } ${isDragging ? "opacity-90 shadow-xl" : "shadow-sm"} bg-white`}
       >
         <div
-          className={`px-3 py-2 border-b ${colorOption.border} rounded-t-lg ${colorOption.bg}`}
+          className={`px-4 py-3 border-b-2 ${colorOption.border} rounded-t-xl ${colorOption.bg}`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm"></span>
-              <h3 className={`text-sm font-semibold ${colorOption.text}`}>
+              <h3
+                className={`text-sm font-bold ${colorOption.text} whitespace-normal break-words `}
+              >
                 {column.title}
               </h3>
               <span
-                className={`ml-1 text-xs px-2 py-0.5 rounded-full ${
+                className={`text-xs px-2 py-1 rounded-full font-semibold ${
                   colorOption.name === "gray"
-                    ? "bg-gray-200 text-gray-700"
-                    : `bg-${colorOption.name}-100 text-${colorOption.name}-700`
+                    ? "bg-gray-100 text-gray-600"
+                    : `bg-${colorOption.name}-50 text-${colorOption.name}-600 border border-${colorOption.name}-200`
                 }`}
               >
-                {11}
+                {tasks?.length || 0}
               </span>
             </div>
 
@@ -75,11 +76,11 @@ export default function Column({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={`size-5 p-0 rounded hover:${
+                className={`h-7 w-7 rounded-lg hover:${
                   colorOption.name === "gray"
-                    ? "bg-gray-200"
-                    : `bg-${colorOption.name}-100`
-                }`}
+                    ? "bg-gray-100"
+                    : `bg-${colorOption.name}-50`
+                } transition-colors`}
                 aria-label="Add task"
                 onClick={() => onAddTask(column.id)}
               >
@@ -89,11 +90,11 @@ export default function Column({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={`size-5 p-0 rounded hover:${
+                className={`h-7 w-7 rounded-lg hover:${
                   colorOption.name === "gray"
-                    ? "bg-gray-200"
-                    : `bg-${colorOption.name}-100`
-                }`}
+                    ? "bg-gray-100"
+                    : `bg-${colorOption.name}-50`
+                } transition-colors`}
                 aria-label="Column menu"
               >
                 <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
@@ -102,21 +103,38 @@ export default function Column({
           </div>
         </div>
 
-        <div
-          className={`p-3 flex-1 overflow-y-auto ${colorOption.bg}`}
-          style={{ minHeight: 120 }}
-        >
+        <div className="p-2 flex-1 space-y-3 min-h-[200px] overflow-y-auto">
           {tasks && tasks.length > 0 ? (
-            tasks.map((t) => <TaskCard key={t.id} task={t} />)
+            tasks.map((task) => <TaskCard key={task.id} task={task} />)
           ) : (
-            <div
-              className={`text-center text-sm py-6 ${
-                colorOption.name === "gray"
-                  ? "text-gray-400"
-                  : colorOption.text.replace("700", "400")
-              }`}
-            >
-              No tasks yet
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div
+                className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center ${
+                  colorOption.name === "gray"
+                    ? "bg-gray-50"
+                    : `bg-${colorOption.name}-50`
+                }`}
+              >
+                <Plus
+                  className={`w-6 h-6 ${
+                    colorOption.name === "gray"
+                      ? "text-gray-300"
+                      : colorOption.text.replace("700", "300")
+                  }`}
+                />
+              </div>
+              <p
+                className={`text-sm font-medium ${
+                  colorOption.name === "gray"
+                    ? "text-gray-400"
+                    : colorOption.text.replace("700", "400")
+                }`}
+              >
+                No tasks yet
+              </p>
+              <p className="text-xs text-gray-300 mt-1">
+                Click + to add your first task
+              </p>
             </div>
           )}
         </div>

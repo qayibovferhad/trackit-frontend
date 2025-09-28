@@ -6,6 +6,7 @@ export const AssigneeSchema = z.object({
   email: z.string().email("Invalid email").optional(),
   username: z.string().optional(),
   name: z.string().optional(),
+  profileImage: z.string().optional(),
 });
 
 export const taskSchema = z.object({

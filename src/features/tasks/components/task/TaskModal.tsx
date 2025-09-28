@@ -8,11 +8,9 @@ import {
 import { InputField } from "@/shared/components/InputField";
 import { Button } from "@/shared/ui/button";
 import { FormField } from "@/shared/components/FormField";
-import type { UserOption } from "../../types/tasks";
-import { searchUsers } from "@/features/teams/services/teams.service";
+import type { CreateTaskPayload, UserOption } from "../../types/tasks";
+import { getTeamMembers } from "@/features/teams/services/teams.service";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
-import { useMutation } from "@tanstack/react-query";
-import { createTask } from "../../services/tasks.service";
 import { useState } from "react";
 import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
@@ -20,6 +18,8 @@ type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   defaultColumnId: string | null;
+  onAddTask?: (taskData: CreateTaskPayload) => void;
+  teamId?: string;
 };
 const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> => {
   return (
@@ -29,20 +29,28 @@ const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> => {
   );
 };
 
-async function fetchUserOptions(input: string): Promise<UserOption[]> {
+async function fetchUserOptions(
+  teamId: string,
+  input: string
+): Promise<UserOption[]> {
   if (!input || input.length < 2) return [];
 
   try {
-    const data = await searchUsers(input);
+    const data = await getTeamMembers(teamId, input);
 
-    return (data?.items ?? []).map((user: any) => ({
-      id: user.id,
-      label: user.email || user.username,
-      value: user.id,
-      email: user.email,
-      username: user.username,
-      avatar: user.avatar,
-    }));
+    console.log(data, "data");
+
+    return (data ?? []).map((member: any) => {
+      const user = member.user;
+      return {
+        id: user.id,
+        value: user.id,
+        label: user.username || user.email,
+        email: user.email,
+        username: user.username,
+        profileImage: user.profileImage,
+      };
+    });
   } catch (error) {
     return [];
   }
@@ -52,8 +60,11 @@ export default function TaskModal({
   open,
   onOpenChange,
   defaultColumnId,
+  onAddTask,
+  teamId,
 }: TaskModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -61,28 +72,22 @@ export default function TaskModal({
     watch,
     unregister,
     formState: { errors },
+    reset,
   } = useZodForm(taskSchema);
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: createTask,
-    onSuccess: () => {
-      setErrorMessage(null);
-    },
-    onError: (err) => {
-      setErrorMessage(getErrorMessage(err));
-    },
-  });
   const assigneeValue = watch("assignee");
 
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
     const selectedUser = selectedUsers[0] || null;
+
+    console.log(selectedUser, "selectedUser");
 
     if (selectedUser) {
       const assigneeData: AssigneeData = {
         id: selectedUser.id,
         email: selectedUser.email,
         username: selectedUser.username,
-        name: selectedUser.name,
+        profileImage: selectedUser.profileImage,
       };
       setValue("assignee", assigneeData);
     } else {
@@ -95,33 +100,47 @@ export default function TaskModal({
       ? [
           {
             id: assigneeValue.id,
-            label:
-              assigneeValue.email ||
-              assigneeValue.username ||
-              assigneeValue.name ||
-              "Unknown User",
+            label: assigneeValue.username || "Unknown User",
             value: assigneeValue.id,
             email: assigneeValue.email,
-            username: assigneeValue.username,
-            name: assigneeValue.name,
           },
         ]
       : [];
   async function onSubmit(data: TaskFormData) {
-    const [hh, mm] = data.dueTime.split(":").map(Number);
-    const dueAt = new Date(data.dueDate);
-    dueAt.setHours(hh, mm, 0, 0);
+    if (!defaultColumnId) {
+      setErrorMessage("No column selected");
+      return;
+    }
 
-    const payload = {
-      title: data.title,
-      description: data.description,
-      dueAt,
-      assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
-      priority: data.priority,
-      columnId: defaultColumnId ?? undefined,
-    };
+    setErrorMessage(null);
+    setIsSubmitting(true);
 
-    await mutateAsync(payload);
+    try {
+      const [hh, mm] = data.dueTime.split(":").map(Number);
+      const dueAt = new Date(data.dueDate);
+      dueAt.setHours(hh, mm, 0, 0);
+
+      const payload = {
+        title: data.title,
+        description: data.description,
+        dueAt,
+        assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
+        priority: data.priority,
+        columnId: defaultColumnId,
+      };
+
+      console.log(payload, "payload");
+
+      if (onAddTask) {
+        onAddTask(payload);
+        onOpenChange(false);
+        reset();
+      }
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -198,7 +217,7 @@ export default function TaskModal({
             value={currentAssignee}
             onChange={handleAssigneeChange}
             placeholder="Search by email or username..."
-            loadOptions={fetchUserOptions}
+            loadOptions={(input) => fetchUserOptions(teamId || "", input)}
             formatCreateLabel={(s) => `Invite "${s}"`}
             allowCreateOption={false}
             getNewOptionData={(inputValue) => ({
@@ -211,7 +230,7 @@ export default function TaskModal({
         {errorMessage && <ErrorAlert message={errorMessage} />}
 
         <Button type="submit" className="w-full">
-          {isPending ? "Creating.." : "Create"}
+          {isSubmitting ? "Creating.." : "Create"}
         </Button>
       </form>
     </Modal>

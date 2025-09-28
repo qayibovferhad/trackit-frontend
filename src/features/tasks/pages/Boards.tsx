@@ -25,54 +25,9 @@ import BoardColumn from "../components/column/Column";
 import AddColumnButton from "../components/column/AddColumnButton";
 import type { ColumnFormData } from "../schemas/boards.schema";
 import TaskModal from "../components/task/TaskModal";
-import type { TaskType } from "../types/tasks";
-export const initialTasks: TaskType[] = [
-  {
-    id: "1",
-    title: "Design login page",
-    description: "Create a responsive login page with validation",
-    date: "2025-09-25",
-    priority: "High",
-    assignee: {
-      name: "Alice Johnson",
-      avatar: "https://i.pravatar.cc/150?img=1",
-    },
-  },
-  {
-    id: "2",
-    title: "Setup database schema",
-    description: "Define tables and relationships for user management",
-    date: "2025-09-26",
-    priority: "Medium",
-    assignee: {
-      name: "Bob Smith",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-  },
-  {
-    id: "3",
-    title: "Implement authentication",
-    description: "Add JWT authentication for login and register",
-    date: "2025-09-27",
-    priority: "High",
-    assignee: {
-      name: "Charlie Brown",
-      avatar: "https://i.pravatar.cc/150?img=3",
-    },
-  },
-  {
-    id: "4",
-    title: "Setup CI/CD pipeline",
-    description:
-      "Configure GitHub Actions for automated testing and deployment",
-    date: "2025-09-28",
-    priority: "Low",
-    assignee: {
-      name: "Diana Prince",
-      avatar: "https://i.pravatar.cc/150?img=4",
-    },
-  },
-];
+import { createTask } from "../services/tasks.service";
+import type { CreateTaskPayload } from "../types/tasks";
+
 export default function Boards() {
   const [openModal, setOpenModal] = useState(false);
   const [openTaskModal, setOpenTaskModal] = useState(false);
@@ -84,7 +39,7 @@ export default function Boards() {
   const queryClient = useQueryClient();
 
   const { data: boards, isLoading: boardsLoading } = useQuery({
-    queryKey: ["boards", teamId ?? ""],
+    queryKey: ["boards", teamId],
     queryFn: () => fetchBoards(teamId),
     enabled: !!teamId,
     staleTime: 10_000,
@@ -119,6 +74,35 @@ export default function Boards() {
     },
   });
 
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: (newTask, variables) => {
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === variables.columnId
+            ? { ...col, tasks: [...(col.tasks || []), newTask] }
+            : col
+        )
+      );
+
+      setSelectedBoard((prev) => {
+        if (!prev) return prev;
+        console.log(newTask);
+
+        return {
+          ...prev,
+          columns: prev.columns?.map((col) =>
+            col.id === variables.columnId
+              ? { ...col, tasks: [...(col.tasks || []), newTask] }
+              : col
+          ),
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+
   const options: BoardOption[] = (boards || []).map((b: Board) => ({
     value: b.id,
     label: b.name,
@@ -143,6 +127,8 @@ export default function Boards() {
     if (!selectedStillExists) {
       const first = boards[0];
       setSelectedBoard(first);
+      console.log(first);
+
       setColumns(first.columns ?? []);
     }
   }, [boards]);
@@ -171,6 +157,17 @@ export default function Boards() {
     setOpenTaskModal(true);
   };
 
+  const handleAddTask = (taskData: CreateTaskPayload) => {
+    if (!activeColumnId) return;
+
+    const payload = {
+      ...taskData,
+      columnId: activeColumnId,
+    };
+
+    createTaskMutation.mutate(payload);
+  };
+
   return (
     <>
       <div className="px-6 pb-6">
@@ -193,7 +190,7 @@ export default function Boards() {
             onDragEnd={() => {}}
             modifiers={[restrictToWindowEdges]}
           >
-            <div className="flex gap-3 overflow-x-auto pb-4">
+            <div className="flex gap-3 overflow-x-hidden pb-4">
               <SortableContext
                 items={selectedBoard?.columns?.map((col) => col.id)}
                 strategy={horizontalListSortingStrategy}
@@ -202,13 +199,15 @@ export default function Boards() {
                   <BoardColumn
                     key={column.id}
                     column={column}
-                    tasks={initialTasks}
+                    tasks={column.tasks || []}
                     onAddTask={() => handleOpenAddTaskModal(column.id)}
                   />
                 ))}
               </SortableContext>
 
-              <AddColumnButton onAdd={handleAddColumn} />
+              {columns.length < 5 && (
+                <AddColumnButton onAdd={handleAddColumn} />
+              )}
             </div>
           </DndContext>
         )}
@@ -230,6 +229,8 @@ export default function Boards() {
             if (!v) setActiveColumnId(null);
           }}
           defaultColumnId={activeColumnId}
+          onAddTask={handleAddTask}
+          teamId={teamId}
         />
       )}
     </>

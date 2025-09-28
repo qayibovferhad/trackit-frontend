@@ -1,3 +1,5 @@
+import type { TaskType } from "./tasks";
+
 export interface Board {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ export interface Column {
   boardId: string;
   createdAt: Date;
   updatedAt: Date;
+  tasks: TaskType[];
 }
 
 export type BoardOption = { value: string; label: string; board: Board };
