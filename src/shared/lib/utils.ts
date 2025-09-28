@@ -20,3 +20,9 @@ export function timeAgo(iso: string) {
   const y = Math.floor(mo / 12);
   return `${y}y ago`;
 }
+
+export function truncateText(text: string, maxLength: number): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
+}

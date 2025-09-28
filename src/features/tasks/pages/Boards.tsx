@@ -10,9 +10,11 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  closestCorners,
   useSensor,
   useSensors,
+  type DragOverEvent,
+  type DragEndEvent,
+  closestCenter,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -25,8 +27,8 @@ import BoardColumn from "../components/column/Column";
 import AddColumnButton from "../components/column/AddColumnButton";
 import type { ColumnFormData } from "../schemas/boards.schema";
 import TaskModal from "../components/task/TaskModal";
-import { createTask } from "../services/tasks.service";
-import type { CreateTaskPayload } from "../types/tasks";
+import { createTask, updateTask } from "../services/tasks.service";
+import type { CreateTaskPayload, TaskType } from "../types/tasks";
 
 export default function Boards() {
   const [openModal, setOpenModal] = useState(false);
@@ -35,6 +37,7 @@ export default function Boards() {
   const { id: teamId } = useParams<{ id: string }>();
   const [columns, setColumns] = useState<Column[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+  const [activeTask, setActiveTask] = useState<TaskType | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -48,7 +51,7 @@ export default function Boards() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -102,6 +105,137 @@ export default function Boards() {
       queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
   });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: Partial<CreateTaskPayload>;
+    }) => updateTask(taskId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+
+  const handleDragStart = (event: any) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveTask = active.data.current?.type === "Task";
+    const isOverTask = over.data.current?.type === "Task";
+    const isOverColumn = over.data.current?.type === "Column";
+
+    if (!isActiveTask) return;
+
+    if (isActiveTask && isOverTask) {
+      setColumns((prevColumns) => {
+        const activeColumnIndex = prevColumns.findIndex((col) =>
+          col.tasks?.some((task) => task.id === activeId)
+        );
+        const overColumnIndex = prevColumns.findIndex((col) =>
+          col.tasks?.some((task) => task.id === overId)
+        );
+
+        if (activeColumnIndex === -1 || overColumnIndex === -1)
+          return prevColumns;
+
+        const activeColumn = prevColumns[activeColumnIndex];
+        const overColumn = prevColumns[overColumnIndex];
+
+        const activeTaskIndex =
+          activeColumn.tasks?.findIndex((task) => task.id === activeId) ?? -1;
+        const overTaskIndex =
+          overColumn.tasks?.findIndex((task) => task.id === overId) ?? -1;
+
+        if (activeTaskIndex === -1 || overTaskIndex === -1) return prevColumns;
+
+        const [activeTask] =
+          activeColumn.tasks?.splice(activeTaskIndex, 1) ?? [];
+
+        if (activeColumnIndex === overColumnIndex) {
+          overColumn.tasks?.splice(overTaskIndex, 0, activeTask);
+        } else {
+          overColumn.tasks?.splice(overTaskIndex, 0, activeTask);
+        }
+
+        return [...prevColumns];
+      });
+    }
+
+    if (isActiveTask && isOverColumn) {
+      setColumns((prevColumns) => {
+        const activeColumnIndex = prevColumns.findIndex((col) =>
+          col.tasks?.some((task) => task.id === activeId)
+        );
+        const overColumnIndex = prevColumns.findIndex(
+          (col) => col.id === overId
+        );
+
+        if (activeColumnIndex === -1 || overColumnIndex === -1)
+          return prevColumns;
+
+        const activeColumn = prevColumns[activeColumnIndex];
+        const overColumn = prevColumns[overColumnIndex];
+
+        const activeTaskIndex =
+          activeColumn.tasks?.findIndex((task) => task.id === activeId) ?? -1;
+
+        if (activeTaskIndex === -1) return prevColumns;
+
+        const [activeTask] =
+          activeColumn.tasks?.splice(activeTaskIndex, 1) ?? [];
+
+        if (!overColumn.tasks) {
+          overColumn.tasks = [];
+        }
+
+        overColumn.tasks.push(activeTask);
+
+        return [...prevColumns];
+      });
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    setActiveTask(null);
+
+    if (!over) return;
+
+    const isActiveTask = active.data.current?.type === "Task";
+
+    if (isActiveTask) {
+      const newColumnId = columns.find((col) =>
+        col.tasks?.some((task) => task.id === active.id)
+      )?.id;
+
+      if (newColumnId && active.data.current?.task?.columnId !== newColumnId) {
+        updateTaskMutation.mutate({
+          taskId: active.id as string,
+          data: { columnId: newColumnId },
+        });
+      }
+    }
+  };
+
+  const taskIds = columns.flatMap(
+    (column) => column.tasks?.map((task) => task.id) || []
+  );
 
   const options: BoardOption[] = (boards || []).map((b: Board) => ({
     value: b.id,
@@ -184,15 +318,18 @@ export default function Boards() {
         {selectedBoard && (
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={() => {}}
-            onDragOver={() => {}}
-            onDragEnd={() => {}}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
             modifiers={[restrictToWindowEdges]}
           >
-            <div className="flex gap-3 overflow-x-hidden pb-4">
+            <div className="flex gap-3 overflow-x-hidden items-stretch pb-4 h-[calc(100vh-7.5rem)]">
               <SortableContext
-                items={selectedBoard?.columns?.map((col) => col.id)}
+                items={[
+                  ...(selectedBoard?.columns?.map((col) => col.id) || []),
+                  ...taskIds,
+                ]}
                 strategy={horizontalListSortingStrategy}
               >
                 {columns?.map((column) => (

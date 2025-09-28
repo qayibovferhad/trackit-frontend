@@ -1,11 +1,14 @@
 import { Plus, MoreHorizontal } from "lucide-react";
 import type { Column as ColumnType } from "../../types/boards";
-import { CSS } from "@dnd-kit/utilities";
-import { useSortable } from "@dnd-kit/sortable";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
 import type { TaskType } from "../../types/tasks";
 import { Button } from "@/shared/ui/button";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 
 export default function Column({
   column,
@@ -16,14 +19,7 @@ export default function Column({
   tasks: TaskType[];
   onAddTask: (id: string) => void;
 }) {
-  const {
-    setNodeRef,
-    attributes,
-    listeners,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: column.id,
     data: {
       type: "Column",
@@ -31,24 +27,17 @@ export default function Column({
     },
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   const colorOption =
     colorOptions.find((c) => c.name === column.color) || colorOptions[0];
 
   return (
     <div className="flex-1 min-w-0 h-full">
       <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
         className={`flex flex-col h-full rounded-xl border-2 ${
           colorOption.border
-        } ${isDragging ? "opacity-90 shadow-xl" : "shadow-sm"} bg-white`}
+        } shadow-sm ${
+          isOver ? "bg-gray-50 border-blue-300" : "bg-white"
+        } transition-colors duration-200`}
       >
         <div
           className={`px-4 py-3 border-b-2 ${colorOption.border} rounded-t-xl ${colorOption.bg}`}
@@ -56,7 +45,7 @@ export default function Column({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3
-                className={`text-sm font-bold ${colorOption.text} whitespace-normal break-words `}
+                className={`text-sm font-bold ${colorOption.text} whitespace-normal break-words max-w-[170px]`}
               >
                 {column.title}
               </h3>
@@ -103,9 +92,21 @@ export default function Column({
           </div>
         </div>
 
-        <div className="p-2 flex-1 space-y-3 min-h-[200px] overflow-y-auto">
+        <div
+          ref={setDroppableRef}
+          className={`p-2 flex-1 space-y-3 min-h-[200px] overflow-y-auto overflow-x-hidden ${
+            isOver ? "bg-gray-25" : ""
+          }`}
+        >
           {tasks && tasks.length > 0 ? (
-            tasks.map((task) => <TaskCard key={task.id} task={task} />)
+            <SortableContext
+              items={tasks.map((task) => task.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </SortableContext>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div
