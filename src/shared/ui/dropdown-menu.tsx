@@ -74,16 +74,19 @@ export function DropdownMenuRow({
   onClick,
   danger,
   iconCircle = true,
+  iconSize,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   danger?: boolean;
   iconCircle?: boolean;
+  iconSize: number;
 }) {
+  const size = iconSize ? iconSize : 7;
   return (
     <DropdownMenuItem
-      onSelect={(e) => {
+      onSelect={() => {
         // e.preventDefault();
         onClick();
       }}
@@ -97,7 +100,7 @@ export function DropdownMenuRow({
       <span
         className={[
           iconCircle
-            ? "h-7 w-7 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center"
+            ? `size-${size} rounded-full bg-gray-100 text-gray-700 flex items-center justify-center`
             : "",
           "[&>svg]:size-4",
         ].join(" ")}

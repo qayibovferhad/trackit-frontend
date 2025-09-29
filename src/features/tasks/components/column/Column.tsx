@@ -1,4 +1,4 @@
-import { Plus, MoreHorizontal } from "lucide-react";
+import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import type { Column as ColumnType } from "../../types/boards";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
@@ -9,15 +9,25 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenuContent,
+  DropdownMenuRow,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 
 export default function Column({
   column,
   tasks,
   onAddTask,
+  onEditColumn,
+  onDeleteColumn,
 }: {
   column: ColumnType;
   tasks: TaskType[];
   onAddTask: (id: string) => void;
+  onEditColumn: (column: ColumnType) => void;
+  onDeleteColumn: (columnId: string) => void;
 }) {
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: column.id,
@@ -75,19 +85,40 @@ export default function Column({
               >
                 <Plus className={`w-4 h-4 ${colorOption.text}`} />
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={`h-7 w-7 rounded-lg hover:${
-                  colorOption.name === "gray"
-                    ? "bg-gray-100"
-                    : `bg-${colorOption.name}-50`
-                } transition-colors`}
-                aria-label="Column menu"
-              >
-                <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
-              </Button>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={`h-7 w-7 rounded-lg hover:${
+                      colorOption.name === "gray"
+                        ? "bg-gray-100"
+                        : `bg-${colorOption.name}-50`
+                    } transition-colors`}
+                    aria-label="Column menu"
+                  >
+                    <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="center" className="w-16">
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Edit />}
+                    label="Edit"
+                    onClick={() => onEditColumn(column)}
+                    iconSize={4}
+                  />
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Trash2 />}
+                    label="Delete"
+                    onClick={() => onDeleteColumn(column.id)}
+                    iconSize={4}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

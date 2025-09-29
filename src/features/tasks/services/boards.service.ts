@@ -19,3 +19,22 @@ export const createColumn = async (
   const resp = await api.post(`/boards/${boardId}/columns`, column);
   return resp.data as Column;
 };
+
+export const updateColumn = async (
+  boardId: string,
+  columnId: string,
+  data: ColumnFormData
+): Promise<Column> => {
+  const response = await api.patch(
+    `/boards/${boardId}/columns/${columnId}`,
+    data
+  );
+  return response.data;
+};
+
+export const deleteColumn = async (
+  boardId: string,
+  columnId: string
+): Promise<void> => {
+  await api.delete(`/boards/${boardId}/columns/${columnId}`);
+};

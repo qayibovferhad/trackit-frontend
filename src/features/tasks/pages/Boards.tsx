@@ -1,11 +1,15 @@
 import BoardModal from "../components/board/BoardModal";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { createColumn, fetchBoards } from "../services/boards.service";
+import {
+  createColumn,
+  deleteColumn,
+  fetchBoards,
+  updateColumn,
+} from "../services/boards.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Board, BoardOption, Column } from "../types/boards";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-
 import {
   DndContext,
   KeyboardSensor,
@@ -28,7 +32,9 @@ import AddColumnButton from "../components/column/AddColumnButton";
 import type { ColumnFormData } from "../schemas/boards.schema";
 import TaskModal from "../components/task/TaskModal";
 import { createTask, updateTask } from "../services/tasks.service";
-import type { CreateTaskPayload, TaskType } from "../types/tasks";
+import type { CreateTaskPayload } from "../types/tasks";
+import ColumnModal from "../components/column/ColumnModal";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 
 export default function Boards() {
   const [openModal, setOpenModal] = useState(false);
@@ -37,7 +43,10 @@ export default function Boards() {
   const { id: teamId } = useParams<{ id: string }>();
   const [columns, setColumns] = useState<Column[]>([]);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
-  const [activeTask, setActiveTask] = useState<TaskType | null>(null);
+  const [editingColumn, setEditingColumn] = useState<Column | null>(null);
+  const [openColumnModal, setOpenColumnModal] = useState(false);
+  const [deletingColumn, setDeletingColumn] = useState<Column | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -74,6 +83,57 @@ export default function Boards() {
       });
 
       queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+
+  const updateColumnMutation = useMutation({
+    mutationFn: (variables: {
+      boardId: string;
+      columnId: string;
+      data: ColumnFormData;
+    }) => updateColumn(variables.boardId, variables.columnId, variables.data),
+    onSuccess: (updatedColumn) => {
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === updatedColumn.id
+            ? { ...updatedColumn, tasks: col.tasks }
+            : col
+        )
+      );
+
+      setSelectedBoard((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          columns: prev.columns?.map((col) =>
+            col.id === updatedColumn.id
+              ? { ...updatedColumn, tasks: col.tasks }
+              : col
+          ),
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+
+  const deleteColumnMutation = useMutation({
+    mutationFn: (variables: { boardId: string; columnId: string }) =>
+      deleteColumn(variables.boardId, variables.columnId),
+    onSuccess: (_, variables) => {
+      setColumns((prev) => prev.filter((col) => col.id !== variables.columnId));
+
+      setSelectedBoard((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          columns: prev.columns?.filter((col) => col.id !== variables.columnId),
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+      setConfirmDeleteOpen(false);
+      setDeletingColumn(null);
     },
   });
 
@@ -119,12 +179,6 @@ export default function Boards() {
     },
   });
 
-  const handleDragStart = (event: any) => {
-    if (event.active.data.current?.type === "Task") {
-      setActiveTask(event.active.data.current.task);
-    }
-  };
-
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
 
@@ -166,11 +220,7 @@ export default function Boards() {
         const [activeTask] =
           activeColumn.tasks?.splice(activeTaskIndex, 1) ?? [];
 
-        if (activeColumnIndex === overColumnIndex) {
-          overColumn.tasks?.splice(overTaskIndex, 0, activeTask);
-        } else {
-          overColumn.tasks?.splice(overTaskIndex, 0, activeTask);
-        }
+        overColumn.tasks?.splice(overTaskIndex, 0, activeTask);
 
         return [...prevColumns];
       });
@@ -212,8 +262,6 @@ export default function Boards() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
-    setActiveTask(null);
 
     if (!over) return;
 
@@ -302,6 +350,44 @@ export default function Boards() {
     createTaskMutation.mutate(payload);
   };
 
+  const handleUpdateColumn = (formData: ColumnFormData) => {
+    if (!editingColumn?.id) return;
+
+    updateColumnMutation.mutate({
+      boardId: editingColumn.boardId,
+      columnId: editingColumn.id,
+      data: formData,
+    });
+  };
+
+  const handleEditColumn = (column: Column) => {
+    setEditingColumn(column);
+    setOpenColumnModal(true);
+  };
+
+  const handleDeleteColumn = (columnId: string) => {
+    const column = columns.find((col) => col.id === columnId);
+    if (!column) return;
+
+    setDeletingColumn(column);
+    setConfirmDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedBoard?.id || !deletingColumn?.id) return;
+
+    deleteColumnMutation.mutate({
+      boardId: selectedBoard.id,
+      columnId: deletingColumn.id,
+    });
+  };
+
+  const handleConfirmModalOpenChange = (open: boolean) => {
+    setConfirmDeleteOpen(open);
+    if (!open) {
+      setDeletingColumn(null);
+    }
+  };
   return (
     <>
       <div className="px-6 pb-6">
@@ -319,7 +405,6 @@ export default function Boards() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             modifiers={[restrictToWindowEdges]}
@@ -338,6 +423,8 @@ export default function Boards() {
                     column={column}
                     tasks={column.tasks || []}
                     onAddTask={() => handleOpenAddTaskModal(column.id)}
+                    onEditColumn={handleEditColumn}
+                    onDeleteColumn={handleDeleteColumn}
                   />
                 ))}
               </SortableContext>
@@ -368,6 +455,37 @@ export default function Boards() {
           defaultColumnId={activeColumnId}
           onAddTask={handleAddTask}
           teamId={teamId}
+        />
+      )}
+
+      {openColumnModal && (
+        <ColumnModal
+          open={openColumnModal}
+          onOpenChange={(v) => {
+            setOpenColumnModal(v);
+            if (!v) setEditingColumn(null);
+          }}
+          onSubmit={editingColumn ? handleUpdateColumn : handleAddColumn}
+          defaultValues={
+            editingColumn
+              ? {
+                  title: editingColumn.title,
+                  color: editingColumn.color,
+                }
+              : undefined
+          }
+        />
+      )}
+      {deletingColumn && (
+        <ConfirmModal
+          open={confirmDeleteOpen}
+          onOpenChange={handleConfirmModalOpenChange}
+          title="Delete this column?"
+          description={`"${deletingColumn.title}" and all its tasks will be permanently deleted.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteColumnMutation.isPending}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </>

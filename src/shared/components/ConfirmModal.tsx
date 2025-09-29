@@ -1,4 +1,3 @@
-// src/shared/components/ConfirmDialog.tsx
 import { useEffect, useRef } from "react";
 import { Button } from "@/shared/ui/button";
 import { Modal } from "../ui/modal";

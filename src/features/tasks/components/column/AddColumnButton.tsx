@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { columnSchema, type ColumnFormData } from "../../schemas/boards.schema";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
-import { colorOptions } from "@/shared/constants/colors";
+import ColorSelect from "./ColorSelect";
 
 export default function AddColumnButton({
   onAdd,
@@ -74,23 +74,12 @@ export default function AddColumnButton({
             className="w-full p-2 text-sm font-semibold border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-3"
             autoFocus
           />
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs text-gray-600">Color:</span>
-            <div className="flex gap-1">
-              {colorOptions.slice(0, 4).map((colorOption) => (
-                <button
-                  key={colorOption.name}
-                  type="button"
-                  onClick={() => setColor(colorOption.name)}
-                  className={`w-6 h-6 rounded-full border-2 ${colorOption.bg} ${
-                    color === colorOption.name
-                      ? "border-gray-400"
-                      : "border-gray-200"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+
+          <ColorSelect
+            selectedColor={color}
+            onClick={(color) => setColor(color)}
+          />
+
           {error && <ErrorAlert message={error} />}
 
           <div className="flex items-center gap-2 justify-end mt-2">
