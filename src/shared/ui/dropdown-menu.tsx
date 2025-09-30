@@ -81,7 +81,7 @@ export function DropdownMenuRow({
   onClick: () => void;
   danger?: boolean;
   iconCircle?: boolean;
-  iconSize: number;
+  iconSize?: number;
 }) {
   const size = iconSize ? iconSize : 7;
   return (

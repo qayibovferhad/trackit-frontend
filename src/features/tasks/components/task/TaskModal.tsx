@@ -129,8 +129,6 @@ export default function TaskModal({
         columnId: defaultColumnId,
       };
 
-      console.log(payload, "payload");
-
       if (onAddTask) {
         onAddTask(payload);
         onOpenChange(false);
