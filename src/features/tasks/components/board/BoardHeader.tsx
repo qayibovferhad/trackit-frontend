@@ -66,8 +66,8 @@ export default function BoardHeader({
           />
           <Button
             type="button"
+            variant="violet"
             onClick={() => onOpenChange(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-violet-100 px-3 py-2 text-sm font-medium text-violet-700 hover:bg-violet-200 focus:outline-none focus:ring-2 focus:ring-violet-300"
           >
             <Plus className="w-4 h-4" />
             Create Board

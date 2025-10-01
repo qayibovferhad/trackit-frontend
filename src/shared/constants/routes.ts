@@ -13,4 +13,5 @@ export const PATHS = {
   TEAMS: "/teams",
   NOTIFICATIONS: "/notifications",
   BOARDS: "/boards/:id",
+  TASK: "/task/:id",
 } as const;

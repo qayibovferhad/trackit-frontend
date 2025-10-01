@@ -20,6 +20,8 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        violet:
+          "inline-flex items-center gap-2 rounded-md bg-violet-100 px-3 py-2 text-sm font-medium text-violet-600 hover:bg-violet-200 focus:outline-none focus:ring-2 focus:ring-violet-300",
         iconSoft:
           "bg-gray-200 hover:bg-gray-300 text-secondary-foreground transition-colors",
         soft: "bg-violet-100 text-violet-700  shadow-sm hover:bg-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-900 dark:hover:bg-violet-900",

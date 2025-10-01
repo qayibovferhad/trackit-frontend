@@ -7,10 +7,11 @@ import {
   CheckSquare,
   MessageSquare,
 } from "lucide-react";
-import { cn, timeAgo } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { NotificationItem, NotificationType } from "../types";
 import { Link } from "react-router-dom";
 import { PATHS } from "@/shared/constants/routes";
+import { timeAgo } from "@/shared/utils/date";
 
 function pickIcon(t: NotificationType) {
   const cls = "h-4 w-4";

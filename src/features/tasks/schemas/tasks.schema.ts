@@ -19,7 +19,7 @@ export const taskSchema = z.object({
     }
     return arg;
   }, z.date({ required_error: "Due date is required." })),
-
+  tags: z.array(z.string().min(1)).optional().default([]),
   dueTime: z
     .string()
     .min(1, { message: "Due time is required." })
@@ -28,6 +28,7 @@ export const taskSchema = z.object({
   priority: z.enum(["low", "medium", "high"], {
     errorMap: () => ({ message: "Please select a priority." }),
   }),
+  parentTaskId: z.string().optional(),
 });
 
 export type TaskFormData = z.infer<typeof taskSchema>;

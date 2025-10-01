@@ -1,10 +1,16 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import type { TaskType } from "../../types/tasks";
-import { truncateText } from "@/shared/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
+import { GripVertical } from "lucide-react";
+import { truncateText } from "@/shared/utils/string";
 
 export default function TaskCard({ task }: { task: TaskType }) {
+  const navigate = useNavigate();
+  const isDragEnabledRef = useRef(false);
+
   const {
     setNodeRef,
     attributes,
@@ -29,6 +35,22 @@ export default function TaskCard({ task }: { task: TaskType }) {
     transition,
   };
 
+  const handleTitleClick = (e: React.MouseEvent) => {
+    if (!isDragEnabledRef.current) {
+      e.stopPropagation();
+      navigate(`/task/${task.id}`);
+    }
+  };
+
+  const handleUserClick = (e: React.MouseEvent) => {
+    if (!isDragEnabledRef.current) {
+      e.stopPropagation();
+      if (task.assignee?.username) {
+        navigate(`/profile/${task.assignee.username}`);
+      }
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -42,14 +64,15 @@ export default function TaskCard({ task }: { task: TaskType }) {
       } transition-all duration-200`}
     >
       <div className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          className="mt-1 w-4 h-4 text-violet-600 pointer-events-auto cursor-pointer flex-shrink-0"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        />
+        <div className="mt-1  flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+          <GripVertical className="w-4 h-4" />
+        </div>
+
         <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-medium text-gray-800 leading-tight break-words line-clamp-2">
+          <h4
+            onClick={handleTitleClick}
+            className="text-xs font-medium text-gray-800 hover:text-gray-600 leading-tight break-words cursor-pointer line-clamp-2"
+          >
             {truncateText(task.title, 50)}
           </h4>
           {task.description && (
@@ -58,7 +81,11 @@ export default function TaskCard({ task }: { task: TaskType }) {
             </p>
           )}
           <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-            <div className="flex items-center gap-2 min-w-0">
+            <div
+              data-clickable="true"
+              className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-70 transition-opacity"
+              onClick={handleUserClick}
+            >
               <UserAvatar
                 name={task.assignee?.username}
                 src={task.assignee?.profileImage}
@@ -71,9 +98,6 @@ export default function TaskCard({ task }: { task: TaskType }) {
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {task.date && (
-                <span className="text-[10px] text-gray-400">{task.date}</span>
-              )}
               {task.priority && (
                 <span
                   className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${

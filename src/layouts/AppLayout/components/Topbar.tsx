@@ -27,7 +27,6 @@ import { fetchUnreadCount } from "@/features/notifications/services/notification
 export const SIDEBAR_WIDTH_PX = 256;
 
 type TopbarProps = {
-  title?: string;
   menus?: NavItem[];
   onSearchSubmit?: (q: string) => void;
   rightSlot?: React.ReactNode;
@@ -35,12 +34,11 @@ type TopbarProps = {
 };
 export default function Topbar({
   menus,
-  title,
   onSearchSubmit,
   rightSlot,
   showBack = true,
 }: TopbarProps) {
-  const computedTitle = usePageTitle(menus, title);
+  const computedTitle = usePageTitle(menus, "Back");
   const { user } = useUserStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
@@ -99,7 +97,7 @@ export default function Topbar({
           <Plus className="!size-4" />
         </Button>
         <NotificationBell />
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"

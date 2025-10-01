@@ -5,10 +5,19 @@ import { lazy } from "react";
 
 const Boards = lazy(() => import("./pages/Boards"));
 
+const Task = lazy(() => import("./pages/Task"));
+
 const routes: RoutesConfig = [
   {
     path: PATHS.BOARDS,
     element: Boards,
+    children: [],
+    isPrivate: true,
+    layout: AppLayout,
+  },
+  {
+    path: PATHS.TASK,
+    element: Task,
     children: [],
     isPrivate: true,
     layout: AppLayout,

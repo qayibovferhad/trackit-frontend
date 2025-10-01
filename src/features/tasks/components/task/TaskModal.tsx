@@ -17,6 +17,7 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  parentTaskId?: string;
   defaultColumnId: string | null;
   onAddTask?: (taskData: CreateTaskPayload) => void;
   teamId?: string;
@@ -38,8 +39,6 @@ async function fetchUserOptions(
   try {
     const data = await getTeamMembers(teamId, input);
 
-    console.log(data, "data");
-
     return (data ?? []).map((member: any) => {
       const user = member.user;
       return {
@@ -56,12 +55,20 @@ async function fetchUserOptions(
   }
 }
 
+async function fetchTagOptions(teamId: string, input: string) {
+  if (!input || input.length < 1) return [];
+  return [];
+}
+
+type TagOption = { label: string; value: string };
+
 export default function TaskModal({
   open,
   onOpenChange,
   defaultColumnId,
   onAddTask,
   teamId,
+  parentTaskId,
 }: TaskModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,11 +83,10 @@ export default function TaskModal({
   } = useZodForm(taskSchema);
 
   const assigneeValue = watch("assignee");
+  const tagsValue = watch("tags") as string[] | undefined;
 
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
     const selectedUser = selectedUsers[0] || null;
-
-    console.log(selectedUser, "selectedUser");
 
     if (selectedUser) {
       const assigneeData: AssigneeData = {
@@ -107,11 +113,10 @@ export default function TaskModal({
         ]
       : [];
   async function onSubmit(data: TaskFormData) {
-    if (!defaultColumnId) {
+    if (!parentTaskId && !defaultColumnId) {
       setErrorMessage("No column selected");
       return;
     }
-
     setErrorMessage(null);
     setIsSubmitting(true);
 
@@ -126,7 +131,10 @@ export default function TaskModal({
         dueAt,
         assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
         priority: data.priority,
-        columnId: defaultColumnId,
+        columnId: defaultColumnId ?? undefined,
+        teamId: teamId ?? undefined,
+        parentTaskId: parentTaskId,
+        tags: data.tags || [],
       };
 
       if (onAddTask) {
@@ -141,6 +149,15 @@ export default function TaskModal({
     }
   }
 
+  const handleTagsChange = (selected: TagOption[] | null) => {
+    if (!selected || selected.length === 0) {
+      setValue("tags", []);
+      return;
+    }
+    const tags = selected.map((s) => s.value);
+    setValue("tags", tags);
+  };
+  const currentTags = (tagsValue ?? []).map((t) => ({ label: t, value: t }));
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Create Board Task">
       <form
@@ -223,6 +240,22 @@ export default function TaskModal({
               value: inputValue.trim(),
             })}
             noOptionsMessage={() => "No users found"}
+          />
+        </FormField>
+
+        <FormField label="Tags" htmlFor="tags" error={errors.tags as any}>
+          <GenericAsyncSelect<TagOption>
+            value={currentTags}
+            onChange={(opts) => handleTagsChange(opts as TagOption[])}
+            placeholder="Add or select tags..."
+            loadOptions={(input) => fetchTagOptions(teamId || "", input)}
+            allowCreateOption={true}
+            formatCreateLabel={(s) => `Create tag "${s}"`}
+            getNewOptionData={(inputValue) => ({
+              label: inputValue,
+              value: inputValue.trim(),
+            })}
+            noOptionsMessage={() => "No tags"}
           />
         </FormField>
         {errorMessage && <ErrorAlert message={errorMessage} />}

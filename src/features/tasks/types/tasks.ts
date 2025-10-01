@@ -6,12 +6,16 @@ export interface TaskType {
   id: string;
   title: string;
   description: string;
-  date: string;
+  dueAt: Date;
+  tags?: string[];
   priority: string;
+  teamId: string;
   assignee: {
     username: string;
     profileImage?: string;
+    name?: string;
   };
+  subtasks: TaskType[];
 }
 
 export type CreateTaskPayload = {
@@ -20,7 +24,10 @@ export type CreateTaskPayload = {
   dueAt: Date;
   priority: TaskPriority;
   assignee?: AssigneeData;
+  tags?: string[];
   columnId?: string;
+  parentTaskId?: string;
+  teamId?: string;
 };
 
 export interface UserOption {
