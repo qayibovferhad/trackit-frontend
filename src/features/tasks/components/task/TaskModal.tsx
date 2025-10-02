@@ -98,17 +98,16 @@ export default function TaskModal({
       setValue("description", editingTask.description || "");
 
       if (editingTask.dueAt) {
-        const dueDate = new Date(editingTask.dueAt);
-
-        const dateStr = dueDate.toISOString().split("T")[0];
-        const timeStr = `${String(dueDate.getHours()).padStart(
+        const dueDateObj = new Date(editingTask.dueAt);
+        const dateStr = dueDateObj.toISOString().split("T")[0];
+        const timeStr = `${String(dueDateObj.getHours()).padStart(
           2,
           "0"
-        )}:${String(dueDate.getMinutes()).padStart(2, "0")}`;
-        setValue("dueDate", dateStr);
+        )}:${String(dueDateObj.getMinutes()).padStart(2, "0")}`;
+
+        setValue("dueDate" as keyof TaskFormData, dateStr);
         setValue("dueTime", timeStr);
       }
-
       if (
         editingTask.priority &&
         (editingTask.priority === "low" ||
