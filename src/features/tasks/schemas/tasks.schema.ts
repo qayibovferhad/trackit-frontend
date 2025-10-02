@@ -6,7 +6,7 @@ export const AssigneeSchema = z.object({
   email: z.string().email("Invalid email").optional(),
   username: z.string().optional(),
   name: z.string().optional(),
-  profileImage: z.string().optional(),
+  profileImage: z.string().nullable().optional(),
 });
 
 export const taskSchema = z.object({
@@ -25,9 +25,11 @@ export const taskSchema = z.object({
     .min(1, { message: "Due time is required." })
     .regex(TIME_REGEX, "Invalid time"),
   assignee: AssigneeSchema,
-  priority: z.enum(["low", "medium", "high"], {
-    errorMap: () => ({ message: "Please select a priority." }),
-  }),
+  priority: z
+    .enum(["low", "medium", "high"], {
+      errorMap: () => ({ message: "Please select a priority." }),
+    })
+    .optional(),
   parentTaskId: z.string().optional(),
 });
 

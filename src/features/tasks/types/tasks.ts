@@ -11,6 +11,8 @@ export interface TaskType {
   priority: string;
   teamId: string;
   assignee: {
+    id: string;
+    email: string;
     username: string;
     profileImage?: string;
     name?: string;
@@ -22,7 +24,7 @@ export type CreateTaskPayload = {
   title: string;
   description?: string;
   dueAt: Date;
-  priority: TaskPriority;
+  priority?: TaskPriority;
   assignee?: AssigneeData;
   tags?: string[];
   columnId?: string;

@@ -8,10 +8,15 @@ import {
 import { InputField } from "@/shared/components/InputField";
 import { Button } from "@/shared/ui/button";
 import { FormField } from "@/shared/components/FormField";
-import type { CreateTaskPayload, UserOption } from "../../types/tasks";
+import type {
+  CreateTaskPayload,
+  TaskPriority,
+  TaskType,
+  UserOption,
+} from "../../types/tasks";
 import { getTeamMembers } from "@/features/teams/services/teams.service";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 type TaskModalProps = {
@@ -21,6 +26,7 @@ type TaskModalProps = {
   defaultColumnId: string | null;
   onAddTask?: (taskData: CreateTaskPayload) => void;
   teamId?: string;
+  editingTask?: TaskType | null;
 };
 const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> => {
   return (
@@ -69,6 +75,7 @@ export default function TaskModal({
   onAddTask,
   teamId,
   parentTaskId,
+  editingTask,
 }: TaskModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,6 +92,48 @@ export default function TaskModal({
   const assigneeValue = watch("assignee");
   const tagsValue = watch("tags") as string[] | undefined;
 
+  useEffect(() => {
+    if (open && editingTask) {
+      setValue("title", editingTask.title);
+      setValue("description", editingTask.description || "");
+
+      if (editingTask.dueAt) {
+        const dueDate = new Date(editingTask.dueAt);
+
+        const dateStr = dueDate.toISOString().split("T")[0];
+        const timeStr = `${String(dueDate.getHours()).padStart(
+          2,
+          "0"
+        )}:${String(dueDate.getMinutes()).padStart(2, "0")}`;
+        setValue("dueDate", dateStr);
+        setValue("dueTime", timeStr);
+      }
+
+      if (
+        editingTask.priority &&
+        (editingTask.priority === "low" ||
+          editingTask.priority === "medium" ||
+          editingTask.priority === "high")
+      ) {
+        setValue("priority", editingTask.priority as TaskPriority);
+      }
+
+      if (editingTask.assignee) {
+        setValue("assignee", {
+          id: editingTask.assignee.id,
+          email: editingTask.assignee.email,
+          username: editingTask.assignee.username,
+          profileImage: editingTask.assignee.profileImage,
+        });
+      }
+
+      if (editingTask.tags && editingTask.tags.length > 0) {
+        setValue("tags", editingTask.tags);
+      }
+    } else if (open && !editingTask) {
+      reset();
+    }
+  }, [open, editingTask, setValue, reset]);
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
     const selectedUser = selectedUsers[0] || null;
 
@@ -157,26 +206,35 @@ export default function TaskModal({
     const tags = selected.map((s) => s.value);
     setValue("tags", tags);
   };
+
+  const getModalTitle = () => {
+    if (editingTask) return "Edit Task";
+    if (parentTaskId) return "Create Subtask";
+    return "Create Task";
+  };
+
   const currentTags = (tagsValue ?? []).map((t) => ({ label: t, value: t }));
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title="Create Board Task">
+    <Modal open={open} onOpenChange={onOpenChange} title={getModalTitle()}>
       <form
         id="add-task-form"
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-4 pl-5 pr-5"
       >
         <InputField
-          label="Task Name"
+          label={parentTaskId ? "Subtask Name" : "Task Name"}
           htmlFor="title"
           register={register}
           error={errors.title}
         />
-        <InputField
-          label="Description"
-          htmlFor="description"
-          register={register}
-          error={errors.description}
-        />
+        {!parentTaskId && (
+          <InputField
+            label="Description"
+            htmlFor="description"
+            register={register}
+            error={errors.description}
+          />
+        )}
 
         <div className="flex gap-2">
           <FormField
@@ -207,18 +265,24 @@ export default function TaskModal({
             />
           </FormField>
         </div>
-        <FormField label="Priority" htmlFor="priority" error={errors.priority}>
-          <select
-            id="priority"
-            {...register("priority")}
-            className="w-full border border-gray-300 r rounded-md p-2 text-sm "
-            defaultValue="medium"
+        {!parentTaskId && (
+          <FormField
+            label="Priority"
+            htmlFor="priority"
+            error={errors.priority}
           >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </FormField>
+            <select
+              id="priority"
+              {...register("priority")}
+              className="w-full border border-gray-300 r rounded-md p-2 text-sm "
+              defaultValue="medium"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </FormField>
+        )}
         <FormField
           label="Assign To"
           htmlFor="assignee"

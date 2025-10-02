@@ -1,64 +1,43 @@
 import { useState } from "react";
-import { Calendar, Tag, MoreHorizontal, Plus } from "lucide-react";
+import {
+  Calendar,
+  Tag,
+  MoreHorizontal,
+  Plus,
+  UserPlus,
+  Trash2,
+  Edit2,
+} from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useParams } from "react-router-dom";
-import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, getTask } from "../services/tasks.service";
 import type { CreateTaskPayload, TaskType } from "../types/tasks";
 import { formatDate } from "@/shared/utils/date";
 import { randomColors } from "@/shared/constants/colors";
 import TaskModal from "../components/task/TaskModal";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenuContent,
+  DropdownMenuRow,
+} from "@/shared/ui/dropdown-menu";
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
-  const queryClient = new QueryClient();
+  const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskType | null>(null);
+  const queryClient = useQueryClient();
 
   const { data } = useQuery<TaskType | null>({
     queryKey: ["task", id],
     queryFn: () => getTask({ taskId: id }),
     enabled: !!id,
   });
-
-  console.log("data", data);
-
-  const [subtasks] = useState([
-    {
-      id: 1,
-      title:
-        "Complete all pages in mobile app design based on Super OS Components",
-      date: "25 Aug 2022 - 11:30AM",
-      tag: "Design Tag",
-      tagColor: "blue",
-      creator: "Johnson",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Design first 5 screens and get approve from developers",
-      date: "25 Aug 2022 - 11:30AM",
-      tag: "No Tag",
-      tagColor: "gray",
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "Meet developers to check the features are works",
-      date: "25 Aug 2022 - 11:30AM",
-      tag: "Development",
-      tagColor: "purple",
-      completed: false,
-    },
-    {
-      id: 4,
-      title: "Design V1 wireframes first",
-      date: "25 Aug 2022 - 11:30AM",
-      tag: "Wireframe",
-      tagColor: "green",
-      completed: false,
-    },
-  ]);
 
   const [comments] = useState([
     {
@@ -81,17 +60,18 @@ export default function TaskDetailPage() {
     mutationFn: createTask,
     onSuccess: () => {
       if (id) queryClient.invalidateQueries({ queryKey: ["task", id] });
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
   });
 
   const handleAddSubtask = async (subtaskData: CreateTaskPayload) => {
     await createTaskMutation.mutateAsync(subtaskData);
   };
+  const handleEditTask = (task: TaskType) => {
+    setEditingTask(task);
+    setOpenTaskModal(true);
+  };
 
-  const subtasksFromApi = data?.subtasks ?? [];
-
-  console.log(subtasksFromApi, "subtasksFromApi", data);
+  const subtasks = data?.subtasks ?? [];
 
   return (
     <>
@@ -100,10 +80,11 @@ export default function TaskDetailPage() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-start gap-3">
               <div className="flex-1">
-                <h1 className="text-md font-semibold text-gray-700 mb-3">
+                <h1 className="text-base font-semibold text-gray-700 mb-3">
                   {data?.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <p className="text-sm text-gray-600">{data?.description}</p>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(data?.dueAt)}</span>
@@ -144,16 +125,37 @@ export default function TaskDetailPage() {
                   </div>
                 </div>
               </div>
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <MoreHorizontal className="w-5 h-5 text-gray-600" />
-              </button>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <MoreHorizontal className="w-5 h-5 text-gray-600" />
+                  </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-7">
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Edit2 />}
+                    label="Edit"
+                    iconSize={4}
+                    onClick={() => data && handleEditTask(data)}
+                  />
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Trash2 />}
+                    label="Delete"
+                    iconSize={4}
+                    onClick={() => {}}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-gray-800">
                   Subtasks
                 </h2>
                 <p className="text-sm text-gray-500">
@@ -170,7 +172,7 @@ export default function TaskDetailPage() {
             </div>
 
             <div className="space-y-3">
-              {subtasksFromApi.map((subtask) => {
+              {subtasks.map((subtask) => {
                 const randomColor =
                   randomColors[Math.floor(Math.random() * randomColors.length)];
                 return (
@@ -265,14 +267,26 @@ export default function TaskDetailPage() {
           </div>
         </div>
       </div>
-      <TaskModal
-        open={subtaskModalOpen}
-        onOpenChange={setSubtaskModalOpen}
-        defaultColumnId={null}
-        onAddTask={handleAddSubtask}
-        teamId={data?.teamId}
-        parentTaskId={data?.id}
-      />
+      {subtaskModalOpen && (
+        <TaskModal
+          open={subtaskModalOpen}
+          onOpenChange={setSubtaskModalOpen}
+          defaultColumnId={null}
+          onAddTask={handleAddSubtask}
+          teamId={data?.teamId}
+          parentTaskId={data?.id}
+        />
+      )}
+      {openTaskModal && (
+        <TaskModal
+          open={openTaskModal}
+          onOpenChange={setOpenTaskModal}
+          defaultColumnId={null}
+          onAddTask={handleAddSubtask}
+          teamId={data?.teamId}
+          editingTask={editingTask}
+        />
+      )}
     </>
   );
 }
