@@ -10,9 +10,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import UserAvatar from "@/shared/components/UserAvatar";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTask, getTask } from "../services/tasks.service";
+import {
+  createTask,
+  deleteTask,
+  getTask,
+  updateTask,
+} from "../services/tasks.service";
 import type { CreateTaskPayload, TaskType } from "../types/tasks";
 import { formatDate } from "@/shared/utils/date";
 import { randomColors } from "@/shared/constants/colors";
@@ -25,14 +30,17 @@ import {
   DropdownMenuContent,
   DropdownMenuRow,
 } from "@/shared/ui/dropdown-menu";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
+  const [deletingTask, setDeletingTask] = useState<TaskType | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const queryClient = useQueryClient();
-
+  const navigate = useNavigate();
   const { data } = useQuery<TaskType | null>({
     queryKey: ["task", id],
     queryFn: () => getTask({ taskId: id }),
@@ -63,14 +71,59 @@ export default function TaskDetailPage() {
     },
   });
 
+  const updateTaskMutation = useMutation({
+    mutationFn: ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: CreateTaskPayload;
+    }) => updateTask(taskId, data),
+    onSuccess: () => {
+      if (id) queryClient.invalidateQueries({ queryKey: ["task", id] });
+      setEditingTask(null);
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: ({ taskId }: { taskId: string }) => deleteTask(taskId),
+    onSuccess: () => {
+      if (id) queryClient.invalidateQueries({ queryKey: ["task", id] });
+      setEditingTask(null);
+    },
+  });
   const handleAddSubtask = async (subtaskData: CreateTaskPayload) => {
     await createTaskMutation.mutateAsync(subtaskData);
   };
+
   const handleEditTask = (task: TaskType) => {
     setEditingTask(task);
     setOpenTaskModal(true);
   };
 
+  const handleUpdateTask = async (
+    taskId: string,
+    taskData: CreateTaskPayload
+  ) => {
+    await updateTaskMutation.mutateAsync({ taskId, data: taskData });
+  };
+
+  const handleDeleteTask = async () => {
+    if (!deletingTask?.id) return;
+    await deleteTaskMutation.mutateAsync({ taskId: deletingTask?.id });
+    if (deletingTask?.parentTaskId) {
+      setConfirmDeleteOpen(false);
+    } else {
+      navigate(`/boards/${deletingTask?.teamId}`);
+    }
+  };
+
+  const handleConfirmModalOpenChange = (open: boolean) => {
+    setConfirmDeleteOpen(open);
+    if (!open) {
+      setDeletingTask(null);
+    }
+  };
   const subtasks = data?.subtasks ?? [];
 
   return (
@@ -145,7 +198,10 @@ export default function TaskDetailPage() {
                     icon={<Trash2 />}
                     label="Delete"
                     iconSize={4}
-                    onClick={() => {}}
+                    onClick={() => {
+                      if (data) setDeletingTask(data);
+                      setConfirmDeleteOpen(true);
+                    }}
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -173,8 +229,6 @@ export default function TaskDetailPage() {
 
             <div className="space-y-3">
               {subtasks.map((subtask) => {
-                const randomColor =
-                  randomColors[Math.floor(Math.random() * randomColors.length)];
                 return (
                   <div
                     key={subtask.id}
@@ -189,19 +243,72 @@ export default function TaskDetailPage() {
                           <Calendar className="w-3.5 h-3.5" />
                           <span>{formatDate(subtask.dueAt)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Tag className="w-3.5 h-3.5" />
+                        {subtask?.tags && subtask?.tags.length ? (
+                          <div className="flex items-center gap-1.5">
+                            <Tag className="w-4 h-4" />
+                            <div className="flex gap-2">
+                              {subtask?.tags.map((tag) => {
+                                const randomColor =
+                                  randomColors[
+                                    Math.floor(
+                                      Math.random() * randomColors.length
+                                    )
+                                  ];
+
+                                return (
+                                  <span
+                                    key={tag}
+                                    className={`px-2 py-0.5 rounded text-sm ${randomColor}`}
+                                  >
+                                    {tag}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
                           <span
-                            className={`px-2 py-0.5 rounded ${randomColor}`}
+                            className={`px-2 py-0.5 rounded text-sm bg-red-200 text-red-800`}
                           >
-                            {subtask.tags}
+                            No Tag
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-gray-500">Created By</span>
+                          <span className="font-medium text-violet-500">
+                            {subtask?.assignee.name ||
+                              subtask?.assignee.username}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <button className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-gray-200 rounded transition-all">
-                      <MoreHorizontal className="w-4 h-4 text-gray-600" />
-                    </button>
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                          <MoreHorizontal className="w-5 h-5 text-gray-600" />
+                        </button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end" className="w-7">
+                        <DropdownMenuRow
+                          iconCircle
+                          icon={<Edit2 />}
+                          label="Edit"
+                          iconSize={4}
+                          onClick={() => handleEditTask(subtask)}
+                        />
+                        <DropdownMenuRow
+                          iconCircle
+                          icon={<Trash2 />}
+                          label="Delete"
+                          iconSize={4}
+                          onClick={() => {
+                            setConfirmDeleteOpen(true);
+                            setDeletingTask(subtask);
+                          }}
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 );
               })}
@@ -280,11 +387,30 @@ export default function TaskDetailPage() {
       {openTaskModal && (
         <TaskModal
           open={openTaskModal}
-          onOpenChange={setOpenTaskModal}
-          defaultColumnId={null}
-          onAddTask={handleAddSubtask}
+          onOpenChange={(open) => {
+            setOpenTaskModal(open);
+            if (!open) setEditingTask(null);
+          }}
+          defaultColumnId={editingTask?.columnId || null}
+          onEditTask={handleUpdateTask}
           teamId={data?.teamId}
+          parentTaskId={editingTask?.parentTaskId}
           editingTask={editingTask}
+        />
+      )}
+
+      {deletingTask && (
+        <ConfirmModal
+          open={confirmDeleteOpen}
+          onOpenChange={handleConfirmModalOpenChange}
+          title={`Delete this ${
+            deletingTask?.parentTaskId ? "subtask" : "task"
+          }?`}
+          description={`"${deletingTask.title}" will be permanently deleted.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteTaskMutation.isPending}
+          onConfirm={handleDeleteTask}
         />
       )}
     </>

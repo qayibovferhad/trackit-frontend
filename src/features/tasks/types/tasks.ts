@@ -18,6 +18,8 @@ export interface TaskType {
     name?: string;
   };
   subtasks: TaskType[];
+  columnId?: string;
+  parentTaskId?: string;
 }
 
 export type CreateTaskPayload = {

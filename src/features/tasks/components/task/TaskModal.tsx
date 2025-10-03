@@ -19,15 +19,18 @@ import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
+
 type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   parentTaskId?: string;
   defaultColumnId: string | null;
   onAddTask?: (taskData: CreateTaskPayload) => void;
+  onEditTask?: (taskId: string, taskData: CreateTaskPayload) => void;
   teamId?: string;
   editingTask?: TaskType | null;
 };
+
 const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> => {
   return (
     assignee &&
@@ -76,6 +79,7 @@ export default function TaskModal({
   teamId,
   parentTaskId,
   editingTask,
+  onEditTask,
 }: TaskModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,6 +137,7 @@ export default function TaskModal({
       reset();
     }
   }, [open, editingTask, setValue, reset]);
+
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
     const selectedUser = selectedUsers[0] || null;
 
@@ -185,11 +190,14 @@ export default function TaskModal({
         tags: data.tags || [],
       };
 
-      if (onAddTask) {
+      if (editingTask && onEditTask) {
+        onEditTask(editingTask.id, payload);
+      } else if (onAddTask) {
         onAddTask(payload);
-        onOpenChange(false);
-        reset();
       }
+
+      onOpenChange(false);
+      reset();
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -323,8 +331,14 @@ export default function TaskModal({
         </FormField>
         {errorMessage && <ErrorAlert message={errorMessage} />}
 
-        <Button type="submit" className="w-full">
-          {isSubmitting ? "Creating.." : "Create"}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting
+            ? editingTask
+              ? "Updating..."
+              : "Creating..."
+            : editingTask
+            ? "Update"
+            : "Create"}
         </Button>
       </form>
     </Modal>
