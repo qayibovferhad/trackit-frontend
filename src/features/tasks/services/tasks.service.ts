@@ -1,5 +1,10 @@
 import { api } from "@/shared/lib/axios";
-import type { CreateTaskPayload, TaskType } from "../types/tasks";
+import type {
+  CommentType,
+  CreateCommentPayload,
+  CreateTaskPayload,
+  TaskType,
+} from "../types/tasks";
 
 export const createTask = async (data: CreateTaskPayload) => {
   const response = await api.post("/tasks", data);
@@ -27,4 +32,26 @@ export const getTask = async ({
   if (!taskId) return null;
   const response = await api.get(`/tasks/${taskId}`);
   return response.data;
+};
+
+export const getComments = async ({
+  taskId,
+}: {
+  taskId: string | undefined;
+}): Promise<CommentType[]> => {
+  if (!taskId) return [];
+
+  const response = await api.get(`/comments/${taskId}`);
+  return response.data;
+};
+
+export const createComment = async (
+  data: CreateCommentPayload
+): Promise<CommentType> => {
+  const response = await api.post("/comments", data);
+  return response.data;
+};
+
+export const deleteComment = async (commentId: string): Promise<void> => {
+  await api.delete(`/comments/${commentId}`);
 };

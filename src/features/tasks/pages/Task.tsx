@@ -7,19 +7,28 @@ import {
   UserPlus,
   Trash2,
   Edit2,
+  Send,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createComment,
   createTask,
+  deleteComment,
   deleteTask,
+  getComments,
   getTask,
   updateTask,
 } from "../services/tasks.service";
-import type { CreateTaskPayload, TaskType } from "../types/tasks";
-import { formatDate } from "@/shared/utils/date";
+import type {
+  CommentType,
+  CreateCommentPayload,
+  CreateTaskPayload,
+  TaskType,
+} from "../types/tasks";
+import { formatDate, timeAgo } from "@/shared/utils/date";
 import { randomColors } from "@/shared/constants/colors";
 import TaskModal from "../components/task/TaskModal";
 import {
@@ -31,14 +40,24 @@ import {
   DropdownMenuRow,
 } from "@/shared/ui/dropdown-menu";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
+import { useUserStore } from "@/stores/userStore";
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useUserStore();
+
   const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskType | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [deletingComment, setDeletingComment] = useState<CommentType | null>(
+    null
+  );
+  const [confirmDeleteCommentOpen, setConfirmDeleteCommentOpen] =
+    useState(false);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data } = useQuery<TaskType | null>({
@@ -47,22 +66,11 @@ export default function TaskDetailPage() {
     enabled: !!id,
   });
 
-  const [comments] = useState([
-    {
-      id: 1,
-      author: "Juliana Mills",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam",
-      time: "10 mins ago",
-    },
-    {
-      id: 2,
-      author: "Jonathan James",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam",
-      time: "2hours ago",
-    },
-  ]);
+  const { data: comments = [] } = useQuery<CommentType[]>({
+    queryKey: ["comments", id],
+    queryFn: () => getComments({ taskId: id }),
+    enabled: !!id,
+  });
 
   const createTaskMutation = useMutation({
     mutationFn: createTask,
@@ -92,6 +100,24 @@ export default function TaskDetailPage() {
       setEditingTask(null);
     },
   });
+
+  const createCommentMutation = useMutation({
+    mutationFn: createComment,
+    onSuccess: () => {
+      if (id) queryClient.invalidateQueries({ queryKey: ["comments", id] });
+      setCommentText("");
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: ({ commentId }: { commentId: string }) =>
+      deleteComment(commentId),
+    onSuccess: () => {
+      if (id) queryClient.invalidateQueries({ queryKey: ["comments", id] });
+      setDeletingComment(null);
+    },
+  });
+
   const handleAddSubtask = async (subtaskData: CreateTaskPayload) => {
     await createTaskMutation.mutateAsync(subtaskData);
   };
@@ -122,6 +148,33 @@ export default function TaskDetailPage() {
     setConfirmDeleteOpen(open);
     if (!open) {
       setDeletingTask(null);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() || !id) return;
+
+    const commentData: CreateCommentPayload = {
+      taskId: id,
+      content: commentText.trim(),
+    };
+
+    await createCommentMutation.mutateAsync(commentData);
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deletingComment?.id) return;
+    await deleteCommentMutation.mutateAsync({
+      commentId: deletingComment.id,
+    });
+    setConfirmDeleteCommentOpen(false);
+  };
+
+  const handleConfirmDeleteCommentOpenChange = (open: boolean) => {
+    setConfirmDeleteCommentOpen(open);
+    if (!open) {
+      setDeletingComment(null);
     }
   };
   const subtasks = data?.subtasks ?? [];
@@ -330,47 +383,66 @@ export default function TaskDetailPage() {
                 <div key={comment.id} className="flex gap-1 items-center group">
                   <div className="flex-shrink-0 mb-4">
                     <UserAvatar
-                      name={comment.avatar}
-                      src={comment.avatar}
+                      name={comment.user?.name || comment.user?.username}
+                      src={comment.user?.profileImage}
                       size="md"
                     />
                   </div>
 
                   <div className="flex-1">
                     <div className="rounded-lg p-3">
-                      <p className="text-sm text-gray-800">{comment.text}</p>
+                      <p className="text-sm text-gray-800">{comment.content}</p>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 px-3">
+                    <div className="flex items-center gap-2  text-xs text-gray-500 px-3">
                       <span className="font-medium text-violet-500">
-                        By {comment.author}
+                        By {comment.user.name || comment.user.username}
                       </span>
                       <span>•</span>
-                      <span>{comment.time}</span>
+                      <span>{timeAgo(comment.createdAt)}</span>
                     </div>
                   </div>
 
-                  <button className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-gray-100 rounded transition-all">
-                    <MoreHorizontal className="w-4 h-4 text-gray-600" />
-                  </button>
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-gray-100 rounded transition-all">
+                        <MoreHorizontal className="w-4 h-4 text-gray-600" />
+                      </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-7">
+                      <DropdownMenuRow
+                        iconCircle
+                        icon={<Trash2 />}
+                        label="Delete"
+                        iconSize={4}
+                        onClick={() => {
+                          setDeletingComment(comment);
+                          setConfirmDeleteCommentOpen(true);
+                        }}
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-3">
-              <img
-                src="https://i.pravatar.cc/150?img=3"
-                alt="You"
-                className="w-10 h-10 rounded-full flex-shrink-0"
+            <form onSubmit={handleAddComment} className="flex gap-3">
+              <UserAvatar
+                name={user?.name || user?.username}
+                src={user?.profileImage}
+                size="md"
               />
-              <div className="flex-1 relative">
+              <div className="flex-1 relative flex gap-2">
                 <input
                   type="text"
                   placeholder="Write your comments..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
@@ -411,6 +483,19 @@ export default function TaskDetailPage() {
           cancelText="Cancel"
           isLoading={deleteTaskMutation.isPending}
           onConfirm={handleDeleteTask}
+        />
+      )}
+
+      {deletingComment && (
+        <ConfirmModal
+          open={confirmDeleteCommentOpen}
+          onOpenChange={handleConfirmDeleteCommentOpenChange}
+          title="Delete this comment?"
+          description="This comment will be permanently deleted."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteCommentMutation.isPending}
+          onConfirm={handleDeleteComment}
         />
       )}
     </>

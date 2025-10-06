@@ -1,3 +1,4 @@
+import type { User } from "@/features/auth/types/auth.type";
 import type { AssigneeData } from "../schemas/tasks.schema";
 
 export type TaskPriority = "low" | "medium" | "high";
@@ -42,4 +43,19 @@ export interface UserOption {
   username?: string;
   profileImage?: string;
   name?: string;
+}
+
+export interface CommentType {
+  id: string;
+  content: string;
+  taskId: string;
+  userId: string;
+  user: Partial<User>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCommentPayload {
+  taskId: string;
+  content: string;
 }
