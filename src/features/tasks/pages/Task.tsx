@@ -1,29 +1,19 @@
 import { useCallback, useState } from "react";
-import { Plus, Loader2, MessageSquare, CheckCircle2 } from "lucide-react";
+import { Plus, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import UserAvatar from "@/shared/components/UserAvatar";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  createComment,
   createTask,
-  deleteComment,
   deleteTask,
-  getComments,
   getTask,
   updateTask,
 } from "../services/tasks.service";
-import type {
-  CommentType,
-  CreateCommentPayload,
-  CreateTaskPayload,
-  TaskType,
-} from "../types/tasks";
+import type { CreateTaskPayload, TaskType } from "../types/tasks";
 import TaskModal from "../components/task/TaskModal";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
-import { useUserStore } from "@/stores/userStore";
 import TaskItem from "../components/task/TaskItem";
-import CommentItem from "../components/task/CommentItem";
+import { CommentsSection } from "../components/comments/CommentsSection";
 
 const EmptySubtasks = () => (
   <div className="text-center py-8 text-gray-500">
@@ -34,25 +24,11 @@ const EmptySubtasks = () => (
     </p>
   </div>
 );
-
-const EmptyComments = () => (
-  <div className="text-center py-8 text-gray-500">
-    <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-    <p className="text-sm">No comments yet</p>
-    <p className="text-xs text-gray-400 mt-1">Be the first to comment</p>
-  </div>
-);
-
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useUserStore();
 
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskType | null>(null);
-  const [commentText, setCommentText] = useState("");
-  const [deletingComment, setDeletingComment] = useState<CommentType | null>(
-    null
-  );
 
   const [modals, setModals] = useState({
     subtask: false,
@@ -70,14 +46,6 @@ export default function TaskDetailPage() {
   } = useQuery<TaskType | null>({
     queryKey: ["task", id],
     queryFn: () => getTask({ taskId: id }),
-    enabled: !!id,
-  });
-
-  const { data: comments = [], isLoading: isLoadingComments } = useQuery<
-    CommentType[]
-  >({
-    queryKey: ["comments", id],
-    queryFn: () => getComments({ taskId: id }),
     enabled: !!id,
   });
 
@@ -110,23 +78,6 @@ export default function TaskDetailPage() {
     },
   });
 
-  const createCommentMutation = useMutation({
-    mutationFn: createComment,
-    onSuccess: () => {
-      if (id) queryClient.invalidateQueries({ queryKey: ["comments", id] });
-      setCommentText("");
-    },
-  });
-
-  const deleteCommentMutation = useMutation({
-    mutationFn: ({ commentId }: { commentId: string }) =>
-      deleteComment(commentId),
-    onSuccess: () => {
-      if (id) queryClient.invalidateQueries({ queryKey: ["comments", id] });
-      setDeletingComment(null);
-    },
-  });
-
   const handleEditTask = useCallback((taskToEdit: TaskType) => {
     setEditingTask(taskToEdit);
     setModals((prev) => ({ ...prev, editTask: true }));
@@ -148,28 +99,6 @@ export default function TaskDetailPage() {
       navigate(`/boards/${deletingTask.teamId}`);
     }
   }, [deletingTask, deleteTaskMutation, navigate]);
-
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim() || !id) return;
-
-    const commentData: CreateCommentPayload = {
-      taskId: id,
-      content: commentText.trim(),
-    };
-
-    await createCommentMutation.mutateAsync(commentData);
-  };
-
-  const handleDeleteCommentClick = useCallback((comment: CommentType) => {
-    setDeletingComment(comment);
-    setModals((prev) => ({ ...prev, deleteComment: true }));
-  }, []);
-
-  const handleDeleteComment = useCallback(async () => {
-    if (!deletingComment?.id) return;
-    await deleteCommentMutation.mutateAsync({ commentId: deletingComment.id });
-  }, [deletingComment, deleteCommentMutation]);
 
   const subtasks = task?.subtasks ?? [];
 
@@ -241,53 +170,7 @@ export default function TaskDetailPage() {
               </div>
             )}
           </div>
-          <div className="p-6">
-            <div className="mb-4">
-              <h2 className="text-base font-semibold text-gray-800">
-                Comments
-              </h2>
-              <p className="text-sm text-gray-500">
-                This task comments from other members
-              </p>
-            </div>
-
-            {isLoadingComments ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-              </div>
-            ) : comments.length === 0 ? (
-              <EmptyComments />
-            ) : (
-              <div className="space-y-4 mb-6">
-                {comments.map((comment) => (
-                  <CommentItem
-                    key={comment.id}
-                    comment={comment}
-                    onDelete={handleDeleteCommentClick}
-                    currentUserId={user?.id}
-                  />
-                ))}
-              </div>
-            )}
-
-            <form onSubmit={handleAddComment} className="flex gap-3">
-              <UserAvatar
-                name={user?.name || user?.username}
-                src={user?.profileImage}
-                size="md"
-              />
-              <div className="flex-1 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Write your comment..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
-                  disabled={createCommentMutation.isPending}
-                />
-              </div>
-            </form>
-          </div>
+          <CommentsSection taskId={id} />
         </div>
       </div>
 
@@ -336,22 +219,6 @@ export default function TaskDetailPage() {
           cancelText="Cancel"
           isLoading={deleteTaskMutation.isPending}
           onConfirm={handleDeleteTask}
-        />
-      )}
-
-      {modals.deleteComment && deletingComment && (
-        <ConfirmModal
-          open={modals.deleteComment}
-          onOpenChange={(open) => {
-            setModals((prev) => ({ ...prev, deleteComment: open }));
-            if (!open) setDeletingComment(null);
-          }}
-          title="Delete this comment?"
-          description="This comment will be permanently deleted."
-          confirmText="Delete"
-          cancelText="Cancel"
-          isLoading={deleteCommentMutation.isPending}
-          onConfirm={handleDeleteComment}
         />
       )}
     </>
