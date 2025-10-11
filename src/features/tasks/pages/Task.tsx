@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Plus, Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2,  } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,16 +14,8 @@ import TaskModal from "../components/task/TaskModal";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import TaskItem from "../components/task/TaskItem";
 import { CommentsSection } from "../components/comments/CommentsSection";
+import SubtaskList from "../components/task/SubtaskList";
 
-const EmptySubtasks = () => (
-  <div className="text-center py-8 text-gray-500">
-    <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-    <p className="text-sm">No subtasks yet</p>
-    <p className="text-xs text-gray-400 mt-1">
-      Add your first subtask to get started
-    </p>
-  </div>
-);
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
 
@@ -132,48 +124,12 @@ export default function TaskDetailPage() {
               onDelete={handleDeleteTaskClick}
             />
           )}
-
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Subtasks
-                </h2>
-                <p className="text-sm text-gray-500">
-                  You can add subtasks and assign to others
-                </p>
-              </div>
-              <Button
-                variant="violet"
-                onClick={() =>
-                  setModals((prev) => ({ ...prev, subtask: true }))
-                }
-              >
-                <Plus className="w-4 h-4" />
-                Add Subtask
-              </Button>
-            </div>
-
-            {subtasks.length === 0 ? (
-              <EmptySubtasks />
-            ) : (
-              <div className="space-y-3">
-                {subtasks.map((subtask) => (
-                  <TaskItem
-                    key={subtask.id}
-                    task={subtask}
-                    onEdit={handleEditTask}
-                    onDelete={handleDeleteTaskClick}
-                    isSubtask
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <SubtaskList subtasks={subtasks} onEdit={handleEditTask} onDelete={handleDeleteTaskClick} setOpenModal={() => {
+            setModals((prev) => ({ ...prev, subtask: true }))
+          }} />
           <CommentsSection taskId={id} />
         </div>
       </div>
-
       {modals.subtask && (
         <TaskModal
           open={modals.subtask}
@@ -186,7 +142,6 @@ export default function TaskDetailPage() {
           parentTaskId={task?.id}
         />
       )}
-
       {modals.editTask && editingTask && (
         <TaskModal
           open={modals.editTask}
@@ -203,7 +158,6 @@ export default function TaskDetailPage() {
           editingTask={editingTask}
         />
       )}
-
       {modals.deleteTask && deletingTask && (
         <ConfirmModal
           open={modals.deleteTask}
@@ -211,9 +165,8 @@ export default function TaskDetailPage() {
             setModals((prev) => ({ ...prev, deleteTask: open }));
             if (!open) setDeletingTask(null);
           }}
-          title={`Delete this ${
-            deletingTask.parentTaskId ? "subtask" : "task"
-          }?`}
+          title={`Delete this ${deletingTask.parentTaskId ? "subtask" : "task"
+            }?`}
           description={`"${deletingTask.title}" will be permanently deleted.`}
           confirmText="Delete"
           cancelText="Cancel"
