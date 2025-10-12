@@ -1,27 +1,32 @@
 import { Button } from '@/shared/ui/button';
 import { User, Users, Mail, Plus } from 'lucide-react';
+import { getProfileData } from '../services/profile.service';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
+import UserAvatar from '@/shared/components/UserAvatar';
 
 export default function ProfilePage() {
-  const user = {
-    name: "Prakash Subramani",
-    username: "@prakashjaada",
-    avatar: "PS",
-    joinedTeams: [
-      { id: 1, name: "Johnson's Team", members: '2k', status: 'joined' },
-      { id: 2, name: "Development Team", members: '3k', status: 'pending' }
-    ],
-    about: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-  };
+ const { username } = useParams<{ username: string }>();
 
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ['profile', username],
+    queryFn: () => getProfileData(username!),
+    enabled: !!username,
+  });
+
+  if (isLoading) return <div className="p-6 text-center">Loading profile...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">Failed to load profile</div>;
+  if (!user) return null;
+
+  console.log(user,'useruser');
+  
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm">
         <div className="p-3 border-b">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
-                {user.avatar}
-              </div>
+             <UserAvatar src={user?.profileImage} />  
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">{user.name}</h1>
                 <p className="text-sm text-gray-500">{user.username}</p>
@@ -46,11 +51,11 @@ export default function ProfilePage() {
 
         <div className="p-6 border-b">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">
-            Joined Teams ({user.joinedTeams.length})
+            Joined Teams ({user?.joinedTeams?.length || 0})
           </h2>
 
           <div className="space-y-3">
-            {user.joinedTeams.map((team) => (
+            {user?.joinedTeams?.map((team) => (
               <div
                 key={team.id}
                 className="flex items-center justify-between"
