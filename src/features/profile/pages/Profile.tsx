@@ -46,45 +46,50 @@ export default function ProfilePage() {
 
         <div className="p-6 border-b">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">About</h2>
-          <p className="text-sm text-gray-600 leading-relaxed">{user.about}</p>
+            {user.description ? (
+            <p className="text-sm text-gray-600 leading-relaxed">{user.description}</p>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No description provided.</p>
+          )}
         </div>
 
-        <div className="p-6 border-b">
+    <div className="p-6 border-b">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">
-            Joined Teams ({user?.joinedTeams?.length || 0})
+            Joined Teams ({user?.teams?.length || 0})
           </h2>
 
-          <div className="space-y-3">
-            {user?.joinedTeams?.map((team) => (
-              <div
-                key={team.id}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-gray-500" />
+          {user?.teams && user.teams.length > 0 ? (
+            <div className="space-y-3">
+              {user.teams.map((team) => (
+                <div key={team.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-gray-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">{team.name}</h3>
+                      <p className="text-xs text-gray-500">
+                        <Users className="w-3 h-3 inline mr-0.5" />
+                        {team?.users?.length} Members
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">{team.name}</h3>
-                    <p className="text-xs text-gray-500">
-                      <Users className="w-3 h-3 inline mr-0.5" />
-                      {team.members} Members
-                    </p>
-                  </div>
+
+                  {team.status === 'joined' ? (
+                    <button className="px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
+                      + Join
+                    </button>
+                  ) : (
+                    <button className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
+                      + Request
+                    </button>
+                  )}
                 </div>
-                
-                {team.status === 'joined' ? (
-                  <button className="px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
-                    + Join
-                  </button>
-                ) : (
-                  <button className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
-                    + Request
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No joined teams yet.</p>
+          )}
         </div>
 
         <div className="p-6">

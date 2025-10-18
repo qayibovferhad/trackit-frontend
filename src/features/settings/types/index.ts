@@ -20,4 +20,5 @@ export interface PersonalDetails {
   email: string;
   phone?: string;
   profileImage?: string;
+  description?:string
 }

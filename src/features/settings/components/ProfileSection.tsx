@@ -16,6 +16,8 @@ import {
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import type { PersonalDetails } from "../types";
 import { getErrorMessage } from "@/shared/lib/error";
+import { InputField } from "@/shared/components/InputField";
+import { Textarea } from "@/shared/ui/textarea";
 
 interface ProfileSectionProps {
   data: PersonalDetails;
@@ -57,6 +59,7 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
     defaultValues: {
       name: data?.name || "",
       username: data?.username || "",
+      description:data?.description || ""
     },
   });
 
@@ -64,6 +67,7 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
     if (data) {
       setValue("name", data.name || "");
       setValue("username", data.username || "");
+      setValue("description", data.description || "");
     }
   }, [data, setValue]);
 
@@ -83,6 +87,8 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
   };
 
   const onSubmit = async (data: ProfileDetailsFormData) => {
+    console.log(data,'data');
+    
     await updateDetails(data);
   };
 
@@ -155,6 +161,15 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </FormField>
+
+           <FormField
+              label="About"
+              error={errors.description}
+              htmlFor="description"
+            >
+              <Textarea {...register("description")}  className="w-full px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none">
+              </Textarea>
             </FormField>
           </div>
           <div className="bg-gray-200 p-3 rounded-lg">
