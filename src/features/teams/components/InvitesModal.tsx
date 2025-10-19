@@ -22,7 +22,7 @@ export default function InvitesModal({
   const qc = useQueryClient();
 
   const {
-    data: invites = [],
+    data = { invites: [], joinRequests: [] },
     isLoading,
     isError,
   } = useQuery({
@@ -55,12 +55,12 @@ export default function InvitesModal({
         {isLoading && <p>Loading invites…</p>}
         {isError && <ErrorAlert message="Failed to load invites" />}
 
-        {!isLoading && !isError && invites.length === 0 && (
+        {!isLoading && !isError && data.invites.length === 0 && (
           <p className="text-sm text-muted-foreground">No incoming invites.</p>
         )}
 
         <ul className="space-y-2">
-          {invites.map((inv: any) => (
+          {data?.invites.map((inv: any) => (
             <li
               key={inv.id}
               className="flex items-center justify-between rounded-md border p-3"
@@ -70,7 +70,7 @@ export default function InvitesModal({
                   {inv.team?.name ?? "Team"}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Role: <span className="font-medium">{inv.role}</span>
+                  Requested by: <span className="font-medium">{inv.inviter?.username || inv.inviter?.name}</span>
                   {inv.expiresAt && (
                     <> • Expires: {new Date(inv.expiresAt).toLocaleString()}</>
                   )}
@@ -95,6 +95,33 @@ export default function InvitesModal({
               </div>
             </li>
           ))}
+
+          {data.joinRequests.length > 0 && (
+          <>
+            <h3 className="text-sm font-semibold">Join Requests</h3>
+            <ul className="space-y-2">
+              {data.joinRequests.map((req: any) => (
+                <li key={req.id} className="flex items-center justify-between rounded-md border p-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{req.team?.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Requested by: <span className="font-medium">{req.requester?.username || req.requester?.name}</span>
+                      {req.expiresAt && <> • Expires: {new Date(req.expiresAt).toLocaleString()}</>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" onClick={() => acceptMut.mutate(req.token)} disabled={acceptMut.isPending}>
+                   Approve
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => declineMut.mutate(req.token)} disabled={declineMut.isPending}>
+                      Decline
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         </ul>
       </div>
     </Modal>
