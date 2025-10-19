@@ -1,12 +1,14 @@
 import { Button } from '@/shared/ui/button';
 import { User, Users, Mail, Plus } from 'lucide-react';
 import { getProfileData } from '../services/profile.service';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import UserAvatar from '@/shared/components/UserAvatar';
+import { joinToTeam } from '@/features/teams/services/teams.service';
 
 export default function ProfilePage() {
- const { username } = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>();
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['profile', username],
@@ -14,19 +16,27 @@ export default function ProfilePage() {
     enabled: !!username,
   });
 
+
+  const { mutateAsync: sendJoinRequest, isPending } = useMutation({
+    mutationFn: joinToTeam,
+    onSuccess(){
+      queryClient.invalidateQueries({ queryKey: ["profile",username] });
+    }
+  });
+
   if (isLoading) return <div className="p-6 text-center">Loading profile...</div>;
   if (error) return <div className="p-6 text-center text-red-500">Failed to load profile</div>;
   if (!user) return null;
 
-  console.log(user,'useruser');
-  
+  console.log(user, 'useruser');
+
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm">
         <div className="p-3 border-b">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-             <UserAvatar src={user?.profileImage} />  
+              <UserAvatar src={user?.profileImage} />
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">{user.name}</h1>
                 <p className="text-sm text-gray-500">{user.username}</p>
@@ -38,7 +48,7 @@ export default function ProfilePage() {
                 Assign Task
               </Button>
               <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors">
-                <Plus className="w-3.5 h-3.5"/> Invite
+                <Plus className="w-3.5 h-3.5" /> Invite
               </Button>
             </div>
           </div>
@@ -46,14 +56,14 @@ export default function ProfilePage() {
 
         <div className="p-6 border-b">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">About</h2>
-            {user.description ? (
+          {user.description ? (
             <p className="text-sm text-gray-600 leading-relaxed">{user.description}</p>
           ) : (
             <p className="text-sm text-gray-400 italic">No description provided.</p>
           )}
         </div>
 
-    <div className="p-6 border-b">
+        <div className="p-6 border-b">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">
             Joined Teams ({user?.teams?.length || 0})
           </h2>
@@ -75,14 +85,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {team.status === 'joined' ? (
-                    <button className="px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
-                      + Join
-                    </button>
+                  {team.joined ? (
+                    <Button disabled variant="outline">Joined</Button>
+                  ) : team.requested ? (
+                    <Button disabled>Request Sent</Button>
                   ) : (
-                    <button className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
-                      + Request
-                    </button>
+                    <Button disabled={isPending} onClick={() => sendJoinRequest(team.id)}>+ Request</Button>
                   )}
                 </div>
               ))}

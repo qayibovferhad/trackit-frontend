@@ -79,3 +79,9 @@ export async function getTeamMembers(
   const { data } = await api.get(`/teams/${teamId}/members${searchParam}`);
   return data;
 }
+
+
+export async function joinToTeam(teamId:string){
+  const response = await api.post(`/teams/${teamId}/request-join`);
+  return response.data;
+}
