@@ -80,8 +80,12 @@ export async function getTeamMembers(
   return data;
 }
 
-
 export async function joinToTeam(teamId:string){
   const response = await api.post(`/teams/${teamId}/request-join`);
   return response.data;
 }
+
+export const fetchSharedTeams = async (search:string,defaultUserId:string): Promise<Team[]> => {
+  const response = await api.get(`/teams/shared`,{params:{q:search,userId:defaultUserId}});
+  return response.data;
+};

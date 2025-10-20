@@ -12,19 +12,23 @@ import type {
   CreateTaskPayload,
   TaskPriority,
   TaskType,
+  TeamOption,
   UserOption,
 } from "../../types/tasks";
-import { getTeamMembers } from "@/features/teams/services/teams.service";
+import { fetchMyAdminTeams, fetchSharedTeams, getTeamMembers } from "@/features/teams/services/teams.service";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
+import type { User } from "@/features/auth/types/auth.type";
+import type { Team } from "@/features/teams/types";
 
 type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   parentTaskId?: string;
-  defaultColumnId: string | null;
+  defaultColumnId?: string | null;
+  defaultUser?: User | null
   onAddTask?: (taskData: CreateTaskPayload) => void;
   onEditTask?: (taskId: string, taskData: CreateTaskPayload) => void;
   teamId?: string;
@@ -64,6 +68,27 @@ async function fetchUserOptions(
   }
 }
 
+async function fetchTeamOptions(
+  input: string,
+  defaultUserId:string
+): Promise<TeamOption[]> {
+  if (!input || input.length < 2) return [];
+  try {
+    
+    const data = await fetchSharedTeams(input,defaultUserId);
+    
+    return (data ?? []).map((team: Team) => {
+      return {
+        id: team.id,
+        value: team.id,
+        label: team.name,
+      };
+    });
+  } catch (error) {
+    return [];
+  }
+}
+
 async function fetchTagOptions(teamId: string, input: string) {
   if (!input || input.length < 1) return [];
   return [];
@@ -75,6 +100,7 @@ export default function TaskModal({
   open,
   onOpenChange,
   defaultColumnId,
+  defaultUser,
   onAddTask,
   teamId,
   parentTaskId,
@@ -138,6 +164,15 @@ export default function TaskModal({
     }
   }, [open, editingTask, setValue, reset]);
 
+  useEffect(() => {
+    if (defaultUser) setValue("assignee", {
+      id: defaultUser.id,
+      email: defaultUser.email,
+      username: defaultUser.username,
+      profileImage: defaultUser.profileImage,
+    });
+  }, [defaultUser])
+
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
     const selectedUser = selectedUsers[0] || null;
 
@@ -157,13 +192,13 @@ export default function TaskModal({
   const currentAssignee: UserOption[] =
     assigneeValue && isValidAssignee(assigneeValue)
       ? [
-          {
-            id: assigneeValue.id,
-            label: assigneeValue.username || "Unknown User",
-            value: assigneeValue.id,
-            email: assigneeValue.email,
-          },
-        ]
+        {
+          id: assigneeValue.id,
+          label: assigneeValue.username || "Unknown User",
+          value: assigneeValue.id,
+          email: assigneeValue.email,
+        },
+      ]
       : [];
   async function onSubmit(data: TaskFormData) {
     if (!parentTaskId && !defaultColumnId) {
@@ -310,9 +345,33 @@ export default function TaskModal({
               label: inputValue,
               value: inputValue.trim(),
             })}
+            isDisabled={!!defaultUser}
             noOptionsMessage={() => "No users found"}
           />
         </FormField>
+
+        {defaultUser && <FormField
+          label="Team"
+          htmlFor="team"
+          error={
+            Array.isArray(errors.assignee)
+              ? errors.assignee.find(Boolean)
+              : errors.assignee
+          }
+        >
+          <GenericAsyncSelect<TeamOption>
+            onChange={handleAssigneeChange}
+            placeholder="Search by name..."
+            loadOptions={(input) => fetchTeamOptions(input,defaultUser.id)}
+            formatCreateLabel={(s) => `Select "${s}"`}
+            allowCreateOption={false}
+            getNewOptionData={(inputValue) => ({
+              label: inputValue,
+              value: inputValue.trim(),
+            })}
+            noOptionsMessage={() => "No team found"}
+          />
+        </FormField>}
 
         <FormField label="Tags" htmlFor="tags" error={errors.tags as any}>
           <GenericAsyncSelect<TagOption>
@@ -337,8 +396,8 @@ export default function TaskModal({
               ? "Updating..."
               : "Creating..."
             : editingTask
-            ? "Update"
-            : "Create"}
+              ? "Update"
+              : "Create"}
         </Button>
       </form>
     </Modal>

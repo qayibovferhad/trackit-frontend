@@ -5,9 +5,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import UserAvatar from '@/shared/components/UserAvatar';
 import { joinToTeam } from '@/features/teams/services/teams.service';
+import { useState } from 'react';
+import TaskModal from '@/features/tasks/components/task/TaskModal';
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
+  const [openTaskModal,setOpenTaskModal] = useState(false) 
   const queryClient = useQueryClient();
 
   const { data: user, isLoading, error } = useQuery({
@@ -31,6 +34,7 @@ export default function ProfilePage() {
   console.log(user, 'useruser');
 
   return (
+    <>
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm">
         <div className="p-3 border-b">
@@ -43,7 +47,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="violet">
+              <Button variant="violet" onClick={()=>setOpenTaskModal(true)}>
                 <User className="w-3.5 h-3.5" />
                 Assign Task
               </Button>
@@ -129,5 +133,7 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+    {openTaskModal && <TaskModal open={openTaskModal} onOpenChange={setOpenTaskModal} defaultUser={user}/> }
+    </>
   );
 }

@@ -21,6 +21,7 @@ interface GenericAsyncSelectProps<T extends BaseOption> {
   debounceMs?: number;
   minInputLength?: number;
   allowCreateOption?: boolean;
+  isDisabled?:boolean
 }
 
 export default function GenericAsyncSelect<T extends BaseOption>({
@@ -35,6 +36,7 @@ export default function GenericAsyncSelect<T extends BaseOption>({
   debounceMs = 500,
   minInputLength = 2,
   allowCreateOption = false,
+  isDisabled=false
 }: GenericAsyncSelectProps<T>) {
   const timeoutRef = useRef<NodeJS.Timeout>(null);
 
@@ -92,6 +94,7 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     onChange: handleChange,
     placeholder,
     noOptionsMessage,
+    isDisabled
   };
 
   if (!allowCreateOption) {

@@ -45,6 +45,13 @@ export interface UserOption {
   name?: string;
 }
 
+export interface TeamOption {
+  label: string;
+  value: string;
+  id?: string;
+  name?: string;
+}
+
 export interface CommentType {
   id: string;
   content: string;

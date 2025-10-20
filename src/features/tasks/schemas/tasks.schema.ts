@@ -31,6 +31,7 @@ export const taskSchema = z.object({
     })
     .optional(),
   parentTaskId: z.string().optional(),
+  team:z.string().optional()
 });
 
 export type TaskFormData = z.infer<typeof taskSchema>;
