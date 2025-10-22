@@ -108,5 +108,5 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     ...(getNewOptionData ? { getNewOptionData } : {}),
   };
 
-  return <AsyncCreatableSelect<T, true, GroupBase<T>> {...creatableProps} />;
+  return <AsyncCreatableSelect<T, true, GroupBase<T>> {...creatableProps}/>;
 }

@@ -15,13 +15,16 @@ import type {
   TeamOption,
   UserOption,
 } from "../../types/tasks";
-import { fetchMyAdminTeams, fetchSharedTeams, getTeamMembers } from "@/features/teams/services/teams.service";
+import { fetchSharedTeams, getTeamMembers } from "@/features/teams/services/teams.service";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import type { User } from "@/features/auth/types/auth.type";
 import type { Team } from "@/features/teams/types";
+import Select from "react-select";
+import { useBoardState } from "../../hooks/useBoardState";
+import type { Column } from "../../types/boards"
 
 type TaskModalProps = {
   open: boolean;
@@ -70,13 +73,14 @@ async function fetchUserOptions(
 
 async function fetchTeamOptions(
   input: string,
-  defaultUserId:string
+  defaultUserId: string
 ): Promise<TeamOption[]> {
   if (!input || input.length < 2) return [];
   try {
-    
-    const data = await fetchSharedTeams(input,defaultUserId);
-    
+
+    const data = await fetchSharedTeams(input, defaultUserId);
+
+
     return (data ?? []).map((team: Team) => {
       return {
         id: team.id,
@@ -109,6 +113,8 @@ export default function TaskModal({
 }: TaskModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTeamOption, setSelectedTeamOption] = useState<TeamOption | null>(null);
+  const [columnsOptions, setColumnsOptions] = useState<Column[] | null>(null)
   const {
     register,
     handleSubmit,
@@ -121,6 +127,14 @@ export default function TaskModal({
 
   const assigneeValue = watch("assignee");
   const tagsValue = watch("tags") as string[] | undefined;
+  const selectedTeam = watch('team')
+  const {
+    boards,
+    boardsLoading,
+  } = useBoardState(selectedTeam);
+
+  console.log(boards, 'boards');
+  console.log(selectedTeam, 'selectedTeam');
 
   useEffect(() => {
     if (open && editingTask) {
@@ -200,6 +214,8 @@ export default function TaskModal({
         },
       ]
       : [];
+
+
   async function onSubmit(data: TaskFormData) {
     if (!parentTaskId && !defaultColumnId) {
       setErrorMessage("No column selected");
@@ -255,6 +271,16 @@ export default function TaskModal({
     return "Create Task";
   };
 
+  const handleSelectTeam = (selectedTeams: TeamOption[]) => {
+    const team = selectedTeams[0];
+    if (team) {
+      setValue("team", team.id);
+      setSelectedTeamOption(team);
+    } else {
+      setValue("team", "");
+      setSelectedTeamOption(null);
+    }
+  };
   const currentTags = (tagsValue ?? []).map((t) => ({ label: t, value: t }));
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={getModalTitle()}>
@@ -350,7 +376,7 @@ export default function TaskModal({
           />
         </FormField>
 
-        {defaultUser && <FormField
+        {defaultUser && <><FormField
           label="Team"
           htmlFor="team"
           error={
@@ -360,9 +386,10 @@ export default function TaskModal({
           }
         >
           <GenericAsyncSelect<TeamOption>
-            onChange={handleAssigneeChange}
+            onChange={handleSelectTeam}
+            value={selectedTeamOption ? [selectedTeamOption] : []} // ✅ artıq team seçimi görünəcək
             placeholder="Search by name..."
-            loadOptions={(input) => fetchTeamOptions(input,defaultUser.id)}
+            loadOptions={(input) => fetchTeamOptions(input, defaultUser.id)}
             formatCreateLabel={(s) => `Select "${s}"`}
             allowCreateOption={false}
             getNewOptionData={(inputValue) => ({
@@ -371,7 +398,85 @@ export default function TaskModal({
             })}
             noOptionsMessage={() => "No team found"}
           />
-        </FormField>}
+        </FormField>
+          {selectedTeamOption && <FormField
+            label="Board"
+            htmlFor="board"
+          >
+            <Select
+              isLoading={boardsLoading}
+              options={boards && boards.map((b) => ({
+                value: b.id,
+                label: b.name,
+                columns: b.columns
+              }))}
+              placeholder={boardsLoading ? "Loading boards..." : "Select a board"}
+              isClearable={false}
+              onChange={(b) => setColumnsOptions(b?.columns || null)}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  boxShadow: "none",
+                  minHeight: "35px",
+                  height: "35px",
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? "#f3f3f3"
+                    : state.isSelected
+                      ? "#e5e5e5"
+                      : "white",
+                  color: "#1a1a1a",
+                  cursor: "pointer",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 50,
+                }),
+              }}
+            />
+          </FormField>
+          }
+
+          {columnsOptions && <FormField
+            label="Board"
+            htmlFor="board"
+          >
+            <Select
+              options={columnsOptions && columnsOptions.map((c) => ({
+                value: c.id,
+                label: c.title,
+              }))}
+              placeholder={"Select a column"}
+              isClearable={false}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  boxShadow: "none",
+                  minHeight: "35px",
+                  height: "35px",
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? "#f3f3f3"
+                    : state.isSelected
+                      ? "#e5e5e5"
+                      : "white",
+                  color: "#1a1a1a",
+                  cursor: "pointer",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 50,
+                }),
+              }}
+            />
+          </FormField>
+          }
+        </>
+        }
 
         <FormField label="Tags" htmlFor="tags" error={errors.tags as any}>
           <GenericAsyncSelect<TagOption>
