@@ -89,3 +89,10 @@ export const fetchSharedTeams = async (search:string,defaultUserId:string): Prom
   const response = await api.get(`/teams/shared`,{params:{q:search,userId:defaultUserId}});
   return response.data;
 };
+
+
+export const fetchMyAdminTeamsForInvite = async (userId:string): Promise<Team[]> => {
+  const response = await api.get(`/teams/my-admin-teams-for-invite/${userId}`);
+  return response.data;
+};
+

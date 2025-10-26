@@ -8,10 +8,12 @@ import { joinToTeam } from '@/features/teams/services/teams.service';
 import { useState } from 'react';
 import TaskModal from '@/features/tasks/components/task/TaskModal';
 import { useTaskMutations } from '@/features/tasks/hooks/useTaskMutations';
+import InviteTeamModal from '@/features/teams/components/InviteTeamModal';
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const [openTaskModal,setOpenTaskModal] = useState(false) 
+  const [openInviteModal,setOpenInviteModal] = useState(false)
   const queryClient = useQueryClient();
 
   const { createTaskMutation } = useTaskMutations();
@@ -54,7 +56,7 @@ export default function ProfilePage() {
                 <User className="w-3.5 h-3.5" />
                 Assign Task
               </Button>
-              <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+              <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors" onClick={()=>setOpenInviteModal(true)}>
                 <Plus className="w-3.5 h-3.5" /> Invite
               </Button>
             </div>
@@ -137,6 +139,7 @@ export default function ProfilePage() {
       </div>
     </div>
     {openTaskModal && <TaskModal open={openTaskModal} onOpenChange={setOpenTaskModal} defaultUser={user} onAddTask={(data)=>createTaskMutation.mutate(data)}/> }
+    {openInviteModal && <InviteTeamModal open={openInviteModal} onOpenChange={setOpenInviteModal} userId={user.id}/>}
     </>
   );
 }
