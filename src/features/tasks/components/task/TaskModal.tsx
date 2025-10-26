@@ -115,6 +115,7 @@ export default function TaskModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTeamOption, setSelectedTeamOption] = useState<TeamOption | null>(null);
   const [columnsOptions, setColumnsOptions] = useState<Column[] | null>(null)
+  const [selectedColumnId,setSelectedColumnId] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -217,7 +218,7 @@ export default function TaskModal({
 
 
   async function onSubmit(data: TaskFormData) {
-    if (!parentTaskId && !defaultColumnId) {
+    if (!parentTaskId && (!defaultColumnId && !selectedColumnId)) {
       setErrorMessage("No column selected");
       return;
     }
@@ -235,8 +236,8 @@ export default function TaskModal({
         dueAt,
         assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
         priority: data.priority,
-        columnId: defaultColumnId ?? undefined,
-        teamId: teamId ?? undefined,
+        columnId: (selectedColumnId || defaultColumnId )?? undefined,
+        teamId: (selectedTeam ||   teamId) ?? undefined,
         parentTaskId: parentTaskId,
         tags: data.tags || [],
       };
@@ -440,8 +441,8 @@ export default function TaskModal({
           }
 
           {columnsOptions && <FormField
-            label="Board"
-            htmlFor="board"
+            label="Column"
+            htmlFor="column"
           >
             <Select
               options={columnsOptions && columnsOptions.map((c) => ({
@@ -450,6 +451,7 @@ export default function TaskModal({
               }))}
               placeholder={"Select a column"}
               isClearable={false}
+              onChange={(c) => setSelectedColumnId(c?.value || null)}
               styles={{
                 control: (base) => ({
                   ...base,

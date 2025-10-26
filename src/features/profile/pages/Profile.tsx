@@ -7,11 +7,14 @@ import UserAvatar from '@/shared/components/UserAvatar';
 import { joinToTeam } from '@/features/teams/services/teams.service';
 import { useState } from 'react';
 import TaskModal from '@/features/tasks/components/task/TaskModal';
+import { useTaskMutations } from '@/features/tasks/hooks/useTaskMutations';
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const [openTaskModal,setOpenTaskModal] = useState(false) 
   const queryClient = useQueryClient();
+
+  const { createTaskMutation } = useTaskMutations();
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['profile', username],
@@ -133,7 +136,7 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
-    {openTaskModal && <TaskModal open={openTaskModal} onOpenChange={setOpenTaskModal} defaultUser={user}/> }
+    {openTaskModal && <TaskModal open={openTaskModal} onOpenChange={setOpenTaskModal} defaultUser={user} onAddTask={(data)=>createTaskMutation.mutate(data)}/> }
     </>
   );
 }

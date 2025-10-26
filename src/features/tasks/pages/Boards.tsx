@@ -46,8 +46,10 @@ export default function Boards() {
     useColumnMutations(setColumns, setSelectedBoard);
 
   const { createTaskMutation, updateTaskMutation } = useTaskMutations(
-    setColumns,
-    setSelectedBoard
+    {
+      setColumns,
+      setSelectedBoard
+    }
   );
 
   const { sensors, handleDragOver, handleDragEnd } = useDragAndDrop(
@@ -212,9 +214,9 @@ export default function Boards() {
           defaultValues={
             editingColumn
               ? {
-                  title: editingColumn.title,
-                  color: editingColumn.color,
-                }
+                title: editingColumn.title,
+                color: editingColumn.color,
+              }
               : undefined
           }
         />
