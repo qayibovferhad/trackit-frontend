@@ -82,7 +82,7 @@ export default function InvitesModal({
                   onClick={() => acceptMut.mutate(inv.token)}
                   disabled={acceptMut.isPending}
                 >
-                  {acceptMut.isPending ? "Joining…" : "Accept"}
+                  Accept
                 </Button>
                 <Button
                   size="sm"
@@ -90,7 +90,7 @@ export default function InvitesModal({
                   onClick={() => declineMut.mutate(inv.token)}
                   disabled={declineMut.isPending}
                 >
-                  {declineMut.isPending ? "Declining…" : "Decline"}
+                  Decline
                 </Button>
               </div>
             </li>
