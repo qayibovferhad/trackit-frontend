@@ -1,23 +1,24 @@
 import { Button } from '@/shared/ui/button';
-import { User, Users, Mail, Plus } from 'lucide-react';
+import { User, Users, Mail, Plus, Edit } from 'lucide-react';
 import { getProfileData } from '../services/profile.service';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import UserAvatar from '@/shared/components/UserAvatar';
 import { joinToTeam } from '@/features/teams/services/teams.service';
 import { useState } from 'react';
 import TaskModal from '@/features/tasks/components/task/TaskModal';
 import { useTaskMutations } from '@/features/tasks/hooks/useTaskMutations';
 import InviteTeamModal from '@/features/teams/components/InviteTeamModal';
+import { useUserStore } from '@/stores/userStore';
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const [openTaskModal,setOpenTaskModal] = useState(false) 
   const [openInviteModal,setOpenInviteModal] = useState(false)
   const queryClient = useQueryClient();
-
+  const { user:myUser } = useUserStore();
   const { createTaskMutation } = useTaskMutations();
-
+  const navigate = useNavigate()
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['profile', username],
     queryFn: () => getProfileData(username!),
@@ -36,8 +37,13 @@ export default function ProfilePage() {
   if (error) return <div className="p-6 text-center text-red-500">Failed to load profile</div>;
   if (!user) return null;
 
-  console.log(user, 'useruser');
 
+
+  console.log(myUser,'myUser');
+  console.log(user,'user');
+  
+  const isMyProfile = myUser?.id === user.id
+  
   return (
     <>
     <div className="min-h-screen p-4">
@@ -52,13 +58,21 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="violet" onClick={()=>setOpenTaskModal(true)}>
+              {isMyProfile ? <>
+                <Button variant="violet" onClick={()=>navigate(`/settings`)}>
+                <Edit className="w-3.5 h-3.5" />
+                 Edit Profile
+              </Button>
+              </> : <>
+                  <Button variant="violet" onClick={()=>setOpenTaskModal(true)}>
                 <User className="w-3.5 h-3.5" />
                 Assign Task
               </Button>
               <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors" onClick={()=>setOpenInviteModal(true)}>
                 <Plus className="w-3.5 h-3.5" /> Invite
               </Button>
+              </>}
+          
             </div>
           </div>
         </div>
