@@ -36,11 +36,6 @@ export default function ProfilePage() {
   if (isLoading) return <div className="p-6 text-center">Loading profile...</div>;
   if (error) return <div className="p-6 text-center text-red-500">Failed to load profile</div>;
   if (!user) return null;
-
-
-
-  console.log(myUser,'myUser');
-  console.log(user,'user');
   
   const isMyProfile = myUser?.id === user.id
   
