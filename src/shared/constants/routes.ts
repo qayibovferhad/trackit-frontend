@@ -14,5 +14,6 @@ export const PATHS = {
   NOTIFICATIONS: "/notifications",
   BOARDS: "/boards/:id",
   TASK: "/task/:id",
-  PROFILE:"/profile/:username"
+  PROFILE:"/profile/:username",
+  INBOX:"/inbox",
 } as const;
