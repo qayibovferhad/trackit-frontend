@@ -49,7 +49,7 @@ function MessageBubble({ message }) {
     </div>
 }
 
-export default function MessagesArea({ messages }: { messages: any }) {
+export default function MessagesArea({ messages }: { messages: any,showTyping:boolean }) {
     return <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-280px)]">
         {messages.map((msg) => (
             <MessageBubble message={msg} />

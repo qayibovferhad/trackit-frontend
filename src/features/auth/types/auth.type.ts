@@ -8,7 +8,9 @@ export interface User {
   email: string;
   profileImage?: string;
   name: string;
-  description:string
+  description: string;
+  lastSeen: string,
+  presence: 'online' | 'offline' | 'away';
 }
 
 export interface LoginResponse {

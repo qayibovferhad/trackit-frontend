@@ -1,8 +1,11 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { Button } from "@/shared/ui/button";
 import { MoreVertical, Plus } from "lucide-react";
+import { useState } from "react";
+import AddConversationModal from "./AddConversationModal";
 
 export default function Conversations() {
+    const [openModal, setOpenModal] = useState(false)
 
     const conversations = [
         {
@@ -46,7 +49,7 @@ export default function Conversations() {
             unread: 2
         }
     ];
-    return <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
+    return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
                 <div>
@@ -58,7 +61,7 @@ export default function Conversations() {
                 </button>
             </div>
 
-            <Button className="w-full" variant="violet">
+            <Button onClick={() => setOpenModal(true)} className="w-full" variant="violet">
                 <Plus size={18} />Create Conversation
             </Button>
         </div>
@@ -90,4 +93,6 @@ export default function Conversations() {
             ))}
         </div>
     </div>
+       {openModal && <AddConversationModal open={openModal} setOpen={setOpenModal} />}
+    </>
 }

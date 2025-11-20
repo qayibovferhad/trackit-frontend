@@ -1,12 +1,19 @@
 import { api } from "@/shared/lib/axios";
-import type { MembersOption, Page, Team } from "../types";
+import type { Page, Team } from "../types";
 import type { AddTeamFormData } from "../schemas/teams.schema";
 import type { User } from "@/features/auth/types/auth.type";
 
 export const searchUsers = async (
-  query: string
-): Promise<{ items: MembersOption[] }> => {
-  const response = await api.get("/users/search", { params: { q: query } });
+  query: string,
+  fields?: string[]
+): Promise<{ items: Partial<User>[] }> => {
+
+  const response = await api.get("/users/search", {
+    params: {
+      q: query,
+      ...(fields && fields.length ? { fields: fields.join(",") } : {})
+    }
+  });
   return response.data;
 };
 
@@ -80,18 +87,18 @@ export async function getTeamMembers(
   return data;
 }
 
-export async function joinToTeam(teamId:string){
+export async function joinToTeam(teamId: string) {
   const response = await api.post(`/teams/${teamId}/request-join`);
   return response.data;
 }
 
-export const fetchSharedTeams = async (search:string,defaultUserId:string): Promise<Team[]> => {
-  const response = await api.get(`/teams/shared`,{params:{q:search,userId:defaultUserId}});
+export const fetchSharedTeams = async (search: string, defaultUserId: string): Promise<Team[]> => {
+  const response = await api.get(`/teams/shared`, { params: { q: search, userId: defaultUserId } });
   return response.data;
 };
 
 
-export const fetchMyAdminTeamsForInvite = async (userId:string): Promise<Team[]> => {
+export const fetchMyAdminTeamsForInvite = async (userId: string): Promise<Team[]> => {
   const response = await api.get(`/teams/my-admin-teams-for-invite/${userId}`);
   return response.data;
 };

@@ -6,8 +6,9 @@ type InputFieldProps = {
   error?: FieldError;
   htmlFor: string;
   type?: string;
-  register: any;
+  register?: any;
   className?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
 };
 
 export function InputField({
@@ -17,6 +18,7 @@ export function InputField({
   type = "text",
   register,
   className = "",
+  onChange
 }: InputFieldProps) {
   const base =
     "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none";
@@ -27,8 +29,9 @@ export function InputField({
         id={htmlFor}
         type={type}
         autoFocus={false}
-        {...register(htmlFor)}
+        {...(register ? register(htmlFor) : {})}
         className={`${base} ${className}`}
+        onChange={onChange}
       />
     </FormField>
   );
