@@ -2,12 +2,13 @@ import type { FieldError } from "react-hook-form";
 import { FormField } from "./FormField";
 
 type InputFieldProps = {
-  label: string;
+  label?: string;
   error?: FieldError;
   htmlFor: string;
   type?: string;
   register?: any;
   className?: string;
+  placeholder?:string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 };
 
@@ -18,7 +19,8 @@ export function InputField({
   type = "text",
   register,
   className = "",
-  onChange
+  onChange,
+  placeholder
 }: InputFieldProps) {
   const base =
     "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none";
@@ -32,6 +34,7 @@ export function InputField({
         {...(register ? register(htmlFor) : {})}
         className={`${base} ${className}`}
         onChange={onChange}
+        placeholder={placeholder}
       />
     </FormField>
   );

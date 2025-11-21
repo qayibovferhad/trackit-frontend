@@ -7,7 +7,7 @@ export function FormField({
   htmlFor,
   className,
 }: {
-  label: string;
+  label?: string;
   error?: FieldError;
   children: React.ReactNode;
   htmlFor?: string;
@@ -17,9 +17,9 @@ export function FormField({
 
   return (
     <div className={className}>
-      <label htmlFor={htmlFor} className="block text-sm mb-1 text-gray-600">
+      {label &&<label htmlFor={htmlFor} className="block text-sm mb-1 text-gray-600">
         {label}
-      </label>
+      </label>}
       {children}
       {errorMessage && (
         <p className="text-xs text-red-500 mt-1">{errorMessage}</p>

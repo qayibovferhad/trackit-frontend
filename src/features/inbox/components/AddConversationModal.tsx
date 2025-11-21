@@ -5,11 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, Search } from "lucide-react";
 import UserAvatar from "@/shared/components/UserAvatar";
+import { InputField } from "@/shared/components/InputField";
 
 interface AddConversationModalProps {
     open: boolean;
     setOpen: (open: boolean) => void;
-    onStartConversation?: (userIds: string[]) => void;
+    onStartConversation?: (payload: {
+        userIds: string[];
+        groupName?: string;
+    }) => void;
 }
 
 export default function AddConversationModal({
@@ -19,7 +23,7 @@ export default function AddConversationModal({
 }: AddConversationModalProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-
+    const [groupName, setGroupName] = useState('')
     const { data, isLoading } = useQuery({
         queryKey: ["all-users", searchQuery],
         queryFn: () => searchUsers(searchQuery, ["id", "name", "username", "profileImage"]),
@@ -37,18 +41,22 @@ export default function AddConversationModal({
 
     const handleStartConversation = () => {
         if (selectedUsers.length > 0) {
-            onStartConversation?.(selectedUsers);
+            onStartConversation?.({
+                userIds: selectedUsers,
+                groupName: groupName || undefined
+            });
             setSelectedUsers([]);
+            setGroupName("");
             setSearchQuery("");
             setOpen(false);
         }
     };
-
     const handleClose = () => {
         setSelectedUsers([]);
         setSearchQuery("");
         setOpen(false);
     };
+
 
     return (
         <Modal title="Start Conversation" open={open} onOpenChange={handleClose}>
@@ -63,6 +71,8 @@ export default function AddConversationModal({
                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                     />
                 </div>
+
+                {selectedUsers.length > 1 && <InputField htmlFor="groupName" placeholder="Group Name" onChange={(e) => setGroupName(e.target.value)} />}
 
                 {selectedUsers.length > 0 && (
                     <div className="px-3 py-2 bg-purple-50 rounded-lg border border-purple-200">
