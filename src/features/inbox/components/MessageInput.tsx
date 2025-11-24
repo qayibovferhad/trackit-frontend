@@ -2,6 +2,13 @@ import UserAvatar from "@/shared/components/UserAvatar";
 import { MoreVertical, Settings } from "lucide-react";
 
 export default function MessageInput({ value, onChange, onSend }) {
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            onSend?.();
+        }
+    };
     return (
         <div className="px-6  border-t border-gray-200">
             <div className="flex items-center gap-2 mt-4">
@@ -11,6 +18,7 @@ export default function MessageInput({ value, onChange, onSend }) {
                         type="text"
                         placeholder="Type Message..."
                         value={value}
+                        onKeyDown={handleKeyDown}  
                         onChange={(e) => onChange(e.target.value)}
                         className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 placeholder-gray-500"
                     />
@@ -19,6 +27,9 @@ export default function MessageInput({ value, onChange, onSend }) {
                     </button>
                     <button className="text-gray-400 hover:text-gray-600">
                         <MoreVertical size={20} />
+                    </button>
+                    <button onClick={onSend} className="text-gray-400 hover:text-gray-600">
+                        Send
                     </button>
                 </div>
             </div>

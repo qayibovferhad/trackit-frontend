@@ -7,7 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
 import { useUserStore } from "@/stores/userStore";
 
-export default function Conversations() {
+interface ConversationsProps{
+    onSelect:(id:string)=>void
+}
+export default function Conversations({onSelect}:ConversationsProps) {
     const [openModal, setOpenModal] = useState(false)
     const queryClient = useQueryClient();
 
@@ -18,64 +21,19 @@ export default function Conversations() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['conversations'] });
             setOpenModal(false);
-        },
-        onError: (error) => {
-            console.error('Failed to create conversation:', error);
         }
     });
 
     const { data } = useQuery({ queryFn: getConversations, queryKey: ['conversations'] })
-    const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
-        console.log(groupName, 'groupName');
 
+    const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
         startConversation({ userIds, groupName });
     };
 
 
     const directConversations = data?.filter(conv => conv.type === 'DIRECT') || [];
     const groupConversations = data?.filter(conv => conv.type === 'GROUP') || [];
-    // const conversations = [
-    //     {
-    //         id: 1,
-    //         name: 'Robert Anderson',
-    //         avatar: 'https://i.pravatar.cc/150?img=12',
-    //         time: 'Just now',
-    //         preview: "I'll do that task now, you can...",
-    //         unread: 0
-    //     },
-    //     {
-    //         id: 2,
-    //         name: 'Henry Kane',
-    //         avatar: 'https://i.pravatar.cc/150?img=33',
-    //         time: '30mins ago',
-    //         preview: 'Here is UX research Documen...',
-    //         unread: 3
-    //     },
-    //     {
-    //         id: 3,
-    //         name: 'Juliana Wills',
-    //         avatar: 'https://i.pravatar.cc/150?img=45',
-    //         time: '3h ago',
-    //         preview: 'If you complete Webdesign Ta...',
-    //         unread: 0
-    //     },
-    //     {
-    //         id: 4,
-    //         name: 'Emma Olivia',
-    //         avatar: 'https://i.pravatar.cc/150?img=47',
-    //         time: 'a day ago',
-    //         preview: 'Are you there?',
-    //         unread: 0
-    //     },
-    //     {
-    //         id: 5,
-    //         name: 'Benjamin Jack',
-    //         avatar: 'https://i.pravatar.cc/150?img=51',
-    //         time: '2d ago',
-    //         preview: 'Hi 👋',
-    //         unread: 2
-    //     }
-    // ];
+    
     return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
@@ -100,10 +58,10 @@ export default function Conversations() {
                     <h3 className="text-sm font-semibold text-gray-500 mb-2">Direct Messages</h3>
                     {directConversations.map(conv => {
                         const myUser = conv.participants.find(p => p.user.id !== user?.id)?.user
-                        return <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg">
+                        return <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg" onClick={() => onSelect(conv.id)}>
                             <UserAvatar src={myUser?.profileImage} name={myUser?.name} size="lg" />
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900">{conv.participants.find(p => p.user.id !== user?.id)?.user.name}</p>
+                                <p className="font-medium text-gray-900">{myUser?.username}</p>
                                 <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.text}</p>
                             </div>
                         </div>
@@ -115,7 +73,7 @@ export default function Conversations() {
                 <div>
                     <h3 className="text-sm font-semibold text-gray-500 mb-2">Group Chats</h3>
                     {groupConversations.map(conv => (
-                        <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg">
+                        <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg" onClick={() => onSelect(conv.id)}>
 
                             <div className="flex -space-x-2">
                                 {conv.participants.slice(0, 2).map(p => (

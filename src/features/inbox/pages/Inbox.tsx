@@ -1,41 +1,83 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Conversations from "../components/Conversations";
 import ChatHeader from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
 import MessageInput from "../components/MessageInput";
+import { useNavigate, useParams } from "react-router-dom";
+import { QueryClient, useQuery } from "@tanstack/react-query";
+import { getMessages } from "../services/messages";
+import { useSocket } from "@/shared/hooks/useSocket";
 
 export default function Inbox() {
     const [message, setMessage] = useState('');
+    const { conversationId } = useParams();
+    const navigate = useNavigate();
+    const socket = useSocket();
+    const queryClient = new QueryClient()
+
+    useEffect(() => {
+        if (!conversationId) return;
+        socket.emit("join", conversationId);
+
+        console.log(socket.emit("join", conversationId),'socket.emit("join", conversationId);');
+        
+
+        
+        socket.on("newMessage", (msg) => {
+            console.log(msg,'msg');
+            
+            queryClient.setQueryData(['messages', conversationId], (old: any) => [
+                ...(old ?? []),
+                msg
+            ]);
+        });
+
+        console.log(socket.on('newMessage',()=>{}),'123123123123123');
+        
+
+
+        return () => {
+            socket.off("newMessage");
+        };
+    }, [conversationId]);
+
+    
+
+      const { data: messages=[] } = useQuery({
+        queryKey: ['messages', conversationId],
+        queryFn: () => getMessages(conversationId as string),
+        enabled: !!conversationId
+    });
+
+    const handleSelect = (id:string) => {
+        navigate(`/inbox/${id}`);
+    };
 
 
 
-    const messages = [
-        {
-            id: 1,
-            sender: 'Juliana Wills',
-            avatar: 'JW',
-            time: '2hrs ago',
-            content: "Hi 👋 I'll do that task now, you can start working on another task!",
-            hasAttachments: true,
-            attachments: [
-                { name: 'Webdesign.doc', size: '3.4MB', type: 'doc' },
-                { name: 'Branding.PDF', size: '12.5MB', type: 'pdf' }
-            ],
-            timestamp: '25/10/2022 • 10:00AM'
-        },
-        {
-            id: 2,
-            sender: 'You',
-            time: '2hrs ago',
-            content: "Hello @Juliana, I'll completed the task you send ✅",
-            isOwn: true,
-            timestamp: 'Today • 2hrs ago'
-        }
-    ];
+    const sendMessage = () => {
+        if (!message.trim() || !conversationId) return;
 
+
+        console.log('32323232');
+        
+        socket.emit("sendMessage", {
+            conversationId,
+            content: message,
+        });
+
+        console.log(  socket.emit("sendMessage", {
+            conversationId,
+            content: message,
+        }),11111);
+        
+        setMessage('');
+    };
+
+    
     return (
         <div className="flex h-[calc(100vh-100px)] bg-gray-50">
-            <Conversations />
+            <Conversations onSelect={handleSelect}/>
 
             <div className="flex-1 flex flex-col bg-white ">
                 <ChatHeader name='Farhad Qayibov' lastSeen='2hr ago' />
@@ -43,7 +85,8 @@ export default function Inbox() {
                 <MessagesArea messages={messages} showTyping />
                 <MessageInput
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(value) => setMessage(value)}
+                    onSend={sendMessage} 
                 />
 
             </div>

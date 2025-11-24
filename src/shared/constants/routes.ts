@@ -15,5 +15,5 @@ export const PATHS = {
   BOARDS: "/boards/:id",
   TASK: "/task/:id",
   PROFILE:"/profile/:username",
-  INBOX:"/inbox",
+  INBOX:"/inbox/:conversationId?",
 } as const;

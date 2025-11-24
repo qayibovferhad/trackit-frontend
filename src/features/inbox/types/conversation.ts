@@ -1,11 +1,5 @@
 import type { User } from "@/features/auth/types/auth.type";
-
-export interface Message {
-  id: string;
-  text: string;
-  createdAt: string;
-  sender: User;
-}
+import type { Message } from "./messages";
 
 export interface Participant {
   user: User;
@@ -17,7 +11,7 @@ export interface Conversation {
   name?: string;
   type: 'DIRECT' | 'GROUP';
   participants: Participant[];
-  lastMessage?: Message;
+  lastMessage?: Message
   createdAt: string;
   updatedAt: string;
 }
