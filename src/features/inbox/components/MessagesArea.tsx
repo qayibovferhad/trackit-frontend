@@ -31,9 +31,7 @@ function AttachmentCard({ attachments }) {
 
 function MessageBubble({ message }) {
     return <div key={message.id} className={`flex gap-2 ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
-        {!message.isOwn && (
-            <UserAvatar src={message.avatar} name={message.sender} />
-        )}
+            <UserAvatar src={message?.sender?.profileImage} name={message?.sender?.name} />
 
         <div className={`max-w-2xl ${message.isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
             <div className={`rounded-2xl px-4 py-3 ${message.isOwn
@@ -52,7 +50,7 @@ function MessageBubble({ message }) {
 export default function MessagesArea({ messages }: { messages: any,showTyping:boolean }) {
     return <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-280px)]">
         {messages.map((msg) => (
-            <MessageBubble message={msg} />
+            <MessageBubble message={msg} key={msg.id}/>
         ))}
 
         <div className="flex gap-2 items-start">

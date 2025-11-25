@@ -4,76 +4,64 @@ import ChatHeader from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
 import MessageInput from "../components/MessageInput";
 import { useNavigate, useParams } from "react-router-dom";
-import { QueryClient, useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMessages } from "../services/messages";
 import { useSocket } from "@/shared/hooks/useSocket";
 
 export default function Inbox() {
-    const [message, setMessage] = useState('');
-    const { conversationId } = useParams();
-    const navigate = useNavigate();
-    const socket = useSocket();
-    const queryClient = new QueryClient()
+ const [message, setMessage] = useState('');
+  const { conversationId } = useParams();
+  const navigate = useNavigate();
+  const {socket,isConnected} = useSocket();
+  
+  const queryClient = useQueryClient(); // useQueryClient istifadə edin, QueryClient yox
 
-    useEffect(() => {
-        if (!conversationId) return;
-        socket.emit("join", conversationId);
+ useEffect(() => {
+    if (!conversationId || !socket || !isConnected) return; 
 
-        console.log(socket.emit("join", conversationId),'socket.emit("join", conversationId);');
-        
+    socket.emit("join", conversationId);
 
-        
-        socket.on("newMessage", (msg) => {
-            console.log(msg,'msg');
-            
-            queryClient.setQueryData(['messages', conversationId], (old: any) => [
-                ...(old ?? []),
-                msg
-            ]);
-        });
+    const handleNewMessage = (msg) => {
+      console.log(msg, 'msg');
+      
+      queryClient.setQueryData(['messages', conversationId], (old) => [
+        ...(old ?? []),
+        msg
+      ]);
+    };
 
-        console.log(socket.on('newMessage',()=>{}),'123123123123123');
-        
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [conversationId, socket, queryClient]);
 
 
-        return () => {
-            socket.off("newMessage");
-        };
-    }, [conversationId]);
+  const { data: messages = [] } = useQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: () => getMessages(conversationId),
+    enabled: !!conversationId
+  });
 
-    
+  const handleSelect = (id) => {
+    navigate(`/inbox/${id}`);
+  };
 
-      const { data: messages=[] } = useQuery({
-        queryKey: ['messages', conversationId],
-        queryFn: () => getMessages(conversationId as string),
-        enabled: !!conversationId
+  const sendMessage = () => {
+    if (!message.trim() || !conversationId) return;
+
+    socket.emit("sendMessage", {
+      conversationId,
+      content: message,
     });
 
-    const handleSelect = (id:string) => {
-        navigate(`/inbox/${id}`);
-    };
+    setMessage('');
+  };
 
 
-
-    const sendMessage = () => {
-        if (!message.trim() || !conversationId) return;
-
-
-        console.log('32323232');
-        
-        socket.emit("sendMessage", {
-            conversationId,
-            content: message,
-        });
-
-        console.log(  socket.emit("sendMessage", {
-            conversationId,
-            content: message,
-        }),11111);
-        
-        setMessage('');
-    };
-
+  console.log(messages,'messages');
+  
     
     return (
         <div className="flex h-[calc(100vh-100px)] bg-gray-50">
