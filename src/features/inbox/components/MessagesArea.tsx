@@ -1,4 +1,5 @@
 import UserAvatar from "@/shared/components/UserAvatar";
+import { useUserStore } from "@/stores/userStore";
 
 function AttachmentCard({ attachments }) {
     return <div className="mt-3 pt-3 border-t border-gray-200">
@@ -29,12 +30,14 @@ function AttachmentCard({ attachments }) {
     </div>
 }
 
-function MessageBubble({ message }) {
-    return <div key={message.id} className={`flex gap-2 ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
+function MessageBubble({ message,currentUserId }) {
+    const isOwn = message.senderId === currentUserId;
+
+    return <div key={message.id} className={`flex gap-2 ${isOwn ? 'justify-start' : 'justify-end'}`}>
             <UserAvatar src={message?.sender?.profileImage} name={message?.sender?.name} />
 
-        <div className={`max-w-2xl ${message.isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
-            <div className={`rounded-2xl px-4 py-3 ${message.isOwn
+        <div className={`max-w-2xl ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
+            <div className={`rounded-2xl px-4 py-3 ${isOwn
                 ? 'bg-purple-600 text-white'
                 : 'bg-gray-200 text-gray-900'
                 }`}>
@@ -48,9 +51,10 @@ function MessageBubble({ message }) {
 }
 
 export default function MessagesArea({ messages }: { messages: any,showTyping:boolean }) {
+    const {user} = useUserStore()
     return <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-280px)]">
         {messages.map((msg) => (
-            <MessageBubble message={msg} key={msg.id}/>
+            <MessageBubble message={msg} key={msg.id} currentUserId={user?.id}/>
         ))}
 
         <div className="flex gap-2 items-start">

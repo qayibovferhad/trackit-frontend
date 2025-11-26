@@ -1,38 +1,68 @@
-import UserAvatar from "@/shared/components/UserAvatar";
-import { MoreVertical, Settings } from "lucide-react";
+// MessageInput.tsx - Optimized version
+import { useState, useRef, KeyboardEvent, ChangeEvent } from "react";
+import { Send } from "lucide-react";
 
-export default function MessageInput({ value, onChange, onSend }) {
+interface MessageInputProps {
+  onSend: (val:string) => void;
+}
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            onSend?.();
-        }
-    };
-    return (
-        <div className="px-6  border-t border-gray-200">
-            <div className="flex items-center gap-2 mt-4">
-                <UserAvatar src={`https://i.pravatar.cc/150?img=45`} />
-                <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2.5 border border-gray-200">
-                    <input
-                        type="text"
-                        placeholder="Type Message..."
-                        value={value}
-                        onKeyDown={handleKeyDown}  
-                        onChange={(e) => onChange(e.target.value)}
-                        className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 placeholder-gray-500"
-                    />
-                    <button className="text-gray-400 hover:text-gray-600">
-                        <Settings size={20} />
-                    </button>
-                    <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical size={20} />
-                    </button>
-                    <button onClick={onSend} className="text-gray-400 hover:text-gray-600">
-                        Send
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+export default function MessageInput({  onSend }: MessageInputProps) {
+const [value,setValue ]= useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(e.target.value);
+    
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend(value);
+      
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+      setValue('')
+    }
+  };
+
+  const handleSendClick = () => {
+    onSend(value);
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    setValue('')
+  };
+
+  return (
+    <div className="border-t p-4 bg-white">
+      <div className="flex items-end gap-2">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+          className="flex-1 resize-none border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-32 overflow-y-auto"
+          rows={1}
+        />
+        <button
+          onClick={handleSendClick}
+          disabled={!value.trim()}
+          className="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <Send size={20} />
+        </button>
+      </div>
+    </div>
+  );
 }
