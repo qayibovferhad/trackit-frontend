@@ -37,10 +37,7 @@ function MessageBubble({ message,currentUserId }) {
             <UserAvatar src={message?.sender?.profileImage} name={message?.sender?.name} />
 
         <div className={`max-w-2xl ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
-            <div className={`rounded-2xl px-4 py-3 ${isOwn
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-200 text-gray-900'
-                }`}>
+            <div className={`rounded-2xl px-4 py-3 bg-gray-200 text-gray-900`}>
                 <p className="text-sm leading-relaxed">{message.content}</p>
 
                 {message.hasAttachments && <AttachmentCard attachments={message.attachments}/>}
