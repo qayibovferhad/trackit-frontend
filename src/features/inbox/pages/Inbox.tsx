@@ -1,5 +1,4 @@
-// Inbox.tsx - User info ilə optimistic update
-import { useEffect, useState, useCallback, useTransition, useMemo } from "react";
+import { useEffect, useCallback, useTransition, useMemo } from "react";
 import Conversations from "../components/Conversations";
 import ChatHeader, { ChatHeaderSkeleton } from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
@@ -18,9 +17,9 @@ export default function Inbox() {
   const navigate = useNavigate();
   const { socket, isConnected, setCurrentConversation } = useSocket();
   const queryClient = useQueryClient();
-  const { user } = useUserStore(); 
+  const { user } = useUserStore();
 
-    const { data: conversation } = useQuery({
+  const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => getConversationById(conversationId as string),
     enabled: !!conversationId,
@@ -33,26 +32,26 @@ export default function Inbox() {
     enabled: !!conversationId
   });
 
-  console.log(conversation,'conversation');
-  
+  console.log(conversation, 'conversation');
 
-  const handleNewMessage = useCallback((msg:Message) => {
+
+  const handleNewMessage = useCallback((msg: Message) => {
     console.log('New message received:', msg);
-    
+
     startTransition(() => {
       queryClient.setQueryData(['messages', conversationId], (old) => {
         if (!old) return [msg];
-        
+
         if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
-          return old.map(m => 
+          return old.map(m =>
             m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
           );
         }
-        
+
         if (old.some(m => m.id === msg.id)) {
           return old;
         }
-        
+
         return [...old, msg];
       });
     });
@@ -77,12 +76,12 @@ export default function Inbox() {
     };
   }, [conversationId, socket, isConnected, handleNewMessage, setCurrentConversation]);
 
-  const handleSelect = (id:string) => {
+  const handleSelect = (id: string) => {
     navigate(`/inbox/${id}`);
   };
 
   const sendMessage = useCallback((messageText: string) => {
-    if (!messageText.trim() || !conversationId || !socket || !user)return
+    if (!messageText.trim() || !conversationId || !socket || !user) return
 
     const messageContent = messageText.trim();
     const tempId = `temp-${Date.now()}`;
@@ -107,7 +106,7 @@ export default function Inbox() {
       ]);
     });
 
-    
+
     const messageData = {
       conversationId,
       content: messageContent,
@@ -115,13 +114,37 @@ export default function Inbox() {
     };
 
     const handleResponse = (response) => {
-      
+
+      console.log(response, 'response');
+
       if (response?.success) {
+        queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
+
+        queryClient.setQueryData(['conversations'], (old: any) => {
+          console.log(old,'old');
+          
+          if (!old) return old;
+
+          return old.map((conv: any) => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                lastMessage: {
+                  content: messageContent,
+                  createdAt: new Date().toISOString(),
+                  sender: user
+                },
+                updatedAt: new Date().toISOString()
+              };
+            }
+            return conv;
+          });
+        });
       } else if (response?.needsRefresh) {
         addPendingMessage(messageData, handleResponse);
       } else {
         startTransition(() => {
-          queryClient.setQueryData(['messages', conversationId], (old) => 
+          queryClient.setQueryData(['messages', conversationId], (old) =>
             old?.filter(m => m.tempId !== tempId) ?? []
           );
         });
@@ -132,7 +155,7 @@ export default function Inbox() {
   }, [conversationId, socket, queryClient, user]);
 
 
-   const chatHeaderData = useMemo(() => {
+  const chatHeaderData = useMemo(() => {
     if (!conversation || !user) return null;
 
     const { type, participants, name } = conversation;
@@ -145,11 +168,12 @@ export default function Inbox() {
       if (!otherUser) return null;
 
       return {
-        name: otherUser.username,
+        username: otherUser.username,
+        name: otherUser.name,
         avatar: otherUser.profileImage,
         lastSeen: otherUser.lastSeen,
         isGroup: false,
-        participants:[{user:otherUser}]
+        participants: [{ user: otherUser }]
 
       };
     }
@@ -159,10 +183,10 @@ export default function Inbox() {
 
       return {
         name: name || `Group (${participantCount})`,
-        avatar: null, 
+        avatar: null,
         lastSeen: `${participantCount} participants`,
         isGroup: true,
-        participants:participants.filter(pr=>pr.userId !== user.id) || [],
+        participants: participants.filter(pr => pr.userId !== user.id) || [],
       };
     }
 
@@ -173,19 +197,21 @@ export default function Inbox() {
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
       <Conversations onSelect={handleSelect} />
 
-      <div className="flex-1 flex flex-col bg-white">
-                 {!chatHeaderData ? <ChatHeaderSkeleton/> : 
-                 <ChatHeader 
-                    name={chatHeaderData.name}
-                    lastSeen={chatHeaderData.lastSeen}
-                    avatar={chatHeaderData.avatar}
-                    isGroup={chatHeaderData.isGroup}
-                    participants={chatHeaderData.participants}
+      {conversation && <div className="flex-1 flex flex-col bg-white">
+        {!chatHeaderData ? <ChatHeaderSkeleton /> :
+          <ChatHeader
+            name={chatHeaderData.name}
+            username={chatHeaderData.username}
+            lastSeen={chatHeaderData.lastSeen}
+            avatar={chatHeaderData.avatar}
+            isGroup={chatHeaderData.isGroup}
+            participants={chatHeaderData.participants}
 
-                  />} 
+          />}
         <MessagesArea messages={messages} showTyping={isPending} />
         <MessageInput onSend={sendMessage} />
       </div>
+      }
     </div>
   );
 }

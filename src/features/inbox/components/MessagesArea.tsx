@@ -1,5 +1,6 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useUserStore } from "@/stores/userStore";
+import { useEffect, useRef } from "react";
 
 function AttachmentCard({ attachments }) {
     return <div className="mt-3 pt-3 border-t border-gray-200">
@@ -49,6 +50,16 @@ function MessageBubble({ message,currentUserId }) {
 
 export default function MessagesArea({ messages }: { messages: any,showTyping:boolean }) {
     const {user} = useUserStore()
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+    }
+
+    useEffect(() => {
+        scrollToBottom()
+    }, [messages])
+
     return <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-280px)]">
         {messages.map((msg) => (
             <MessageBubble message={msg} key={msg.id} currentUserId={user?.id}/>
@@ -67,5 +78,7 @@ export default function MessagesArea({ messages }: { messages: any,showTyping:bo
                 </div>
             </div>
         </div>
+
+        <div ref={messagesEndRef} />
     </div>
 }

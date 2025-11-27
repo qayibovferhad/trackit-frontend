@@ -1,4 +1,3 @@
-// MessageInput.tsx - Optimized version
 import { useState, useRef, KeyboardEvent, ChangeEvent } from "react";
 import { Send } from "lucide-react";
 
@@ -13,7 +12,6 @@ const [value,setValue ]= useState('')
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
     
-    // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';

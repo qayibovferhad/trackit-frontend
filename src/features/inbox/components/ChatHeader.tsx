@@ -28,7 +28,8 @@ export  function ChatHeaderSkeleton() {
     </div>
   );
 }
-export default function ChatHeader({ name, lastSeen, avatar, isGroup, participants }: any) {
+export default function ChatHeader({ name, lastSeen, avatar, isGroup, participants,username }: any) {
+  
   return (
     <div className="flex items-center justify-between p-4 border-b bg-white">
       <div className="flex items-center gap-3">
@@ -51,7 +52,7 @@ export default function ChatHeader({ name, lastSeen, avatar, isGroup, participan
             )}
           </div>
         ) : (
-          <UserAvatar src={avatar} name={name} size="lg" />
+          <UserAvatar src={avatar} name={username} size="lg" />
         )}
 
         <div>

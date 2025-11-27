@@ -62,7 +62,7 @@ export default function Conversations({onSelect}:ConversationsProps) {
                             <UserAvatar src={myUser?.profileImage} name={myUser?.name} size="lg" />
                             <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-900">{myUser?.username}</p>
-                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.text}</p>
+                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.content}</p>
                             </div>
                         </div>
                     })}
@@ -94,7 +94,7 @@ export default function Conversations({onSelect}:ConversationsProps) {
 
                             <div className="flex-1 min-w-0 ml-2">
                                 <p className="font-medium text-gray-900">{conv.name || 'Unnamed Group'}</p>
-                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.text}</p>
+                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.content}</p>
                             </div>
                         </div>
                     ))}
