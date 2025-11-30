@@ -1,7 +1,7 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { Button } from "@/shared/ui/button";
 import { MoreVertical, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import AddConversationModal from "./AddConversationModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
@@ -10,11 +10,90 @@ import { useUserStore } from "@/stores/userStore";
 interface ConversationsProps{
     onSelect:(id:string)=>void
 }
+
+
+ const ConversationItem = ({ conv, isGroup = false ,onSelect}: { conv: any, isGroup?: boolean ,onSelect:(id:string)=>void}) => {
+
+    console.log(conv,'conv');
+    const { user } = useUserStore()
+    
+    const unreadCount = conv.unreadCount || 0;
+    
+    if (isGroup) {
+      return (
+        <div
+          onClick={() => onSelect(conv.id)}
+          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer relative"
+        >
+          <div className="flex -space-x-2">
+            {conv.participants.slice(0, 2).map((p: any) => (
+              <UserAvatar
+                key={p.user.id}
+                src={p.user.profileImage}
+                name={p.user.username}
+              />
+            ))}
+            {conv.participants.length > 2 && (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium border-2 border-white">
+                +{conv.participants.length - 2}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-sm truncate">
+                {conv.name || 'Unnamed Group'}
+              </p>
+              {unreadCount > 0 && (
+                <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 truncate">
+              {conv.lastMessage?.content || 'No messages yet'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const otherUser = conv.participants.find((p: any) => p.user.id !== user?.id)?.user;
+    
+    return (
+      <div
+        onClick={() => onSelect(conv.id)}
+        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer relative"
+      >
+        <UserAvatar
+          src={otherUser?.profileImage}
+          name={otherUser?.username}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-sm truncate">
+              {otherUser?.username}
+            </p>
+            {unreadCount > 0 && (
+              <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 truncate">
+            {conv.lastMessage?.content || 'No messages yet'}
+          </p>
+        </div>
+      </div>
+    );
+}
+
+
+
 export default function Conversations({onSelect}:ConversationsProps) {
     const [openModal, setOpenModal] = useState(false)
     const queryClient = useQueryClient();
 
-    const { user } = useUserStore()
 
     const { mutate: startConversation, isPending } = useMutation({
         mutationFn: (payload: { userIds: string[], groupName?: string }) => createConversation(payload),
@@ -26,13 +105,33 @@ export default function Conversations({onSelect}:ConversationsProps) {
 
     const { data } = useQuery({ queryFn: getConversations, queryKey: ['conversations'] })
 
+    console.log(data,'datadatadata');
+    
     const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
         startConversation({ userIds, groupName });
     };
 
+      const sortedConversations = useMemo(() => {
+    if (!data) return { direct: [], group: [] };
 
-    const directConversations = data?.filter(conv => conv.type === 'DIRECT') || [];
-    const groupConversations = data?.filter(conv => conv.type === 'GROUP') || [];
+    const sorted = [...data].sort((a, b) => {
+      const dateA = a.lastMessage?.createdAt 
+        ? new Date(a.lastMessage.createdAt).getTime() 
+        : new Date(a.updatedAt).getTime();
+      const dateB = b.lastMessage?.createdAt 
+        ? new Date(b.lastMessage.createdAt).getTime() 
+        : new Date(b.updatedAt).getTime();
+      return dateB - dateA;
+    });
+
+    return {
+      direct: sorted.filter(conv => conv.type === 'DIRECT'),
+      group: sorted.filter(conv => conv.type === 'GROUP')
+    };
+  }, [data]);
+
+    const directConversations = sortedConversations?.direct
+    const groupConversations = sortedConversations?.group
     
     return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
@@ -56,16 +155,9 @@ export default function Conversations({onSelect}:ConversationsProps) {
             {directConversations.length > 0 && (
                 <div>
                     <h3 className="text-sm font-semibold text-gray-500 mb-2">Direct Messages</h3>
-                    {directConversations.map(conv => {
-                        const myUser = conv.participants.find(p => p.user.id !== user?.id)?.user
-                        return <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg" onClick={() => onSelect(conv.id)}>
-                            <UserAvatar src={myUser?.profileImage} name={myUser?.name} size="lg" />
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900">{myUser?.username}</p>
-                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.content}</p>
-                            </div>
-                        </div>
-                    })}
+                    {directConversations.map(conv => (
+                        <ConversationItem conv={conv} onSelect={onSelect}/>
+                    ))}
                 </div>
             )}
 
@@ -73,30 +165,7 @@ export default function Conversations({onSelect}:ConversationsProps) {
                 <div>
                     <h3 className="text-sm font-semibold text-gray-500 mb-2">Group Chats</h3>
                     {groupConversations.map(conv => (
-                        <div key={conv.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg" onClick={() => onSelect(conv.id)}>
-
-                            <div className="flex -space-x-2">
-                                {conv.participants.slice(0, 2).map(p => (
-                                    <UserAvatar
-                                        key={p.user.id}
-                                        src={p.user.profileImage}
-                                        name={p.user.name}
-                                        size="sm"
-                                        className="border-2 border-white rounded-full"
-                                    />
-                                ))}
-                                {conv.participants.length > 3 && (
-                                    <div className="w-6 h-6 flex items-center justify-center text-xs bg-gray-300 text-gray-700 rounded-full border-2 border-white">
-                                        +{conv.participants.length - 3}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex-1 min-w-0 ml-2">
-                                <p className="font-medium text-gray-900">{conv.name || 'Unnamed Group'}</p>
-                                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.content}</p>
-                            </div>
-                        </div>
+                        <ConversationItem conv={conv} onSelect={onSelect}/>
                     ))}
                 </div>
             )}

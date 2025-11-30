@@ -8,6 +8,8 @@ export const createConversation = async ({userIds,groupName}:{userIds:string[],g
 
 export const getConversations = async (): Promise<Conversation[]> => {
   const response = await api.get('/conversations');
+  console.log(response,'datadatadatadatadata');
+  
   return response.data;
 };
 
@@ -16,4 +18,21 @@ export const getConversations = async (): Promise<Conversation[]> => {
 export const getConversationById = async (conversationId:string): Promise<Conversation> => {
   const response = await api.get(`/conversations/${conversationId}`);
   return response.data;
+};
+
+export const markConversationAsRead = async (conversationId: string): Promise<{ success: boolean; unreadCount: number }> => {
+  console.log(conversationId,'conversationIdconversationIdconversationIdconversationIdconversationId');
+  
+  try {
+    console.log('eee');
+    
+    const { data } = await api.put(`/conversations/${conversationId}/read`);
+    console.log(data,'data');
+    
+    return data;
+  } catch (error) {
+    console.log(error);
+    
+    throw error;
+  }
 };

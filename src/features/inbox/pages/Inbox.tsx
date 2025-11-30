@@ -4,12 +4,12 @@ import ChatHeader, { ChatHeaderSkeleton } from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
 import MessageInput from "../components/MessageInput";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMessages } from "../services/messages";
 import { useSocket, addPendingMessage } from "@/shared/hooks/useSocket";
 import { useUserStore } from "@/stores/userStore";
 import type { Message } from "../types/messages";
-import { getConversationById } from "../services/conversation";
+import { getConversationById, markConversationAsRead } from "../services/conversation";
 
 export default function Inbox() {
   const [isPending, startTransition] = useTransition();
@@ -32,7 +32,30 @@ export default function Inbox() {
     enabled: !!conversationId
   });
 
-  console.log(conversation, 'conversation');
+  const { mutate: markAsReadMutation } = useMutation({
+    mutationFn: (convId: string) => markConversationAsRead(convId),
+    onMutate: async (convId) => {
+      const previousConversations = queryClient.getQueryData(['conversations']);
+      
+      queryClient.setQueryData(['conversations'], (old: any) => {
+        if (!old) return old;
+        return old.map((conv: any) => 
+          conv.id === convId ? { ...conv, unreadCount: 0 } : conv
+        );
+      });
+      
+      return { previousConversations };
+    },
+    onError: (err, convId, context) => {
+      if (context?.previousConversations) {
+        queryClient.setQueryData(['conversations'], context.previousConversations);
+      }
+      console.error('Failed to mark as read:', err);
+    },
+    onSuccess: () => {
+      console.log('Successfully marked as read');
+    }
+  });
 
 
   const handleNewMessage = useCallback((msg: Message) => {
@@ -76,6 +99,14 @@ export default function Inbox() {
     };
   }, [conversationId, socket, isConnected, handleNewMessage, setCurrentConversation]);
 
+  useEffect(() => {
+    if(conversationId){
+      markAsReadMutation(conversationId)
+    }
+    
+
+  }, [conversationId]);
+
   const handleSelect = (id: string) => {
     navigate(`/inbox/${id}`);
   };
@@ -115,14 +146,11 @@ export default function Inbox() {
 
     const handleResponse = (response) => {
 
-      console.log(response, 'response');
 
       if (response?.success) {
         queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
 
         queryClient.setQueryData(['conversations'], (old: any) => {
-          console.log(old,'old');
-          
           if (!old) return old;
 
           return old.map((conv: any) => {
