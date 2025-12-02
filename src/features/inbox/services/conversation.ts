@@ -21,14 +21,8 @@ export const getConversationById = async (conversationId:string): Promise<Conver
 };
 
 export const markConversationAsRead = async (conversationId: string): Promise<{ success: boolean; unreadCount: number }> => {
-  console.log(conversationId,'conversationIdconversationIdconversationIdconversationIdconversationId');
-  
   try {
-    console.log('eee');
-    
     const { data } = await api.put(`/conversations/${conversationId}/read`);
-    console.log(data,'data');
-    
     return data;
   } catch (error) {
     console.log(error);

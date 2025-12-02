@@ -13,8 +13,6 @@ interface ConversationsProps{
 
 
  const ConversationItem = ({ conv, isGroup = false ,onSelect}: { conv: any, isGroup?: boolean ,onSelect:(id:string)=>void}) => {
-
-    console.log(conv,'conv');
     const { user } = useUserStore()
     
     const unreadCount = conv.unreadCount || 0;
@@ -104,8 +102,6 @@ export default function Conversations({onSelect}:ConversationsProps) {
     });
 
     const { data } = useQuery({ queryFn: getConversations, queryKey: ['conversations'] })
-
-    console.log(data,'datadatadata');
     
     const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
         startConversation({ userIds, groupName });

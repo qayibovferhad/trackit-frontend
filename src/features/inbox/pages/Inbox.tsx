@@ -50,19 +50,16 @@ export default function Inbox() {
       if (context?.previousConversations) {
         queryClient.setQueryData(['conversations'], context.previousConversations);
       }
-      console.error('Failed to mark as read:', err);
     },
     onSuccess: () => {
-      console.log('Successfully marked as read');
     }
   });
 
-
-  const handleNewMessage = useCallback((msg: Message) => {
+const handleNewMessage = useCallback((msg: Message) => {
     console.log('New message received:', msg);
 
     startTransition(() => {
-      queryClient.setQueryData(['messages', conversationId], (old) => {
+      queryClient.setQueryData(['messages', msg.conversationId], (old) => {
         if (!old) return [msg];
 
         if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
@@ -78,7 +75,44 @@ export default function Inbox() {
         return [...old, msg];
       });
     });
-  }, [conversationId, queryClient]);
+    
+    queryClient.setQueryData(['conversations'], (old: any) => {
+      if (!old) return old;
+      return old.map((conv: any) => {
+        if (conv.id === msg.conversationId) {
+          // Əgər mesaj aktiv konuşmada gəlirsə və başqa biri göndəribsə
+          const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
+          
+          return {
+            ...conv,
+            lastMessage: {
+              content: msg.content,
+              createdAt: msg.createdAt,
+              sender: msg.sender
+            },
+            updatedAt: msg.createdAt,
+            // Aktiv konuşmadaysa unread count artmasın
+            unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId 
+              ? (conv.unreadCount || 0) + 1 
+              : conv.unreadCount)
+          };
+        }
+        return conv;
+      });
+    });
+
+    // Əgər mesaj aktiv konuşmada gəlirsə və başqa biri göndəribsə, mark as read et
+    if (msg.conversationId === conversationId && msg.senderId !== user?.id) {
+      markAsReadMutation(conversationId);
+    }
+  }, [queryClient, conversationId, user, markAsReadMutation]);
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("newMessage", handleNewMessage);
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, handleNewMessage]);
 
   useEffect(() => {
     if (!conversationId || !socket) {
@@ -91,20 +125,12 @@ export default function Inbox() {
     if (isConnected) {
       socket.emit("join", conversationId);
     }
-
-    socket.on("newMessage", handleNewMessage);
-
-    return () => {
-      socket.off("newMessage", handleNewMessage);
-    };
-  }, [conversationId, socket, isConnected, handleNewMessage, setCurrentConversation]);
+  }, [conversationId, socket, isConnected, setCurrentConversation]);
 
   useEffect(() => {
     if(conversationId){
       markAsReadMutation(conversationId)
     }
-    
-
   }, [conversationId]);
 
   const handleSelect = (id: string) => {
@@ -137,7 +163,6 @@ export default function Inbox() {
       ]);
     });
 
-
     const messageData = {
       conversationId,
       content: messageContent,
@@ -145,11 +170,8 @@ export default function Inbox() {
     };
 
     const handleResponse = (response) => {
-
-
       if (response?.success) {
         queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
-
         queryClient.setQueryData(['conversations'], (old: any) => {
           if (!old) return old;
 
@@ -182,7 +204,6 @@ export default function Inbox() {
     socket.emit("sendMessage", messageData, handleResponse);
   }, [conversationId, socket, queryClient, user]);
 
-
   const chatHeaderData = useMemo(() => {
     if (!conversation || !user) return null;
 
@@ -202,7 +223,6 @@ export default function Inbox() {
         lastSeen: otherUser.lastSeen,
         isGroup: false,
         participants: [{ user: otherUser }]
-
       };
     }
 
@@ -234,7 +254,6 @@ export default function Inbox() {
             avatar={chatHeaderData.avatar}
             isGroup={chatHeaderData.isGroup}
             participants={chatHeaderData.participants}
-
           />}
         <MessagesArea messages={messages} showTyping={isPending} />
         <MessageInput onSend={sendMessage} />
