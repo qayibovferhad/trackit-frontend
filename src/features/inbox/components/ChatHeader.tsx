@@ -3,10 +3,13 @@ import { MoreVertical } from "lucide-react";
 
 
 interface ChatHeaderProps {
-    name: string;
-    lastSeen: string;
-    avatar:string | null;
-    isGroup:boolean;
+  name: string;
+  lastSeen: string;
+  avatar: string | null;
+  isGroup: boolean;
+  username: string;
+  participants: Array<{ user: any }>;
+
 }
 
 
@@ -28,7 +31,7 @@ export  function ChatHeaderSkeleton() {
     </div>
   );
 }
-export default function ChatHeader({ name, lastSeen, avatar, isGroup, participants,username }: any) {
+export default function ChatHeader({ name, lastSeen, avatar, isGroup, participants,username }: ChatHeaderProps) {
   
   return (
     <div className="flex items-center justify-between p-4 border-b bg-white">

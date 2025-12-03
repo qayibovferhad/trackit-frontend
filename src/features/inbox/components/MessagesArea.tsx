@@ -1,8 +1,9 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useUserStore } from "@/stores/userStore";
 import { useEffect, useRef } from "react";
+import type { Message } from "../types/messages";
 
-function AttachmentCard({ attachments }) {
+function AttachmentCard({ attachments }:{attachments:any}) {
     return <div className="mt-3 pt-3 border-t border-gray-200">
         <p className="text-xs text-gray-600 mb-3">
             If you complete <span className="text-purple-600 font-medium">Webdesign</span> Task,
@@ -10,7 +11,7 @@ function AttachmentCard({ attachments }) {
             Here is few documents, check this before starting your tasks
         </p>
         <div className="flex gap-3">
-            {attachments.map((att, idx) => (
+            {attachments.map((att:any, idx:string) => (
                 <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200 w-32">
                     <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center mb-1">
                         {att.type === 'doc' ? (
@@ -31,7 +32,7 @@ function AttachmentCard({ attachments }) {
     </div>
 }
 
-function MessageBubble({ message,currentUserId }) {
+function MessageBubble({ message,currentUserId }:{message:Message,currentUserId?:string}) {
     const isOwn = message.senderId === currentUserId;
 
     return <div key={message.id} className={`flex gap-2 ${isOwn ? 'justify-start' : 'justify-end'}`}>
@@ -48,7 +49,7 @@ function MessageBubble({ message,currentUserId }) {
     </div>
 }
 
-export default function MessagesArea({ messages }: { messages: any,showTyping:boolean }) {
+export default function MessagesArea({ messages }: { messages: Message[],showTyping:boolean }) {
     const {user} = useUserStore()
     const messagesEndRef = useRef<HTMLDivElement>(null)
 

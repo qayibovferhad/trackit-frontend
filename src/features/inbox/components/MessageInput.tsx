@@ -1,6 +1,6 @@
-import { useState, useRef, KeyboardEvent, ChangeEvent } from "react";
+import { useState, useRef } from "react";
+import type { KeyboardEvent, ChangeEvent } from "react";
 import { Send } from "lucide-react";
-
 interface MessageInputProps {
   onSend: (val:string) => void;
 }
@@ -23,7 +23,6 @@ const [value,setValue ]= useState('')
       e.preventDefault();
       onSend(value);
       
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -34,7 +33,6 @@ const [value,setValue ]= useState('')
   const handleSendClick = () => {
     onSend(value);
     
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }

@@ -59,7 +59,7 @@ const handleNewMessage = useCallback((msg: Message) => {
     console.log('New message received:', msg);
 
     startTransition(() => {
-      queryClient.setQueryData(['messages', msg.conversationId], (old) => {
+      queryClient.setQueryData(['messages', msg.conversationId], (old:Message[]) => {
         if (!old) return [msg];
 
         if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
@@ -80,7 +80,6 @@ const handleNewMessage = useCallback((msg: Message) => {
       if (!old) return old;
       return old.map((conv: any) => {
         if (conv.id === msg.conversationId) {
-          // Əgər mesaj aktiv konuşmada gəlirsə və başqa biri göndəribsə
           const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
           
           return {
@@ -91,7 +90,6 @@ const handleNewMessage = useCallback((msg: Message) => {
               sender: msg.sender
             },
             updatedAt: msg.createdAt,
-            // Aktiv konuşmadaysa unread count artmasın
             unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId 
               ? (conv.unreadCount || 0) + 1 
               : conv.unreadCount)
@@ -101,7 +99,6 @@ const handleNewMessage = useCallback((msg: Message) => {
       });
     });
 
-    // Əgər mesaj aktiv konuşmada gəlirsə və başqa biri göndəribsə, mark as read et
     if (msg.conversationId === conversationId && msg.senderId !== user?.id) {
       markAsReadMutation(conversationId);
     }
@@ -157,7 +154,7 @@ const handleNewMessage = useCallback((msg: Message) => {
     };
 
     startTransition(() => {
-      queryClient.setQueryData(['messages', conversationId], (old) => [
+      queryClient.setQueryData(['messages', conversationId], (old:Message[]) => [
         ...(old ?? []),
         optimisticMessage,
       ]);
@@ -169,7 +166,10 @@ const handleNewMessage = useCallback((msg: Message) => {
       tempId: tempId,
     };
 
-    const handleResponse = (response) => {
+    const handleResponse = (response: {
+      success?: boolean;
+      needsRefresh?: boolean;
+    } | undefined) => {
       if (response?.success) {
         queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
         queryClient.setQueryData(['conversations'], (old: any) => {
@@ -194,7 +194,7 @@ const handleNewMessage = useCallback((msg: Message) => {
         addPendingMessage(messageData, handleResponse);
       } else {
         startTransition(() => {
-          queryClient.setQueryData(['messages', conversationId], (old) =>
+          queryClient.setQueryData(['messages', conversationId], (old: Message[]) =>
             old?.filter(m => m.tempId !== tempId) ?? []
           );
         });
@@ -249,9 +249,9 @@ const handleNewMessage = useCallback((msg: Message) => {
         {!chatHeaderData ? <ChatHeaderSkeleton /> :
           <ChatHeader
             name={chatHeaderData.name}
-            username={chatHeaderData.username}
+            username={chatHeaderData.username ?? ""}
             lastSeen={chatHeaderData.lastSeen}
-            avatar={chatHeaderData.avatar}
+            avatar={chatHeaderData.avatar ?? ""}
             isGroup={chatHeaderData.isGroup}
             participants={chatHeaderData.participants}
           />}

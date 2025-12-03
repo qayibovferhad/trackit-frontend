@@ -5,4 +5,10 @@ export interface Message {
   content: string;
   createdAt: string;
   sender: User;
+  senderId:string;
+  conversationId:string;
+  tempId:string;
+  hasAttachments:boolean;
+  attachments:any;
+  timestamp:string
 }
