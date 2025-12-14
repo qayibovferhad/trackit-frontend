@@ -82,13 +82,11 @@ export const useSocket = () => {
       if (mountedRef.current) {
         setIsConnected(true);
         
-        // Əgər conversation-da idisə, yenidən otağa qoşul
         if (currentConversationId && socketInstance) {
           console.log('Rejoining room after reconnect:', currentConversationId);
           socketInstance.emit('join', currentConversationId);
         }
         
-        // Token refresh edildikdən sonra pending messages göndər
         if (socketInstance && pendingMessages.length > 0) {
           setTimeout(() => {
             resendPendingMessages(socketInstance);
@@ -98,17 +96,14 @@ export const useSocket = () => {
     };
 
     const onDisconnect = () => {
-      console.log('Socket disconnected');
       if (mountedRef.current) {
         setIsConnected(false);
       }
     };
 
     const onTokenExpired = async () => {
-      console.log('Token expired, refreshing...');
       
       if (isRefreshing.current) {
-        console.log('Token refresh already in progress');
         return;
       }
 
@@ -121,37 +116,30 @@ export const useSocket = () => {
           { withCredentials: true }
         );
 
-        console.log('Token refresh response:', data);
         
         if (data.access_token) {
           setAccessToken(data.access_token);
           
-          // Köhnə socket-i təmizlə
           if (socketInstance) {
             removeSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
             socketInstance.disconnect();
             socketInstance = null;
           }
           
-          // Yeni socket yarat
           const newSocket = createSocketInstance();
           socketInstance = newSocket;
           socketRef.current = newSocket;
           
-          // Yeni event listener-lər əlavə et
           setupSocketListeners(newSocket, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
           
-          // State-i update et
           if (mountedRef.current) {
             setSocket(newSocket);
           }
           
-          console.log('Socket refreshed successfully, pending messages will be sent on connect');
         } else {
           window.location.href = '/login';
         }
       } catch (error) {
-        console.error('Error refreshing token:', error);
         window.location.href = '/login';
       } finally {
         isRefreshing.current = false;
@@ -159,11 +147,9 @@ export const useSocket = () => {
     };
 
     const onUnauthorized = () => {
-      console.error('Unauthorized, redirecting to login...');
       window.location.href = '/login';
     };
 
-    // Socket-i yarat və ya mövcud olanı götür
     if (!socketInstance) {
       socketInstance = createSocketInstance();
     }
@@ -184,7 +170,6 @@ export const useSocket = () => {
     };
   }, []);
 
-  // Current conversation ID-ni set et
   const setCurrentConversation = useCallback((conversationId: string | null) => {
     currentConversationId = conversationId;
   }, []);
@@ -192,13 +177,10 @@ export const useSocket = () => {
   return { socket, isConnected, setCurrentConversation };
 };
 
-// Pending message əlavə etmək üçün helper
 export const addPendingMessage = (data: any, callback: (response: any) => void) => {
   pendingMessages.push({ data, callback });
-  console.log(`Added message to pending queue. Total pending: ${pendingMessages.length}`);
 };
 
-// App unmount olanda socket-i təmizlə
 export const disconnectSocket = () => {
   if (socketInstance) {
     socketInstance.removeAllListeners();

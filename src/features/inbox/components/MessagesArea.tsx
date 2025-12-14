@@ -49,7 +49,26 @@ function MessageBubble({ message,currentUserId }:{message:Message,currentUserId?
     </div>
 }
 
-export default function MessagesArea({ messages }: { messages: Message[],showTyping:boolean }) {
+function TypingIndicator({ name,avatar }:{ name: string,avatar:string}) {
+    return (
+         <div className="flex gap-2 items-end justify-end mb-4">
+            <UserAvatar src={avatar} name={name} /> 
+            <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                <div className="flex items-center gap-1">
+                    <span className="text-sm text-gray-600 font-medium">{name}</span>
+                    <span className="text-sm text-gray-600">typing..</span>
+                    <div className="flex gap-1 ml-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default function MessagesArea({ messages ,typingUsers}: { messages: Message[],showTyping:boolean ,typingUsers:{id:string,name:string,avatar:string}[]}) {
     const {user} = useUserStore()
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -66,7 +85,11 @@ export default function MessagesArea({ messages }: { messages: Message[],showTyp
             <MessageBubble message={msg} key={msg.id} currentUserId={user?.id}/>
         ))}
 
-        <div className="flex gap-2 items-start">
+        {typingUsers.map(u => (
+            <TypingIndicator key={u.id} name={u.name} avatar={u.avatar} />
+        ))}
+
+        {/* <div className="flex gap-2 items-start">
             <UserAvatar src={'https://i.pravatar.cc/150?img=45'} />
             <div className="bg-gray-100 rounded-2xl px-4 py-3">
                 <div className="flex items-center gap-1">
@@ -78,7 +101,7 @@ export default function MessagesArea({ messages }: { messages: Message[],showTyp
                     </div>
                 </div>
             </div>
-        </div>
+        </div> */}
 
         <div ref={messagesEndRef} />
     </div>

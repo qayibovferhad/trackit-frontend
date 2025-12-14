@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useTransition, useMemo } from "react";
+import { useEffect, useCallback, useTransition, useMemo, useState } from "react";
 import Conversations from "../components/Conversations";
 import ChatHeader, { ChatHeaderSkeleton } from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
@@ -12,6 +12,7 @@ import type { Message } from "../types/messages";
 import { getConversationById, markConversationAsRead } from "../services/conversation";
 
 export default function Inbox() {
+  const [typingUsers, setTypingUsers] = useState<Record<string, { id: string, name: string,avatar:string }>>({});
   const [isPending, startTransition] = useTransition();
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -103,13 +104,33 @@ const handleNewMessage = useCallback((msg: Message) => {
       markAsReadMutation(conversationId);
     }
   }, [queryClient, conversationId, user, markAsReadMutation]);
+
+  const handleUserTyping = useCallback((data: { userId: string, isTyping: boolean, name: string ,avatar:string}) => {
+    if (data.userId === user?.id) return;
+
+    startTransition(() => {
+      setTypingUsers(prev => {
+        const newTypingUsers = { ...prev };
+        if (data.isTyping) {
+          newTypingUsers[data.userId] = { id: data.userId, name: data.name ,avatar:data.avatar};
+        } else {
+          delete newTypingUsers[data.userId];
+        }
+        return newTypingUsers;
+      });
+    });
+}, [user]);
+
+
   useEffect(() => {
     if (!socket) return;
     socket.on("newMessage", handleNewMessage);
+    socket.on("userTyping", handleUserTyping);
     return () => {
       socket.off("newMessage", handleNewMessage);
+      socket.off("userTyping", handleUserTyping);
     };
-  }, [socket, handleNewMessage]);
+  }, [socket, handleNewMessage,handleUserTyping]);
 
   useEffect(() => {
     if (!conversationId || !socket) {
@@ -153,6 +174,8 @@ const handleNewMessage = useCallback((msg: Message) => {
       isOptimistic: true,
     };
 
+    handleTyping(false);
+
     startTransition(() => {
       queryClient.setQueryData(['messages', conversationId], (old:Message[]) => [
         ...(old ?? []),
@@ -160,6 +183,9 @@ const handleNewMessage = useCallback((msg: Message) => {
       ]);
     });
 
+
+
+    
     const messageData = {
       conversationId,
       content: messageContent,
@@ -241,6 +267,20 @@ const handleNewMessage = useCallback((msg: Message) => {
     return null;
   }, [conversation, user]);
 
+
+  const handleTyping = useCallback((isTyping: boolean) => {
+    if (!conversationId || !socket) return;
+
+    socket.emit("typing", { 
+      conversationId, 
+      isTyping, 
+      name: user?.name,
+      avatar:user?.profileImage
+    });
+
+}, [conversationId, socket, user]);
+
+
   return (
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
       <Conversations onSelect={handleSelect} />
@@ -255,8 +295,8 @@ const handleNewMessage = useCallback((msg: Message) => {
             isGroup={chatHeaderData.isGroup}
             participants={chatHeaderData.participants}
           />}
-        <MessagesArea messages={messages} showTyping={isPending} />
-        <MessageInput onSend={sendMessage} />
+        <MessagesArea messages={messages} showTyping={isPending} typingUsers={Object.values(typingUsers)} />
+        <MessageInput onSend={sendMessage} onTyping={handleTyping}/>
       </div>
       }
     </div>
