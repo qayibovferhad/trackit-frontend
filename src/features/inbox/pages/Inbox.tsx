@@ -12,7 +12,7 @@ import type { Message } from "../types/messages";
 import { getConversationById, markConversationAsRead } from "../services/conversation";
 
 export default function Inbox() {
-  const [typingUsers, setTypingUsers] = useState<Record<string, { id: string, name: string,avatar:string }>>({});
+  const [typingUsers, setTypingUsers] = useState<Record<string, { id: string, name: string, avatar: string }>>({});
   const [isPending, startTransition] = useTransition();
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -37,14 +37,14 @@ export default function Inbox() {
     mutationFn: (convId: string) => markConversationAsRead(convId),
     onMutate: async (convId) => {
       const previousConversations = queryClient.getQueryData(['conversations']);
-      
+
       queryClient.setQueryData(['conversations'], (old: any) => {
         if (!old) return old;
-        return old.map((conv: any) => 
+        return old.map((conv: any) =>
           conv.id === convId ? { ...conv, unreadCount: 0 } : conv
         );
       });
-      
+
       return { previousConversations };
     },
     onError: (err, convId, context) => {
@@ -56,11 +56,11 @@ export default function Inbox() {
     }
   });
 
-const handleNewMessage = useCallback((msg: Message) => {
+  const handleNewMessage = useCallback((msg: Message) => {
     console.log('New message received:', msg);
 
     startTransition(() => {
-      queryClient.setQueryData(['messages', msg.conversationId], (old:Message[]) => {
+      queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
         if (!old) return [msg];
 
         if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
@@ -76,13 +76,13 @@ const handleNewMessage = useCallback((msg: Message) => {
         return [...old, msg];
       });
     });
-    
+
     queryClient.setQueryData(['conversations'], (old: any) => {
       if (!old) return old;
       return old.map((conv: any) => {
         if (conv.id === msg.conversationId) {
           const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
-          
+
           return {
             ...conv,
             lastMessage: {
@@ -91,8 +91,8 @@ const handleNewMessage = useCallback((msg: Message) => {
               sender: msg.sender
             },
             updatedAt: msg.createdAt,
-            unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId 
-              ? (conv.unreadCount || 0) + 1 
+            unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId
+              ? (conv.unreadCount || 0) + 1
               : conv.unreadCount)
           };
         }
@@ -105,21 +105,24 @@ const handleNewMessage = useCallback((msg: Message) => {
     }
   }, [queryClient, conversationId, user, markAsReadMutation]);
 
-  const handleUserTyping = useCallback((data: { userId: string, isTyping: boolean, name: string ,avatar:string}) => {
+  const handleUserTyping = useCallback((data: {
+    userId: string, isTyping: boolean, name: string, avatar: string, conversationId: string;
+  }) => {
     if (data.userId === user?.id) return;
 
     startTransition(() => {
       setTypingUsers(prev => {
-        const newTypingUsers = { ...prev };
+        const copy = { ...prev };
+
         if (data.isTyping) {
-          newTypingUsers[data.userId] = { id: data.userId, name: data.name ,avatar:data.avatar};
+          copy[data.conversationId] = { id: data.userId, name: data.name, avatar: data.avatar };
         } else {
-          delete newTypingUsers[data.userId];
+          delete copy[data.conversationId];
         }
-        return newTypingUsers;
+        return copy;
       });
     });
-}, [user]);
+  }, [user]);
 
 
   useEffect(() => {
@@ -130,7 +133,7 @@ const handleNewMessage = useCallback((msg: Message) => {
       socket.off("newMessage", handleNewMessage);
       socket.off("userTyping", handleUserTyping);
     };
-  }, [socket, handleNewMessage,handleUserTyping]);
+  }, [socket, handleNewMessage, handleUserTyping]);
 
   useEffect(() => {
     if (!conversationId || !socket) {
@@ -146,7 +149,7 @@ const handleNewMessage = useCallback((msg: Message) => {
   }, [conversationId, socket, isConnected, setCurrentConversation]);
 
   useEffect(() => {
-    if(conversationId){
+    if (conversationId) {
       markAsReadMutation(conversationId)
     }
   }, [conversationId]);
@@ -177,7 +180,7 @@ const handleNewMessage = useCallback((msg: Message) => {
     handleTyping(false);
 
     startTransition(() => {
-      queryClient.setQueryData(['messages', conversationId], (old:Message[]) => [
+      queryClient.setQueryData(['messages', conversationId], (old: Message[]) => [
         ...(old ?? []),
         optimisticMessage,
       ]);
@@ -185,7 +188,7 @@ const handleNewMessage = useCallback((msg: Message) => {
 
 
 
-    
+
     const messageData = {
       conversationId,
       content: messageContent,
@@ -271,19 +274,21 @@ const handleNewMessage = useCallback((msg: Message) => {
   const handleTyping = useCallback((isTyping: boolean) => {
     if (!conversationId || !socket) return;
 
-    socket.emit("typing", { 
-      conversationId, 
-      isTyping, 
+    socket.emit("typing", {
+      conversationId,
+      isTyping,
       name: user?.name,
-      avatar:user?.profileImage
+      avatar: user?.profileImage
     });
 
-}, [conversationId, socket, user]);
+  }, [conversationId, socket, user]);
+
 
 
   return (
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
-      <Conversations onSelect={handleSelect} />
+      <Conversations onSelect={handleSelect} typingUsers={typingUsers}
+      />
 
       {conversation && <div className="flex-1 flex flex-col bg-white">
         {!chatHeaderData ? <ChatHeaderSkeleton /> :
@@ -296,7 +301,7 @@ const handleNewMessage = useCallback((msg: Message) => {
             participants={chatHeaderData.participants}
           />}
         <MessagesArea messages={messages} showTyping={isPending} typingUsers={Object.values(typingUsers)} />
-        <MessageInput onSend={sendMessage} onTyping={handleTyping}/>
+        <MessageInput onSend={sendMessage} onTyping={handleTyping} />
       </div>
       }
     </div>
