@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import type { KeyboardEvent, ChangeEvent } from "react";
-import { Send, Settings, MoreHorizontal, Trash2, Image, File, X } from "lucide-react";
+import { Send, MoreHorizontal, Image, File, X } from "lucide-react";
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useUserStore } from "@/stores/userStore";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRow, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 
 interface MessageInputProps {
-  onSend: (val: string) => void;
+  onSend: (val: string, files?: File[]) => void;
   onTyping: (isTyping: boolean) => void;
 }
 
@@ -17,7 +17,6 @@ export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserStore()
   const TYPING_TIMEOUT = 3000;
 
@@ -59,9 +58,10 @@ export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
   };
 
   const handleSend = () => {
-    if (value.trim()) {
-      onSend(value);
+    if (value.trim() || selectedFiles.length > 0) {
+      onSend(value,selectedFiles);
       setValue("");
+      setSelectedFiles([]);
 
       if (isTyping) {
         setIsTyping(false);

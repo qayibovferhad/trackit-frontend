@@ -3,33 +3,28 @@ import { useUserStore } from "@/stores/userStore";
 import { useEffect, useRef } from "react";
 import type { Message } from "../types/messages";
 
-function AttachmentCard({ attachments }:{attachments:any}) {
-    return <div className="mt-3 pt-3 border-t border-gray-200">
-        <p className="text-xs text-gray-600 mb-3">
-            If you complete <span className="text-purple-600 font-medium">Webdesign</span> Task,
-            You can start another task with <span className="text-purple-600">@john</span>,
-            Here is few documents, check this before starting your tasks
-        </p>
-        <div className="flex gap-3">
-            {attachments.map((att:any, idx:string) => (
-                <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200 w-32">
-                    <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center mb-1">
-                        {att.type === 'doc' ? (
-                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        ) : (
-                            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                        )}
-                    </div>
-                    <p className="text-xs font-medium text-gray-900 truncate">{att.name}</p>
-                    <p className="text-xs text-gray-500">{att.size}</p>
-                </div>
-            ))}
-        </div>
+function AttachmentCard({ attachments }: { attachments: Attachment[] }) {
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-200">
+      <div className="flex gap-3 flex-wrap">
+        {attachments.map(att => (
+          <div key={att.id} className="bg-white rounded-lg p-3 border border-gray-200 w-32">
+            <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center mb-1">
+              {att.type.startsWith("image") ? (
+                <img src={att.url} alt={att.name} className="max-w-full max-h-full object-contain" />
+              ) : (
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              )}
+            </div>
+            <p className="text-xs font-medium text-gray-900 truncate">{att.name}</p>
+            <p className="text-xs text-gray-500">{(att.size / 1024).toFixed(1)} KB</p>
+          </div>
+        ))}
+      </div>
     </div>
+  );
 }
 
 function MessageBubble({ message,currentUserId }:{message:Message,currentUserId?:string}) {
@@ -42,7 +37,7 @@ function MessageBubble({ message,currentUserId }:{message:Message,currentUserId?
             <div className={`rounded-2xl px-4 py-3 bg-gray-200 text-gray-900`}>
                 <p className="text-sm leading-relaxed">{message.content}</p>
 
-                {message.hasAttachments && <AttachmentCard attachments={message.attachments}/>}
+                {message.attachments && message.attachments.length && <AttachmentCard attachments={message.attachments}/>}
             </div>
             <span className="text-xs text-gray-500 mt-1 px-1">{message.timestamp}</span>
         </div>

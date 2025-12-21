@@ -5,10 +5,10 @@ import MessagesArea from "../components/MessagesArea";
 import MessageInput from "../components/MessageInput";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMessages } from "../services/messages";
+import { getMessages, uploadMessageAttachments } from "../services/messages";
 import { useSocket, addPendingMessage } from "@/shared/hooks/useSocket";
 import { useUserStore } from "@/stores/userStore";
-import type { Message } from "../types/messages";
+import type { Attachment, Message } from "../types/messages";
 import { getConversationById, markConversationAsRead } from "../services/conversation";
 
 export default function Inbox() {
@@ -33,6 +33,8 @@ export default function Inbox() {
     enabled: !!conversationId
   });
 
+  console.log(messages,'messages');
+  
   const { mutate: markAsReadMutation } = useMutation({
     mutationFn: (convId: string) => markConversationAsRead(convId),
     onMutate: async (convId) => {
@@ -55,6 +57,13 @@ export default function Inbox() {
     onSuccess: () => {
     }
   });
+
+
+
+  const uploadAttachmentsMutation = useMutation({
+    mutationFn: uploadMessageAttachments,
+  });
+
 
   const handleNewMessage = useCallback((msg: Message) => {
     console.log('New message received:', msg);
@@ -158,11 +167,17 @@ export default function Inbox() {
     navigate(`/inbox/${id}`);
   };
 
-  const sendMessage = useCallback((messageText: string) => {
-    if (!messageText.trim() || !conversationId || !socket || !user) return
+  const sendMessage = useCallback(async(messageText: string,files:File[]) => {
+    if (!messageText.trim() && (!files || files.length === 0)  || !conversationId || !socket || !user) return
 
     const messageContent = messageText.trim();
     const tempId = `temp-${Date.now()}`;
+    let attachments: Attachment[] = [];
+
+
+    if (files.length > 0) {
+        attachments = await uploadAttachmentsMutation.mutateAsync(files);
+    }
     const optimisticMessage = {
       id: tempId,
       tempId: tempId,
@@ -175,6 +190,7 @@ export default function Inbox() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isOptimistic: true,
+      attachments
     };
 
     handleTyping(false);
@@ -193,6 +209,7 @@ export default function Inbox() {
       conversationId,
       content: messageContent,
       tempId: tempId,
+      attachments
     };
 
     const handleResponse = (response: {

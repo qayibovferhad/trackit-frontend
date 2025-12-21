@@ -21,7 +21,6 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
 
   const unreadCount = conv.unreadCount || 0;
 
-  console.log('typignngngngg',typingUser);
   
   if (isGroup) {
     return (
@@ -139,7 +138,6 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const directConversations = sortedConversations?.direct
   const groupConversations = sortedConversations?.group
 
-  console.log(typingUsers,'typingUserstypingUsers');
   
   return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
     <div className="p-4 border-b border-gray-200">
