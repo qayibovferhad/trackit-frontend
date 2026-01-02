@@ -37,7 +37,7 @@ function MessageBubble({ message,currentUserId }:{message:Message,currentUserId?
             <div className={`rounded-2xl px-4 py-3 bg-gray-200 text-gray-900`}>
                 <p className="text-sm leading-relaxed">{message.content}</p>
 
-                {message.attachments && message.attachments.length && <AttachmentCard attachments={message.attachments}/>}
+                {!!message.attachments && !!message.attachments.length  && <AttachmentCard attachments={message.attachments}/>}
             </div>
             <span className="text-xs text-gray-500 mt-1 px-1">{message.timestamp}</span>
         </div>
