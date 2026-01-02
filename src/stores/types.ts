@@ -13,3 +13,9 @@ export interface UserStoreState {
   logout: () => void;
   clearError: () => void;
 }
+
+
+export interface ChatState {
+  activeConversationId: string | null;
+  setActiveConversation: (id: string | null) => void;
+}

@@ -10,6 +10,7 @@ import { useSocket, addPendingMessage } from "@/shared/hooks/useSocket";
 import { useUserStore } from "@/stores/userStore";
 import type { Attachment, Message } from "../types/messages";
 import { getConversationById, markConversationAsRead } from "../services/conversation";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function Inbox() {
   const [typingUsers, setTypingUsers] = useState<Record<string, { id: string, name: string, avatar: string }>>({});
@@ -19,6 +20,8 @@ export default function Inbox() {
   const { socket, isConnected, setCurrentConversation } = useSocket();
   const queryClient = useQueryClient();
   const { user } = useUserStore();
+  const { setActiveConversation } = useChatStore();
+
 
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
@@ -33,7 +36,6 @@ export default function Inbox() {
     enabled: !!conversationId
   });
 
-  console.log(messages,'messages');
   
   const { mutate: markAsReadMutation } = useMutation({
     mutationFn: (convId: string) => markConversationAsRead(convId),
@@ -58,61 +60,67 @@ export default function Inbox() {
     }
   });
 
+  useEffect(()=>{
+    console.log(conversationId,'conversationIdconversationId');
+    
+    setActiveConversation(conversationId || null)
 
+    return () => setActiveConversation(null);
+  },[conversationId])
 
   const uploadAttachmentsMutation = useMutation({
     mutationFn: uploadMessageAttachments,
   });
 
 
-  const handleNewMessage = useCallback((msg: Message) => {
-    console.log('New message received:', msg);
+  // const handleNewMessage = useCallback((msg: Message) => {
+  //   console.log('New message received:', msg);
 
-    startTransition(() => {
-      queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
-        if (!old) return [msg];
+    // startTransition(() => {
+    //   queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
+    //     if (!old) return [msg];
 
-        if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
-          return old.map(m =>
-            m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
-          );
-        }
+          // if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
+          //   return old.map(m =>
+          //     m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
+          //   );
+          // }
 
-        if (old.some(m => m.id === msg.id)) {
-          return old;
-        }
+    //     if (old.some(m => m.id === msg.id)) {
+    //       return old;
+    //     }
 
-        return [...old, msg];
-      });
-    });
+    //     return [...old, msg];
+    //   });
+    // });
 
-    queryClient.setQueryData(['conversations'], (old: any) => {
-      if (!old) return old;
-      return old.map((conv: any) => {
-        if (conv.id === msg.conversationId) {
-          const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
+    // queryClient.setQueryData(['conversations'], (old: any) => {
+    //   if (!old) return old;
+    //   return old.map((conv: any) => {
+    //     if (conv.id === msg.conversationId) {
+    //       const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
 
-          return {
-            ...conv,
-            lastMessage: {
-              content: msg.content,
-              createdAt: msg.createdAt,
-              sender: msg.sender
-            },
-            updatedAt: msg.createdAt,
-            unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId
-              ? (conv.unreadCount || 0) + 1
-              : conv.unreadCount)
-          };
-        }
-        return conv;
-      });
-    });
+    //       return {
+    //         ...conv,
+    //         lastMessage: {
+    //           content: msg.content,
+    //           createdAt: msg.createdAt,
+    //           sender: msg.sender
+    //         },
+    //         updatedAt: msg.createdAt,
+    //         unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId
+    //           ? (conv.unreadCount || 0) + 1
+    //           : conv.unreadCount)
+    //       };
+    //     }
+    //     return conv;
+    //   });
+    // });
 
-    if (msg.conversationId === conversationId && msg.senderId !== user?.id) {
-      markAsReadMutation(conversationId);
-    }
-  }, [queryClient, conversationId, user, markAsReadMutation]);
+    // if (msg.conversationId === conversationId && msg.senderId !== user?.id) {
+    //   markAsReadMutation(conversationId);
+    // }
+  // }, [queryClient, conversationId, user, markAsReadMutation]);
 
   const handleUserTyping = useCallback((data: {
     userId: string, isTyping: boolean, name: string, avatar: string, conversationId: string;
@@ -136,13 +144,13 @@ export default function Inbox() {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on("newMessage", handleNewMessage);
+    // socket.on("newMessage", handleNewMessage);
     socket.on("userTyping", handleUserTyping);
     return () => {
-      socket.off("newMessage", handleNewMessage);
+      // socket.off("newMessage", handleNewMessage);
       socket.off("userTyping", handleUserTyping);
     };
-  }, [socket, handleNewMessage, handleUserTyping]);
+  }, [socket, handleUserTyping]);
 
   useEffect(() => {
     if (!conversationId || !socket) {

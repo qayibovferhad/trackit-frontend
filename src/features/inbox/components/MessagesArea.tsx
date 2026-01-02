@@ -1,7 +1,7 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useUserStore } from "@/stores/userStore";
 import { useEffect, useRef } from "react";
-import type { Message } from "../types/messages";
+import type { Attachment, Message } from "../types/messages";
 
 function AttachmentCard({ attachments }: { attachments: Attachment[] }) {
   return (

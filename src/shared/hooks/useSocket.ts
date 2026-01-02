@@ -18,8 +18,11 @@ const createSocketInstance = () => {
     auth: { token },
     transports: ['websocket'],
     reconnection: true,
-    reconnectionAttempts: 5,
+    reconnectionAttempts: Infinity,
     reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    randomizationFactor: 0.5,
+    timeout: 20000,
   });
 
   return socket;
@@ -121,9 +124,10 @@ export const useSocket = () => {
           setAccessToken(data.access_token);
           
           if (socketInstance) {
-            removeSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
-            socketInstance.disconnect();
-            socketInstance = null;
+            // removeSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
+            socketInstance.auth = { token: data.access_token };
+            socketInstance.disconnect().connect();
+            // socketInstance = null;
           }
           
           const newSocket = createSocketInstance();

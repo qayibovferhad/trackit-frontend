@@ -2,6 +2,7 @@ import { BrowserRouter } from "react-router-dom";
 import RouteConfig from "./routes/RoutesConfig";
 import { Suspense, useEffect } from "react";
 import { useUserStore } from "./stores/userStore";
+import { SocketProvider } from "./providers/SocketProvider";
 
 function App() {
   useEffect(() => {
@@ -16,11 +17,13 @@ function App() {
     return unsub;
   }, []);
   return (
+    <SocketProvider>
     <BrowserRouter>
       <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
         <RouteConfig />
       </Suspense>
     </BrowserRouter>
+    </SocketProvider>
   );
 }
 
