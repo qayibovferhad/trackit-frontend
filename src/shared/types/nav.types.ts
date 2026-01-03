@@ -6,6 +6,7 @@ export type NavItem = {
   icon?: LucideIcon;
   exact?: boolean;
   name?: string;
+  badge?:number
 };
 
 export type NavListProps = {

@@ -14,4 +14,5 @@ export interface Conversation {
   lastMessage?: Message
   createdAt: string;
   updatedAt: string;
+  unreadCount?:number
 }

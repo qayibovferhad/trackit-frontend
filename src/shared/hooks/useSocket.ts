@@ -41,6 +41,11 @@ const setupSocketListeners = (
   socket.on('unauthorized', onUnauthorized);
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
+    if (error.message === 'TOKEN_EXPIRED') {
+      console.log('111');
+      
+      onTokenExpired();
+    }
   });
 };
 

@@ -1,5 +1,4 @@
 import { markConversationAsRead } from "@/features/inbox/services/conversation";
-import type { Conversation } from "@/features/inbox/types/conversation";
 import type { Message } from "@/features/inbox/types/messages";
 import { useSocket } from "@/shared/hooks/useSocket";
 import { useChatStore } from "@/stores/chatStore";
@@ -27,7 +26,8 @@ export const SocketProvider = ({ children }: { children: any }) => {
     useEffect(() => {
         if (!socket) return;
         socket.on("newMessage", (msg: Message) => {
-            console.log('mesg', msg);
+            console.log(msg,'msg');
+            
             startTransition(() => {
                 queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
                     if (!old) return [msg];
@@ -45,14 +45,6 @@ export const SocketProvider = ({ children }: { children: any }) => {
                     return [...old, msg];
                 });
             });
-
-            // 2. Çatlar (conversations) siyahısını yenilə (son mesajı dəyiş və s.)
-            //   queryClient.setQueryData(['conversations'], (old: Conversation[]) => {
-            //     if (!old) return old;
-            //     return old.map(conv => conv.id === msg.conversationId ? { ...conv, lastMessage: msg } : conv);
-            //   });
-            console.log(activeConversationId, 'activeConversationId');
-
             queryClient.setQueryData(['conversations'], (old: any) => {
                 if (!old) return old;
                 return old.map((conv: any) => {
@@ -76,21 +68,18 @@ export const SocketProvider = ({ children }: { children: any }) => {
                 });
             });
 
+            console.log(activeConversationId,'activeConversationId');
+            
 
             if (msg.conversationId === activeConversationId && msg.senderId !== user?.id) {
                 markAsRead(activeConversationId);
             }
-
-            // 3. Əgər istifadəçi o çatda deyilsə, Desktop bildirişi və ya Toast çıxar
-            //   if (currentConversationId !== msg.conversationId) {
-            //      // showToast(`Yeni mesaj: ${msg.content}`);
-            //   }
         });
 
         return () => {
             socket.off("newMessage");
         };
-    }, [socket, queryClient]);
+    }, [socket, queryClient,activeConversationId]);
 
     return <>{children}</>;
 };

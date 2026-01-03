@@ -60,13 +60,17 @@ export default function Inbox() {
     }
   });
 
-  useEffect(()=>{
-    console.log(conversationId,'conversationIdconversationId');
-    
-    setActiveConversation(conversationId || null)
-
-    return () => setActiveConversation(null);
-  },[conversationId])
+useEffect(() => {
+  console.log(conversationId,'conversationId');
+  
+  if (conversationId) {
+    setActiveConversation(conversationId);
+  }
+  
+  return () => {
+    setActiveConversation(null);
+  };
+}, [conversationId, setActiveConversation]);
 
   const uploadAttachmentsMutation = useMutation({
     mutationFn: uploadMessageAttachments,
