@@ -19,6 +19,16 @@ interface ConversationsProps {
 const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { conv: any, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
   const { user } = useUserStore()
 
+  const isDirect = conv.type === 'DIRECT';
+
+  
+  const otherParticipant = isDirect
+    ? conv.participants.find((p: any) => p.userId !== user?.id)
+    : null;
+
+    console.log(otherParticipant,'otherParticipant');
+    
+  const isOnline = otherParticipant?.user?.isOnline;
   const unreadCount = conv.unreadCount || 0;
 
   
@@ -70,10 +80,15 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
       onClick={() => onSelect(conv.id)}
       className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer relative"
     >
-      <UserAvatar
-        src={otherUser?.profileImage}
-        name={otherUser?.username}
-      />
+    <div className="relative">
+    <UserAvatar
+      src={otherUser?.profileImage}
+      name={otherUser?.username}
+    />
+    {isOnline && (
+      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+    )}
+  </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <p className="font-medium text-sm truncate">
@@ -115,7 +130,6 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
     startConversation({ userIds, groupName });
   };
-
   const sortedConversations = useMemo(() => {
     if (!data) return { direct: [], group: [] };
 

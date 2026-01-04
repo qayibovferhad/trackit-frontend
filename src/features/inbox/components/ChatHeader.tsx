@@ -1,23 +1,24 @@
 import UserAvatar from "@/shared/components/UserAvatar";
+import { timeAgo } from "@/shared/utils/date";
 import { MoreVertical } from "lucide-react";
 
 
 interface ChatHeaderProps {
   name: string;
-  lastSeen: string;
+  lastSeenAt: string | null;
   avatar: string | null;
   isGroup: boolean;
   username: string;
   participants: Array<{ user: any }>;
-
+  isOnline: boolean
 }
 
 
-export  function ChatHeaderSkeleton() {
+export function ChatHeaderSkeleton() {
   return (
     <div className="flex items-center justify-between p-4 border-b animate-pulse">
       <div className="flex items-center gap-3">
-        
+
         <div className="w-12 h-12 rounded-full bg-gray-200" />
 
         <div className="flex flex-col gap-2">
@@ -31,8 +32,8 @@ export  function ChatHeaderSkeleton() {
     </div>
   );
 }
-export default function ChatHeader({ name, lastSeen, avatar, isGroup, participants,username }: ChatHeaderProps) {
-  
+export default function ChatHeader({ name, lastSeenAt, avatar, isGroup, participants, username, isOnline }: ChatHeaderProps) {
+
   return (
     <div className="flex items-center justify-between p-4 border-b bg-white">
       <div className="flex items-center gap-3">
@@ -60,8 +61,11 @@ export default function ChatHeader({ name, lastSeen, avatar, isGroup, participan
 
         <div>
           <h2 className="font-semibold text-gray-900">{name}</h2>
-          <p className="text-sm text-gray-500">{lastSeen}</p>
+          <p className="text-sm text-gray-500">
+            {isOnline ? "online" : `last seen ${timeAgo(lastSeenAt).toLocaleLowerCase()}`}
+          </p>
         </div>
+
 
       </div>
 

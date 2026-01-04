@@ -11,6 +11,8 @@ export interface User {
   description: string;
   lastSeen: string,
   presence: 'online' | 'offline' | 'away';
+  isOnline:boolean;
+  lastSeenAt:Date
 }
 
 export interface LoginResponse {

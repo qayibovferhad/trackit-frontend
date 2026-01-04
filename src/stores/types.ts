@@ -19,3 +19,18 @@ export interface ChatState {
   activeConversationId: string | null;
   setActiveConversation: (id: string | null) => void;
 }
+
+
+export interface UserStatus {
+  userId: string;
+  isOnline: boolean;
+  lastSeenAt: Date;
+}
+
+export interface UserStatusStore {
+  userStatuses: Map<string, UserStatus>;
+  setUserStatus: (status: UserStatus) => void;
+  getUserStatus: (userId: string) => UserStatus | undefined;
+  setMultipleStatuses: (statuses: UserStatus[]) => void;
+  clearStatuses: () => void;
+}

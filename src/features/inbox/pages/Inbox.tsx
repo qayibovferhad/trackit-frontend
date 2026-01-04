@@ -76,56 +76,6 @@ useEffect(() => {
     mutationFn: uploadMessageAttachments,
   });
 
-
-  // const handleNewMessage = useCallback((msg: Message) => {
-  //   console.log('New message received:', msg);
-
-    // startTransition(() => {
-    //   queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
-    //     if (!old) return [msg];
-
-          // if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
-          //   return old.map(m =>
-          //     m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
-          //   );
-          // }
-
-    //     if (old.some(m => m.id === msg.id)) {
-    //       return old;
-    //     }
-
-    //     return [...old, msg];
-    //   });
-    // });
-
-    // queryClient.setQueryData(['conversations'], (old: any) => {
-    //   if (!old) return old;
-    //   return old.map((conv: any) => {
-    //     if (conv.id === msg.conversationId) {
-    //       const shouldMarkAsRead = msg.conversationId === conversationId && msg.senderId !== user?.id;
-
-    //       return {
-    //         ...conv,
-    //         lastMessage: {
-    //           content: msg.content,
-    //           createdAt: msg.createdAt,
-    //           sender: msg.sender
-    //         },
-    //         updatedAt: msg.createdAt,
-    //         unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== conversationId
-    //           ? (conv.unreadCount || 0) + 1
-    //           : conv.unreadCount)
-    //       };
-    //     }
-    //     return conv;
-    //   });
-    // });
-
-    // if (msg.conversationId === conversationId && msg.senderId !== user?.id) {
-    //   markAsReadMutation(conversationId);
-    // }
-  // }, [queryClient, conversationId, user, markAsReadMutation]);
-
   const handleUserTyping = useCallback((data: {
     userId: string, isTyping: boolean, name: string, avatar: string, conversationId: string;
   }) => {
@@ -148,10 +98,8 @@ useEffect(() => {
 
   useEffect(() => {
     if (!socket) return;
-    // socket.on("newMessage", handleNewMessage);
     socket.on("userTyping", handleUserTyping);
     return () => {
-      // socket.off("newMessage", handleNewMessage);
       socket.off("userTyping", handleUserTyping);
     };
   }, [socket, handleUserTyping]);
@@ -214,9 +162,6 @@ useEffect(() => {
       ]);
     });
 
-
-
-
     const messageData = {
       conversationId,
       content: messageContent,
@@ -274,11 +219,14 @@ useEffect(() => {
 
       if (!otherUser) return null;
 
+      console.log(otherUser,'otherUser');
+      
       return {
         username: otherUser.username,
         name: otherUser.name,
+        isOnline:otherUser.isOnline,
         avatar: otherUser.profileImage,
-        lastSeen: otherUser.lastSeen,
+        lastSeenAt: otherUser.lastSeenAt,
         isGroup: false,
         participants: [{ user: otherUser }]
       };
@@ -290,8 +238,9 @@ useEffect(() => {
       return {
         name: name || `Group (${participantCount})`,
         avatar: null,
-        lastSeen: `${participantCount} participants`,
+        lastSeenAt: null,
         isGroup: true,
+        isOnline:false,
         participants: participants.filter(pr => pr.userId !== user.id) || [],
       };
     }
@@ -324,7 +273,8 @@ useEffect(() => {
           <ChatHeader
             name={chatHeaderData.name}
             username={chatHeaderData.username ?? ""}
-            lastSeen={chatHeaderData.lastSeen}
+            lastSeenAt={chatHeaderData.lastSeenAt}
+            isOnline={chatHeaderData.isOnline}
             avatar={chatHeaderData.avatar ?? ""}
             isGroup={chatHeaderData.isGroup}
             participants={chatHeaderData.participants}

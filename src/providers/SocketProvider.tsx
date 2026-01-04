@@ -6,7 +6,6 @@ import { useUserStore } from "@/stores/userStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useTransition } from "react";
 
-// SocketProvider.tsx
 export const SocketProvider = ({ children }: { children: any }) => {
     const { socket } = useSocket();
     const queryClient = useQueryClient();
@@ -26,8 +25,6 @@ export const SocketProvider = ({ children }: { children: any }) => {
     useEffect(() => {
         if (!socket) return;
         socket.on("newMessage", (msg: Message) => {
-            console.log(msg,'msg');
-            
             startTransition(() => {
                 queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
                     if (!old) return [msg];
@@ -67,10 +64,6 @@ export const SocketProvider = ({ children }: { children: any }) => {
                     return conv;
                 });
             });
-
-            console.log(activeConversationId,'activeConversationId');
-            
-
             if (msg.conversationId === activeConversationId && msg.senderId !== user?.id) {
                 markAsRead(activeConversationId);
             }
@@ -79,7 +72,68 @@ export const SocketProvider = ({ children }: { children: any }) => {
         return () => {
             socket.off("newMessage");
         };
-    }, [socket, queryClient,activeConversationId]);
+    }, [socket, queryClient, activeConversationId]);
 
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleUserStatusChanged = (payload: {
+            userId: string;
+            isOnline: boolean;
+            lastSeenAt?: string;
+        }) => {
+            queryClient.setQueryData(['conversations'], (old: any[]) => {
+                if (!old) return old;
+
+                console.log(payload, 'payload');
+
+                return old.map(conv => ({
+                    ...conv,
+                    participants: conv.participants?.map((p: any) =>
+                        p.userId === payload.userId
+                            ? {
+                                ...p,
+                                user: {
+                                    ...p.user,
+                                    isOnline: payload.isOnline,
+                                    lastSeenAt: payload.lastSeenAt ?? p.user?.lastSeenAt,
+                                },
+                            }
+                            : p
+                    ),
+                }));
+            });
+            const activeId = useChatStore.getState().activeConversationId;
+
+            if (!activeId) return;
+
+            queryClient.setQueryData(['conversation', activeId], (old: any) => {
+                if (!old) return old;
+
+                return {
+                    ...old,
+                    participants: old.participants.map((p: any) =>
+                        p.user.id === payload.userId
+                            ? {
+                                ...p,
+                                user: {
+                                    ...p.user,
+                                    isOnline: payload.isOnline,
+                                    lastSeenAt: payload.lastSeenAt ?? p.user.lastSeenAt,
+                                },
+                            }
+                            : p
+                    ),
+                };
+            });
+        };
+
+        socket.on('userStatusChanged', handleUserStatusChanged);
+
+        return () => {
+            socket.off('userStatusChanged', handleUserStatusChanged);
+        };
+    }, [socket, queryClient]);
     return <>{children}</>;
 };
