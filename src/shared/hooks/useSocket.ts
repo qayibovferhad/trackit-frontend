@@ -1,4 +1,3 @@
-// src/shared/hooks/useSocket.ts
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { ACCESS_TOKEN_KEY, setAccessToken } from '../lib/authStorage';
@@ -42,6 +41,10 @@ const setupSocketListeners = (
 
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error.message);
+
+    if(error.message === "TOKEN_EXPIRED"){
+      onTokenExpired()
+    }
   });
 };
 
