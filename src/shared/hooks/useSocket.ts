@@ -1,4 +1,4 @@
-// src/shared/hooks/useSocket.ts - Düzəldilmiş versiya
+// src/shared/hooks/useSocket.ts
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { ACCESS_TOKEN_KEY, setAccessToken } from '../lib/authStorage';
@@ -13,7 +13,7 @@ let currentConversationId: string | null = null;
 
 const createSocketInstance = () => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  
+
   const socket = io('http://localhost:5500', {
     auth: { token },
     transports: ['websocket'],
@@ -39,13 +39,9 @@ const setupSocketListeners = (
   socket.on('disconnect', onDisconnect);
   socket.on('token_expired', onTokenExpired);
   socket.on('unauthorized', onUnauthorized);
+
   socket.on('connect_error', (error) => {
-    console.error('Socket connection error:', error);
-    if (error.message === 'TOKEN_EXPIRED') {
-      console.log('111');
-      
-      onTokenExpired();
-    }
+    console.error('Socket connection error:', error.message);
   });
 };
 
@@ -64,13 +60,12 @@ const removeSocketListeners = (
 };
 
 const resendPendingMessages = (socket: Socket) => {
-  console.log(`Resending ${pendingMessages.length} pending messages`);
-  
+  if (pendingMessages.length === 0) return;
+
   const messagesToSend = [...pendingMessages];
   pendingMessages = [];
-  
+
   messagesToSend.forEach(({ data, callback }) => {
-    console.log('Resending message:', data);
     socket.emit('sendMessage', data, callback);
   });
 };
@@ -86,35 +81,27 @@ export const useSocket = () => {
     mountedRef.current = true;
 
     const onConnect = () => {
-      console.log('Socket connected:', socketInstance?.id);
-      if (mountedRef.current) {
-        setIsConnected(true);
-        
-        if (currentConversationId && socketInstance) {
-          console.log('Rejoining room after reconnect:', currentConversationId);
-          socketInstance.emit('join', currentConversationId);
-        }
-        
-        if (socketInstance && pendingMessages.length > 0) {
-          setTimeout(() => {
-            resendPendingMessages(socketInstance);
-          }, 500);
-        }
+      if (!mountedRef.current) return;
+
+      setIsConnected(true);
+
+      if (currentConversationId && socketInstance) {
+        socketInstance.emit('join', currentConversationId);
+      }
+
+      if (socketInstance && pendingMessages.length > 0) {
+        setTimeout(() => {
+          resendPendingMessages(socketInstance!);
+        }, 500);
       }
     };
 
     const onDisconnect = () => {
-      if (mountedRef.current) {
-        setIsConnected(false);
-      }
+      if (mountedRef.current) setIsConnected(false);
     };
 
     const onTokenExpired = async () => {
-      
-      if (isRefreshing.current) {
-        return;
-      }
-
+      if (isRefreshing.current) return;
       isRefreshing.current = true;
 
       try {
@@ -124,27 +111,16 @@ export const useSocket = () => {
           { withCredentials: true }
         );
 
-        
         if (data.access_token) {
           setAccessToken(data.access_token);
-          
-          if (socketInstance) {
-            // removeSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
-            socketInstance.auth = { token: data.access_token };
-            socketInstance.disconnect().connect();
-            // socketInstance = null;
-          }
-          
+
           const newSocket = createSocketInstance();
           socketInstance = newSocket;
           socketRef.current = newSocket;
-          
+
           setupSocketListeners(newSocket, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
-          
-          if (mountedRef.current) {
-            setSocket(newSocket);
-          }
-          
+
+          if (mountedRef.current) setSocket(newSocket);
         } else {
           window.location.href = '/login';
         }
@@ -162,14 +138,12 @@ export const useSocket = () => {
     if (!socketInstance) {
       socketInstance = createSocketInstance();
     }
-    
+
     socketRef.current = socketInstance;
     setupSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
     setSocket(socketInstance);
 
-    if (socketInstance.connected) {
-      setIsConnected(true);
-    }
+    if (socketInstance.connected) setIsConnected(true);
 
     return () => {
       mountedRef.current = false;

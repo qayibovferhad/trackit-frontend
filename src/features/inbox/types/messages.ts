@@ -29,3 +29,10 @@ export interface SendMessageData {
   tempId: string;
   files?: File[];
 }
+
+
+
+export interface MessagesResponse {
+  messages: Message[];
+  hasMore: boolean;
+}
