@@ -51,6 +51,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
                         return {
                             ...conv,
                             lastMessage: {
+                                attachments:msg.attachments,
                                 content: msg.content,
                                 createdAt: msg.createdAt,
                                 sender: msg.sender

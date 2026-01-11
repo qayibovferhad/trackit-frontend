@@ -184,6 +184,7 @@ useEffect(() => {
                 ...conv,
                 lastMessage: {
                   content: messageContent,
+                  attachments,
                   createdAt: new Date().toISOString(),
                   sender: user
                 },

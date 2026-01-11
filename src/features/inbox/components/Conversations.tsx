@@ -6,6 +6,8 @@ import AddConversationModal from "./AddConversationModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
 import { useUserStore } from "@/stores/userStore";
+import type { Message } from "../types/messages";
+import type { Conversation } from "../types/conversation";
 
 interface ConversationsProps {
   onSelect: (id: string) => void
@@ -15,8 +17,28 @@ interface ConversationsProps {
   >;
 }
 
+const getLastMessagePreview = (message?: Message) => {
+  console.log(message,'message');
+  
+  if (!message) return "No messages yet";
 
-const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { conv: any, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
+  
+  if (message.content) return message.content;
+
+  if (message.attachments && message.attachments?.length > 0) {
+    const first = message.attachments[0];
+
+    if (first.type?.startsWith("image")) return "📷 Photo";
+    if (first.type?.startsWith("video")) return "🎥 Video";
+    if (first.type?.startsWith("audio")) return "🎵 Audio";
+
+    return "📎 Attachment";
+  }
+
+  return "No messages yet";
+};
+
+const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { conv: Conversation, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
   const { user } = useUserStore()
 
   const isDirect = conv.type === 'DIRECT';
@@ -66,7 +88,7 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
           <p className="text-xs text-gray-500 truncate">
             {typingUser
               ? `${typingUser.name} typing...`
-              : conv.lastMessage?.content || "No messages yet"}
+              : getLastMessagePreview(conv.lastMessage)}
           </p>
         </div>
       </div>
@@ -75,6 +97,8 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
 
   const otherUser = conv.participants.find((p: any) => p.user.id !== user?.id)?.user;
 
+  console.log('conv',conv);
+  
   return (
     <div
       onClick={() => onSelect(conv.id)}
@@ -103,7 +127,7 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
         <p className="text-xs text-gray-500 truncate">
           {typingUser
               ? `Typing...`
-              : conv.lastMessage?.content || "No messages yet"}
+              : getLastMessagePreview(conv.lastMessage)}
         </p>
       </div>
     </div>
