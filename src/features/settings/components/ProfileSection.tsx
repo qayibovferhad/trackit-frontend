@@ -87,7 +87,6 @@ export default function ProfileSection({ data, refetch }: ProfileSectionProps) {
   };
 
   const onSubmit = async (data: ProfileDetailsFormData) => {
-    console.log(data,'data');
     
     await updateDetails(data);
   };

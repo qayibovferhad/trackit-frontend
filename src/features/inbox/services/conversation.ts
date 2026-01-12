@@ -8,7 +8,6 @@ export const createConversation = async ({userIds,groupName}:{userIds:string[],g
 
 export const getConversations = async (): Promise<Conversation[]> => {
   const response = await api.get('/conversations');
-  console.log(response,'datadatadatadatadata');
   
   return response.data;
 };
@@ -25,7 +24,6 @@ export const markConversationAsRead = async (conversationId: string): Promise<{ 
     const { data } = await api.put(`/conversations/${conversationId}/read`);
     return data;
   } catch (error) {
-    console.log(error);
     
     throw error;
   }

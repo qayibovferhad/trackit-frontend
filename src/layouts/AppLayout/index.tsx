@@ -37,8 +37,6 @@ const totalUnreadCount = conversations.reduce(
     ),
     [totalUnreadCount]
   );
-
-  console.log(menuItemsWithBadge,'menuItemsWithBadge');
   
   return (
     <div className="min-h-screen bg-background text-foreground">

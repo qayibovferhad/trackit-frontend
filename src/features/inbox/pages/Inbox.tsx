@@ -4,7 +4,7 @@ import ChatHeader, { ChatHeaderSkeleton } from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
 import MessageInput from "../components/MessageInput";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMessages, uploadMessageAttachments } from "../services/messages";
 import { useSocket, addPendingMessage } from "@/shared/hooks/useSocket";
 import { useUserStore } from "@/stores/userStore";
@@ -30,13 +30,47 @@ export default function Inbox() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: () => getMessages(conversationId as string),
-    enabled: !!conversationId
-  });
+  // const { data: messages = [] } = useQuery({
+  //   queryKey: ['messages', conversationId],
+  //   queryFn: () => getMessages(conversationId as string),
+  //   enabled: !!conversationId
+  // });
 
+
+  const {
+    data: messagesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: ({ pageParam }) => getMessages(conversationId as string, pageParam),
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor : undefined,
+    enabled: !!conversationId,
+    initialPageParam: undefined as string | undefined,
+  });
   
+  
+
+   const messages = useMemo(() => {
+    if (!messagesData) return [];
+    const reversedPages = [...messagesData.pages].reverse();
+    const allMessages = reversedPages.flatMap(page => page.messages);
+    
+    const uniqueMap = new Map();
+    allMessages.forEach(msg => {
+      if (!uniqueMap.has(msg.id)) {
+        uniqueMap.set(msg.id, msg);
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
+  }, [messagesData]);
+
+  console.log(messages,'messages');
+  
+  
+
   const { mutate: markAsReadMutation } = useMutation({
     mutationFn: (convId: string) => markConversationAsRead(convId),
     onMutate: async (convId) => {
@@ -61,7 +95,6 @@ export default function Inbox() {
   });
 
 useEffect(() => {
-  console.log(conversationId,'conversationId');
   
   if (conversationId) {
     setActiveConversation(conversationId);
@@ -220,7 +253,6 @@ useEffect(() => {
 
       if (!otherUser) return null;
 
-      console.log(otherUser,'otherUser');
       
       return {
         username: otherUser.username,
@@ -280,7 +312,14 @@ useEffect(() => {
             isGroup={chatHeaderData.isGroup}
             participants={chatHeaderData.participants}
           />}
-        <MessagesArea messages={messages} showTyping={isPending} typingUsers={Object.values(typingUsers)} />
+        <MessagesArea
+          messages={messages}
+          showTyping={isPending}
+          typingUsers={Object.values(typingUsers)}
+          onLoadMore={fetchNextPage}
+          hasMore={hasNextPage}
+          isLoadingMore={isFetchingNextPage}
+        />
         <MessageInput onSend={sendMessage} onTyping={handleTyping} />
       </div>
       }

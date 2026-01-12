@@ -1,11 +1,30 @@
 import { api } from "@/shared/lib/axios";
-import type { Attachment, Message } from "../types/messages";
+import type { Attachment, MessageResponse } from "../types/messages";
 
-export const getMessages = async (conversationId:string):Promise<Message[]> => {
-  const response = await api.get(`/messages/${conversationId}`);
-  return response.data;
+export const getMessages = async (
+  conversationId: string, 
+  cursor?: string,
+  limit = 20
+):Promise<MessageResponse> => {
+  const params = new URLSearchParams();
+  params.append('limit', limit.toString());
+  if (cursor) {
+    params.append('cursor', cursor);
+  }
+
+  const response = await api.get(
+    `/messages/${conversationId}?${params.toString()}`
+  );
+
+  
+    
+    return {
+      messages: response.data.data,
+      nextCursor: response.data.nextCursor,
+      hasMore: response.data.hasMore
+    };
+  
 };
-
 
 export const uploadMessageAttachments = async (
   files: File[]

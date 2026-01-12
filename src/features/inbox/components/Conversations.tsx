@@ -18,7 +18,6 @@ interface ConversationsProps {
 }
 
 const getLastMessagePreview = (message?: Message) => {
-  console.log(message,'message');
   
   if (!message) return "No messages yet";
 
@@ -48,7 +47,6 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
     ? conv.participants.find((p: any) => p.userId !== user?.id)
     : null;
 
-    console.log(otherParticipant,'otherParticipant');
     
   const isOnline = otherParticipant?.user?.isOnline;
   const unreadCount = conv.unreadCount || 0;
@@ -97,7 +95,6 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
 
   const otherUser = conv.participants.find((p: any) => p.user.id !== user?.id)?.user;
 
-  console.log('conv',conv);
   
   return (
     <div

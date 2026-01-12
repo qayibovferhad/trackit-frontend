@@ -23,16 +23,15 @@ export interface Message {
   attachments?: Attachment[];
 }
 
+export interface MessageResponse {
+  messages:Message[],
+  nextCursor:string | null,
+  hasMore:boolean
+}
+
 export interface SendMessageData {
   conversationId: string;
   content: string;
   tempId: string;
   files?: File[];
-}
-
-
-
-export interface MessagesResponse {
-  messages: Message[];
-  hasMore: boolean;
 }

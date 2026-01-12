@@ -15,7 +15,6 @@ export const useUserStore = create<UserStoreState>()(
           set({ isLoading: true, error: null });
           try {
             const data = await getCurrentUserRequest();
-            console.log(data,'datadata');
             
             set({ user: data, isLoading: false });
           } catch (error: any) {

@@ -87,7 +87,6 @@ export const SocketProvider = ({ children }: { children: any }) => {
             queryClient.setQueryData(['conversations'], (old: any[]) => {
                 if (!old) return old;
 
-                console.log(payload, 'payload');
 
                 return old.map(conv => ({
                     ...conv,

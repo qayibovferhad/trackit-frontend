@@ -18,7 +18,6 @@ export default function CommentItem({
   onDelete: (comment: CommentType) => void;
   currentUserId?: string;
 }) {
-  console.log(currentUserId, "currentUserId");
 
   return (
     <div className="flex gap-3 items-start group">

@@ -134,8 +134,6 @@ export default function TaskModal({
     boardsLoading,
   } = useBoardState(selectedTeam);
 
-  console.log(boards, 'boards');
-  console.log(selectedTeam, 'selectedTeam');
 
   useEffect(() => {
     if (open && editingTask) {
