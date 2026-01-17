@@ -188,12 +188,30 @@ useEffect(() => {
 
     handleTyping(false);
 
-    startTransition(() => {
-      queryClient.setQueryData(['messages', conversationId], (old: Message[]) => [
-        ...(old ?? []),
-        optimisticMessage,
-      ]);
-    });
+ startTransition(() => {
+  queryClient.setQueryData(['messages', conversationId], (old: any) => {
+    if (!old) {
+      return {
+        pages: [{ messages: [optimisticMessage], hasMore: false }],
+        pageParams: [undefined]
+      };
+    }
+    
+    const newPages = [...old.pages];
+    if (newPages[0]) {
+      newPages[0] = {
+        ...newPages[0],
+        messages: [...newPages[0].messages, optimisticMessage]
+      };
+    }
+    
+    return {
+      ...old,
+      pages: newPages
+    };
+  });
+});
+
 
     const messageData = {
       conversationId,

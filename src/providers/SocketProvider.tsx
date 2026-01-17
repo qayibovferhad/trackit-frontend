@@ -22,59 +22,87 @@ export const SocketProvider = ({ children }: { children: any }) => {
             });
         }
     });
-    useEffect(() => {
-        if (!socket) return;
-        socket.on("newMessage", (msg: Message) => {
-            startTransition(() => {
-                queryClient.setQueryData(['messages', msg.conversationId], (old: Message[]) => {
-                    if (!old) return [msg];
+useEffect(() => {
+  if (!socket) return;
 
-                    if (msg.tempId && old.some(m => m.tempId === msg.tempId)) {
-                        return old.map(m =>
-                            m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
-                        );
-                    }
-
-                    if (old.some(m => m.id === msg.id)) {
-                        return old;
-                    }
-
-                    return [...old, msg];
-                });
-            });
-            queryClient.setQueryData(['conversations'], (old: any) => {
-                if (!old) return old;
-                return old.map((conv: any) => {
-                    if (conv.id === msg.conversationId) {
-                        const shouldMarkAsRead = msg.conversationId === activeConversationId && msg.senderId !== user?.id;
-
-                        return {
-                            ...conv,
-                            lastMessage: {
-                                attachments:msg.attachments,
-                                content: msg.content,
-                                createdAt: msg.createdAt,
-                                sender: msg.sender
-                            },
-                            updatedAt: msg.createdAt,
-                            unreadCount: shouldMarkAsRead ? 0 : (msg.senderId !== user?.id && msg.conversationId !== activeConversationId
-                                ? (conv.unreadCount || 0) + 1
-                                : conv.unreadCount)
-                        };
-                    }
-                    return conv;
-                });
-            });
-            if (msg.conversationId === activeConversationId && msg.senderId !== user?.id) {
-                markAsRead(activeConversationId);
-            }
+  socket.on("newMessage", (msg: Message) => {
+    startTransition(() => {
+      queryClient.setQueryData(['messages', msg.conversationId], (old: any) => {
+        if (!old) return { pages: [{ messages: [msg], hasMore: false }], pageParams: [undefined] };
+        
+        const newPages = old.pages.map((page: any) => {
+          const messages = page.messages || [];
+          
+          if (msg.tempId && messages.some((m: Message) => m.tempId === msg.tempId)) {
+            return {
+              ...page,
+              messages: messages.map((m: Message) => 
+                m.tempId === msg.tempId ? { ...msg, isOptimistic: false } : m
+              )
+            };
+          }
+          
+          if (messages.some((m: Message) => m.id === msg.id)) {
+            return page;
+          }
+          
+          return page;
         });
-
-        return () => {
-            socket.off("newMessage");
+        
+        const messageExists = newPages.some((page: any) => 
+          page.messages.some((m: Message) => m.id === msg.id || (msg.tempId && m.tempId === msg.tempId))
+        );
+        
+        if (!messageExists && newPages[0]) {
+          newPages[0] = {
+            ...newPages[0],
+            messages: [...newPages[0].messages, msg]
+          };
+        }
+        
+        return {
+          ...old,
+          pages: newPages
         };
-    }, [socket, queryClient, activeConversationId]);
+      });
+    });
 
+    queryClient.setQueryData(['conversations'], (old: any) => {
+      if (!old) return old;
+      
+      return old.map((conv: any) => {
+        if (conv.id === msg.conversationId) {
+          const shouldMarkAsRead = msg.conversationId === activeConversationId && msg.senderId !== user?.id;
+          
+          return {
+            ...conv,
+            lastMessage: {
+              attachments: msg.attachments,
+              content: msg.content,
+              createdAt: msg.createdAt,
+              sender: msg.sender
+            },
+            updatedAt: msg.createdAt,
+            unreadCount: shouldMarkAsRead 
+              ? 0 
+              : (msg.senderId !== user?.id && msg.conversationId !== activeConversationId 
+                ? (conv.unreadCount || 0) + 1 
+                : conv.unreadCount)
+          };
+        }
+        return conv;
+      });
+    });
+
+    if (msg.conversationId === activeConversationId && msg.senderId !== user?.id) {
+      markAsRead(activeConversationId);
+    }
+  });
+
+  return () => {
+    socket.off("newMessage");
+  };
+}, [socket, queryClient, activeConversationId, user?.id, markAsRead]);
 
     useEffect(() => {
         if (!socket) return;

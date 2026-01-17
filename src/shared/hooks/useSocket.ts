@@ -42,7 +42,7 @@ const setupSocketListeners = (
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error.message);
 
-    if(error.message === "TOKEN_EXPIRED"){
+    if (error.message === "TOKEN_EXPIRED") {
       onTokenExpired()
     }
   });
@@ -77,34 +77,59 @@ export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const isRefreshing = useRef(false);
+  const isLoggedOut = useRef(false);
   const mountedRef = useRef(true);
   const socketRef = useRef<Socket | null>(null);
+
+  const hardLogout = useCallback(() => {
+    if (isLoggedOut.current) return;
+
+    isLoggedOut.current = true;
+
+    if (socketRef.current) {
+      socketRef.current.removeAllListeners();
+      socketRef.current.disconnect();
+    }
+
+    socketInstance = null;
+    pendingMessages = [];
+    currentConversationId = null;
+
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.location.replace('/login');
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
 
+    /* ---------- CONNECT ---------- */
     const onConnect = () => {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || isLoggedOut.current) return;
 
       setIsConnected(true);
 
-      if (currentConversationId && socketInstance) {
-        socketInstance.emit('join', currentConversationId);
+      if (currentConversationId && socketRef.current) {
+        socketRef.current.emit('join', currentConversationId);
       }
 
-      if (socketInstance && pendingMessages.length > 0) {
-        setTimeout(() => {
-          resendPendingMessages(socketInstance!);
-        }, 500);
+      if (pendingMessages.length && socketRef.current) {
+        const queue = [...pendingMessages];
+        pendingMessages = [];
+        queue.forEach(({ data, callback }) =>
+          socketRef.current!.emit('sendMessage', data, callback)
+        );
       }
     };
 
+    /* ---------- DISCONNECT ---------- */
     const onDisconnect = () => {
       if (mountedRef.current) setIsConnected(false);
     };
 
+    /* ---------- TOKEN EXPIRED ---------- */
     const onTokenExpired = async () => {
-      if (isRefreshing.current) return;
+      if (isRefreshing.current || isLoggedOut.current) return;
+
       isRefreshing.current = true;
 
       try {
@@ -114,47 +139,83 @@ export const useSocket = () => {
           { withCredentials: true }
         );
 
-        if (data.access_token) {
-          setAccessToken(data.access_token);
-
-          const newSocket = createSocketInstance();
-          socketInstance = newSocket;
-          socketRef.current = newSocket;
-
-          setupSocketListeners(newSocket, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
-
-          if (mountedRef.current) setSocket(newSocket);
-        } else {
-          window.location.href = '/login';
+        if (!data?.access_token) {
+          hardLogout();
+          return;
         }
-      } catch (error) {
-        window.location.href = '/login';
+
+        setAccessToken(data.access_token);
+
+        if (socketRef.current) {
+          socketRef.current.removeAllListeners();
+          socketRef.current.disconnect();
+        }
+
+        const newSocket = createSocketInstance();
+        socketInstance = newSocket;
+        socketRef.current = newSocket;
+
+        attachListeners(newSocket);
+
+        if (mountedRef.current) setSocket(newSocket);
+      } catch {
+        hardLogout();
       } finally {
         isRefreshing.current = false;
       }
     };
 
+    /* ---------- UNAUTHORIZED ---------- */
     const onUnauthorized = () => {
-      window.location.href = '/login';
+      hardLogout();
     };
 
+    /* ---------- LISTENERS ---------- */
+    const attachListeners = (s: Socket) => {
+      s.on('connect', onConnect);
+      s.on('disconnect', onDisconnect);
+      s.on('token_expired', onTokenExpired);
+      s.on('unauthorized', onUnauthorized);
+
+      s.on('connect_error', (err) => {
+        if (
+          err.message === 'TOKEN_EXPIRED' &&
+          !isRefreshing.current &&
+          !isLoggedOut.current
+        ) {
+          onTokenExpired();
+        }
+      });
+    };
+
+    const detachListeners = (s: Socket) => {
+      s.off('connect', onConnect);
+      s.off('disconnect', onDisconnect);
+      s.off('token_expired', onTokenExpired);
+      s.off('unauthorized', onUnauthorized);
+      s.off('connect_error');
+    };
+
+    /* ---------- INIT ---------- */
     if (!socketInstance) {
       socketInstance = createSocketInstance();
     }
 
     socketRef.current = socketInstance;
-    setupSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
+    attachListeners(socketInstance);
     setSocket(socketInstance);
 
     if (socketInstance.connected) setIsConnected(true);
 
+    /* ---------- CLEANUP ---------- */
     return () => {
       mountedRef.current = false;
-      if (socketInstance) {
-        removeSocketListeners(socketInstance, onConnect, onDisconnect, onTokenExpired, onUnauthorized);
+      if (socketRef.current) {
+        detachListeners(socketRef.current);
       }
     };
-  }, []);
+  }, [hardLogout]);
+
 
   const setCurrentConversation = useCallback((conversationId: string | null) => {
     currentConversationId = conversationId;
