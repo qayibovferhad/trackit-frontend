@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 import { useUserStore } from "@/stores/userStore";
 import { setAccessToken } from "@/shared/lib/authStorage";
+import { PATHS } from "@/shared/constants/routes";
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { setUser } = useUserStore();
@@ -37,8 +38,8 @@ export default function Login() {
     const response = await login(data);
     if (response?.accessToken && response.user) {
       setUser(response.user);
-
       setAccessToken(response.accessToken);
+      window.location.href =  PATHS.SETTINGS
     }
   };
   return (

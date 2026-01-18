@@ -30,13 +30,6 @@ export default function Inbox() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // const { data: messages = [] } = useQuery({
-  //   queryKey: ['messages', conversationId],
-  //   queryFn: () => getMessages(conversationId as string),
-  //   enabled: !!conversationId
-  // });
-
-
   const {
     data: messagesData,
     fetchNextPage,

@@ -1,16 +1,27 @@
+import { PATHS } from "@/shared/constants/routes";
+import { setAccessToken } from "@/shared/lib/authStorage";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function OAuthGoogleCallback() {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.slice(1)); // #access=...
-    const access = params.get("access");
-    if (access) localStorage.setItem("access_token", access);
+  const token = searchParams.get('token');
+    const error = searchParams.get('error');
 
-    window.history.replaceState({}, document.title, window.location.pathname);
-    navigate("/settings", { replace: true });
+    if (error) {
+      console.error('Auth error:', error);
+      navigate('/login?error=' + error);
+      return;
+    }
+
+    if (token) {
+      setAccessToken(token);
+      window.location.href = PATHS.SETTINGS
+    } else {
+      navigate('/login?error=no_token');
+    }
   }, [navigate]);
 
   return <div>Logging in...</div>;

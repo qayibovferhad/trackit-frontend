@@ -178,6 +178,10 @@ export const useSocket = () => {
       s.on('unauthorized', onUnauthorized);
 
       s.on('connect_error', (err) => {
+        console.log('err',err,);
+        console.log(isRefreshing,'isRefreshing');
+        console.log(isLoggedOut,'isRefreshing');
+        
         if (
           err.message === 'TOKEN_EXPIRED' &&
           !isRefreshing.current &&
