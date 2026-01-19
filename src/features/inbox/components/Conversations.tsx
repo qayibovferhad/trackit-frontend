@@ -1,7 +1,7 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { Button } from "@/shared/ui/button";
 import { MoreVertical, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import AddConversationModal from "./AddConversationModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
@@ -18,10 +18,10 @@ interface ConversationsProps {
 }
 
 const getLastMessagePreview = (message?: Message) => {
-  
+
   if (!message) return "No messages yet";
 
-  
+
   if (message.content) return message.content;
 
   if (message.attachments && message.attachments?.length > 0) {
@@ -37,21 +37,21 @@ const getLastMessagePreview = (message?: Message) => {
   return "No messages yet";
 };
 
-const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { conv: Conversation, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
+const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser }: { conv: Conversation, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
   const { user } = useUserStore()
 
   const isDirect = conv.type === 'DIRECT';
 
-  
+
   const otherParticipant = isDirect
     ? conv.participants.find((p: any) => p.userId !== user?.id)
     : null;
 
-    
+
   const isOnline = otherParticipant?.user?.isOnline;
   const unreadCount = conv.unreadCount || 0;
 
-  
+
   if (isGroup) {
     return (
       <div
@@ -95,21 +95,21 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
 
   const otherUser = conv.participants.find((p: any) => p.user.id !== user?.id)?.user;
 
-  
+
   return (
     <div
       onClick={() => onSelect(conv.id)}
       className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer relative"
     >
-    <div className="relative">
-    <UserAvatar
-      src={otherUser?.profileImage}
-      name={otherUser?.username}
-    />
-    {isOnline && (
-      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-    )}
-  </div>
+      <div className="relative">
+        <UserAvatar
+          src={otherUser?.profileImage}
+          name={otherUser?.username}
+        />
+        {isOnline && (
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <p className="font-medium text-sm truncate">
@@ -123,13 +123,20 @@ const ConversationItem = ({ conv, isGroup = false, onSelect, typingUser }: { con
         </div>
         <p className="text-xs text-gray-500 truncate">
           {typingUser
-              ? `Typing...`
-              : getLastMessagePreview(conv.lastMessage)}
+            ? `Typing...`
+            : getLastMessagePreview(conv.lastMessage)}
         </p>
       </div>
     </div>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.conv.id === next.conv.id &&
+    prev.conv.unreadCount === next.conv.unreadCount &&
+    prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
+    prev.typingUser?.id === next.typingUser?.id
+  );
+})
 
 
 
@@ -138,8 +145,8 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const queryClient = useQueryClient();
 
 
-  console.log(typingUsers,'typingUsers');
-  
+  console.log(typingUsers, 'typingUsers');
+
   const { mutate: startConversation, isPending } = useMutation({
     mutationFn: (payload: { userIds: string[], groupName?: string }) => createConversation(payload),
     onSuccess: () => {
@@ -175,7 +182,7 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const directConversations = sortedConversations?.direct
   const groupConversations = sortedConversations?.group
 
-  
+
   return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
     <div className="p-4 border-b border-gray-200">
       <div className="flex items-center justify-between mb-4">
@@ -210,7 +217,7 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
         <div>
           <h3 className="text-sm font-semibold text-gray-500 mb-2">Group Chats</h3>
           {groupConversations.map(conv => (
-            <ConversationItem conv={conv} onSelect={onSelect} />
+            <ConversationItem key={conv.id} conv={conv} onSelect={onSelect} isGroup={true} typingUser={typingUsers[conv.id]} />
           ))}
         </div>
       )}

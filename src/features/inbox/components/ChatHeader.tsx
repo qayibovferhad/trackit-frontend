@@ -61,9 +61,11 @@ export default function ChatHeader({ name, lastSeenAt, avatar, isGroup, particip
 
         <div>
           <h2 className="font-semibold text-gray-900">{name}</h2>
-          <p className="text-sm text-gray-500">
+
+          {!isGroup && <p className="text-sm text-gray-500">
             {isOnline ? "online" : `last seen ${timeAgo(lastSeenAt).toLocaleLowerCase()}`}
-          </p>
+          </p>}
+
         </div>
 
 

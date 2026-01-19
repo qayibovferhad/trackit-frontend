@@ -279,6 +279,10 @@ export default function Inbox() {
   }, [conversationId, socket, user]);
 
 
+  const currentTypingUsers = useMemo(() => {
+    const user = typingUsers[conversationId!];
+    return user ? [user] : [];
+  }, [typingUsers, conversationId]);
 
   return (
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
@@ -298,7 +302,7 @@ export default function Inbox() {
         <MessagesArea
           messages={messages}
           showTyping={isPending}
-          typingUsers={typingUsers[conversationId!] ? [typingUsers[conversationId!]] : []}
+          typingUsers={currentTypingUsers}
           onLoadMore={fetchNextPage}
           hasMore={hasNextPage}
           isLoadingMore={isFetchingNextPage}
