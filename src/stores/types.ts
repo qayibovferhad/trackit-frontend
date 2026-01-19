@@ -15,9 +15,18 @@ export interface UserStoreState {
 }
 
 
+export interface TypingUserInfo {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
 export interface ChatState {
   activeConversationId: string | null;
+  typingUsers: Record<string, TypingUserInfo>;
+
   setActiveConversation: (id: string | null) => void;
+  setTypingUser: (conversationId: string, userData: TypingUserInfo | null) => void;
 }
 
 

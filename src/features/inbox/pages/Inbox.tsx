@@ -13,7 +13,7 @@ import { getConversationById, markConversationAsRead } from "../services/convers
 import { useChatStore } from "@/stores/chatStore";
 
 export default function Inbox() {
-  const [typingUsers, setTypingUsers] = useState<Record<string, { id: string, name: string, avatar: string }>>({});
+  const typingUsers = useChatStore((state) => state.typingUsers);
   const [isPending, startTransition] = useTransition();
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -42,27 +42,27 @@ export default function Inbox() {
     enabled: !!conversationId,
     initialPageParam: undefined as string | undefined,
   });
-  
-  
 
-   const messages = useMemo(() => {
+
+
+  const messages = useMemo(() => {
     if (!messagesData) return [];
     const reversedPages = [...messagesData.pages].reverse();
     const allMessages = reversedPages.flatMap(page => page.messages);
-    
+
     const uniqueMap = new Map();
     allMessages.forEach(msg => {
       if (!uniqueMap.has(msg.id)) {
         uniqueMap.set(msg.id, msg);
       }
     });
-    
+
     return Array.from(uniqueMap.values());
   }, [messagesData]);
 
-  console.log(messages,'messages');
-  
-  
+  console.log(messages, 'messages');
+
+
 
   const { mutate: markAsReadMutation } = useMutation({
     mutationFn: (convId: string) => markConversationAsRead(convId),
@@ -87,48 +87,21 @@ export default function Inbox() {
     }
   });
 
-useEffect(() => {
-  
-  if (conversationId) {
-    setActiveConversation(conversationId);
-  }
-  
-  return () => {
-    setActiveConversation(null);
-  };
-}, [conversationId, setActiveConversation]);
+  useEffect(() => {
+
+    if (conversationId) {
+      setActiveConversation(conversationId);
+    }
+
+    return () => {
+      setActiveConversation(null);
+    };
+  }, [conversationId, setActiveConversation]);
 
   const uploadAttachmentsMutation = useMutation({
     mutationFn: uploadMessageAttachments,
   });
 
-  const handleUserTyping = useCallback((data: {
-    userId: string, isTyping: boolean, name: string, avatar: string, conversationId: string;
-  }) => {
-    if (data.userId === user?.id) return;
-
-    startTransition(() => {
-      setTypingUsers(prev => {
-        const copy = { ...prev };
-
-        if (data.isTyping) {
-          copy[data.conversationId] = { id: data.userId, name: data.name, avatar: data.avatar };
-        } else {
-          delete copy[data.conversationId];
-        }
-        return copy;
-      });
-    });
-  }, [user]);
-
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("userTyping", handleUserTyping);
-    return () => {
-      socket.off("userTyping", handleUserTyping);
-    };
-  }, [socket, handleUserTyping]);
 
   useEffect(() => {
     if (!conversationId || !socket) {
@@ -153,8 +126,8 @@ useEffect(() => {
     navigate(`/inbox/${id}`);
   };
 
-  const sendMessage = useCallback(async(messageText: string,files:File[]) => {
-    if (!messageText.trim() && (!files || files.length === 0)  || !conversationId || !socket || !user) return
+  const sendMessage = useCallback(async (messageText: string, files: File[]) => {
+    if (!messageText.trim() && (!files || files.length === 0) || !conversationId || !socket || !user) return
 
     const messageContent = messageText.trim();
     const tempId = `temp-${Date.now()}`;
@@ -162,7 +135,7 @@ useEffect(() => {
 
 
     if (files.length > 0) {
-        attachments = await uploadAttachmentsMutation.mutateAsync(files);
+      attachments = await uploadAttachmentsMutation.mutateAsync(files);
     }
     const optimisticMessage = {
       id: tempId,
@@ -181,29 +154,29 @@ useEffect(() => {
 
     handleTyping(false);
 
- startTransition(() => {
-  queryClient.setQueryData(['messages', conversationId], (old: any) => {
-    if (!old) {
-      return {
-        pages: [{ messages: [optimisticMessage], hasMore: false }],
-        pageParams: [undefined]
-      };
-    }
-    
-    const newPages = [...old.pages];
-    if (newPages[0]) {
-      newPages[0] = {
-        ...newPages[0],
-        messages: [...newPages[0].messages, optimisticMessage]
-      };
-    }
-    
-    return {
-      ...old,
-      pages: newPages
-    };
-  });
-});
+    startTransition(() => {
+      queryClient.setQueryData(['messages', conversationId], (old: any) => {
+        if (!old) {
+          return {
+            pages: [{ messages: [optimisticMessage], hasMore: false }],
+            pageParams: [undefined]
+          };
+        }
+
+        const newPages = [...old.pages];
+        if (newPages[0]) {
+          newPages[0] = {
+            ...newPages[0],
+            messages: [...newPages[0].messages, optimisticMessage]
+          };
+        }
+
+        return {
+          ...old,
+          pages: newPages
+        };
+      });
+    });
 
 
     const messageData = {
@@ -264,11 +237,11 @@ useEffect(() => {
 
       if (!otherUser) return null;
 
-      
+
       return {
         username: otherUser.username,
         name: otherUser.name,
-        isOnline:otherUser.isOnline,
+        isOnline: otherUser.isOnline,
         avatar: otherUser.profileImage,
         lastSeenAt: otherUser.lastSeenAt,
         isGroup: false,
@@ -284,7 +257,7 @@ useEffect(() => {
         avatar: null,
         lastSeenAt: null,
         isGroup: true,
-        isOnline:false,
+        isOnline: false,
         participants: participants.filter(pr => pr.userId !== user.id) || [],
       };
     }
@@ -311,7 +284,6 @@ useEffect(() => {
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
       <Conversations onSelect={handleSelect} typingUsers={typingUsers}
       />
-
       {conversation && <div className="flex-1 flex flex-col bg-white">
         {!chatHeaderData ? <ChatHeaderSkeleton /> :
           <ChatHeader
@@ -326,7 +298,7 @@ useEffect(() => {
         <MessagesArea
           messages={messages}
           showTyping={isPending}
-          typingUsers={Object.values(typingUsers)}
+          typingUsers={typingUsers[conversationId!] ? [typingUsers[conversationId!]] : []}
           onLoadMore={fetchNextPage}
           hasMore={hasNextPage}
           isLoadingMore={isFetchingNextPage}

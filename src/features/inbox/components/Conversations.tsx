@@ -138,6 +138,8 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const queryClient = useQueryClient();
 
 
+  console.log(typingUsers,'typingUsers');
+  
   const { mutate: startConversation, isPending } = useMutation({
     mutationFn: (payload: { userIds: string[], groupName?: string }) => createConversation(payload),
     onSuccess: () => {
