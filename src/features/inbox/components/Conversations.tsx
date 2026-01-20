@@ -17,7 +17,6 @@ interface ConversationsProps {
   >;
 }
 
-
 interface ConversationItemProps {
   conv: Conversation;
   isGroup?: boolean;
@@ -49,7 +48,7 @@ const getLastMessagePreview = (message?: Message) => {
 
 const UnreadBadge = React.memo(({ count }: { count: number }) => {
   if (count === 0) return null;
-  
+
   return (
     <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
       {count > 99 ? '99+' : count}
@@ -79,7 +78,7 @@ const GroupAvatar = React.memo(({ participants }: { participants: any[] }) => {
   );
 });
 
-const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser,currentUserId}:ConversationItemProps) => {
+const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser, currentUserId }: ConversationItemProps) => {
   const { user } = useUserStore()
 
   const isDirect = conv.type === 'DIRECT';
@@ -151,7 +150,7 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     </div>
   );
 }, (prev, next) => {
-  
+
   return (
     prev.conv.id === next.conv.id &&
     prev.conv.unreadCount === next.conv.unreadCount &&
@@ -249,23 +248,23 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
     </div>
 
     <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
-          <ConversationList
-            title="Direct Messages"
-            conversations={directConversations}
-            onSelect={onSelect}
-            typingUsers={typingUsers}
-            isGroup={false}
-            currentUserId={currentUserId}
-          />
+      <ConversationList
+        title="Direct Messages"
+        conversations={directConversations}
+        onSelect={onSelect}
+        typingUsers={typingUsers}
+        isGroup={false}
+        currentUserId={currentUserId}
+      />
 
-          <ConversationList
-            title="Group Chats"
-            conversations={groupConversations}
-            onSelect={onSelect}
-            typingUsers={typingUsers}
-            isGroup={true}
-            currentUserId={currentUserId}
-          />
+      <ConversationList
+        title="Group Chats"
+        conversations={groupConversations}
+        onSelect={onSelect}
+        typingUsers={typingUsers}
+        isGroup={true}
+        currentUserId={currentUserId}
+      />
     </div>
   </div>
     {openModal && <AddConversationModal open={openModal} setOpen={setOpenModal} onStartConversation={handleStartConversation} />}
