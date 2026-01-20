@@ -130,10 +130,13 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     </div>
   );
 }, (prev, next) => {
+  console.log(prev,'prev');
+  console.log(next,'next');
+  
   return (
     prev.conv.id === next.conv.id &&
     prev.conv.unreadCount === next.conv.unreadCount &&
-    prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
+    prev.conv.lastMessage?.content === next.conv.lastMessage?.content &&
     prev.typingUser?.id === next.typingUser?.id
   );
 })
@@ -143,9 +146,6 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
 export default function Conversations({ onSelect, typingUsers }: ConversationsProps) {
   const [openModal, setOpenModal] = useState(false)
   const queryClient = useQueryClient();
-
-
-  console.log(typingUsers, 'typingUsers');
 
   const { mutate: startConversation, isPending } = useMutation({
     mutationFn: (payload: { userIds: string[], groupName?: string }) => createConversation(payload),
