@@ -17,6 +17,15 @@ interface ConversationsProps {
   >;
 }
 
+
+interface ConversationItemProps {
+  conv: Conversation;
+  isGroup?: boolean;
+  onSelect: (id: string) => void;
+  typingUser?: { id: string; name: string; avatar: string };
+  currentUserId: string;
+}
+
 const getLastMessagePreview = (message?: Message) => {
 
   if (!message) return "No messages yet";
@@ -37,7 +46,40 @@ const getLastMessagePreview = (message?: Message) => {
   return "No messages yet";
 };
 
-const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser }: { conv: Conversation, isGroup?: boolean, onSelect: (id: string) => void, typingUser?: { id: string; name: string; avatar: string }; }) => {
+
+const UnreadBadge = React.memo(({ count }: { count: number }) => {
+  if (count === 0) return null;
+  
+  return (
+    <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+});
+
+const GroupAvatar = React.memo(({ participants }: { participants: any[] }) => {
+  const visibleParticipants = participants.slice(0, 2);
+  const remainingCount = participants.length - 2;
+
+  return (
+    <div className="flex -space-x-2">
+      {visibleParticipants.map((p) => (
+        <UserAvatar
+          key={p.user.id}
+          src={p.user.profileImage}
+          name={p.user.username}
+        />
+      ))}
+      {remainingCount > 0 && (
+        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium border-2 border-white">
+          +{remainingCount}
+        </div>
+      )}
+    </div>
+  );
+});
+
+const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser,currentUserId}:ConversationItemProps) => {
   const { user } = useUserStore()
 
   const isDirect = conv.type === 'DIRECT';
@@ -58,30 +100,13 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
         onClick={() => onSelect(conv.id)}
         className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer relative"
       >
-        <div className="flex -space-x-2">
-          {conv.participants.slice(0, 2).map((p: any) => (
-            <UserAvatar
-              key={p.user.id}
-              src={p.user.profileImage}
-              name={p.user.username}
-            />
-          ))}
-          {conv.participants.length > 2 && (
-            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium border-2 border-white">
-              +{conv.participants.length - 2}
-            </div>
-          )}
-        </div>
+        <GroupAvatar participants={conv.participants} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <p className="font-medium text-sm truncate">
               {conv.name || 'Unnamed Group'}
             </p>
-            {unreadCount > 0 && (
-              <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
+            <UnreadBadge count={unreadCount} />
           </div>
           <p className="text-xs text-gray-500 truncate">
             {typingUser
@@ -93,7 +118,7 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     );
   }
 
-  const otherUser = conv.participants.find((p: any) => p.user.id !== user?.id)?.user;
+  const otherUser = conv.participants.find((p: any) => p.user.id !== currentUserId)?.user;
 
 
   return (
@@ -115,11 +140,7 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
           <p className="font-medium text-sm truncate">
             {otherUser?.username}
           </p>
-          {unreadCount > 0 && (
-            <span className="ml-2 bg-violet-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
+          <UnreadBadge count={unreadCount} />
         </div>
         <p className="text-xs text-gray-500 truncate">
           {typingUser
@@ -130,23 +151,47 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     </div>
   );
 }, (prev, next) => {
-  console.log(prev,'prev');
-  console.log(next,'next');
   
   return (
     prev.conv.id === next.conv.id &&
     prev.conv.unreadCount === next.conv.unreadCount &&
-    prev.conv.lastMessage?.content === next.conv.lastMessage?.content &&
+    prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
     prev.typingUser?.id === next.typingUser?.id
   );
 })
 
+const ConversationList = React.memo<{
+  title: string;
+  conversations: Conversation[];
+  onSelect: (id: string) => void;
+  typingUsers: Record<string, { id: string; name: string; avatar: string }>;
+  isGroup: boolean;
+  currentUserId: string;
+}>(({ title, conversations, onSelect, typingUsers, isGroup, currentUserId }) => {
+  if (conversations.length === 0) return null;
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-500 mb-2">{title}</h3>
+      {conversations.map((conv) => (
+        <ConversationItem
+          key={conv.id}
+          conv={conv}
+          onSelect={onSelect}
+          isGroup={isGroup}
+          typingUser={typingUsers[conv.id]}
+          currentUserId={currentUserId}
+        />
+      ))}
+    </div>
+  );
+});
 
 
 export default function Conversations({ onSelect, typingUsers }: ConversationsProps) {
   const [openModal, setOpenModal] = useState(false)
   const queryClient = useQueryClient();
-
+  const { user } = useUserStore();
   const { mutate: startConversation, isPending } = useMutation({
     mutationFn: (payload: { userIds: string[], groupName?: string }) => createConversation(payload),
     onSuccess: () => {
@@ -182,6 +227,8 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const directConversations = sortedConversations?.direct
   const groupConversations = sortedConversations?.group
 
+  const currentUserId = user?.id || '';
+
 
   return <> <div className="w-120 bg-white border-r border-gray-200 flex flex-col">
     <div className="p-4 border-b border-gray-200">
@@ -202,25 +249,23 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
     </div>
 
     <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
-      {directConversations.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-gray-500 mb-2">Direct Messages</h3>
-          {directConversations.map(conv => (
-            <ConversationItem conv={conv} onSelect={onSelect}
-              typingUser={typingUsers[conv.id]}
-            />
-          ))}
-        </div>
-      )}
+          <ConversationList
+            title="Direct Messages"
+            conversations={directConversations}
+            onSelect={onSelect}
+            typingUsers={typingUsers}
+            isGroup={false}
+            currentUserId={currentUserId}
+          />
 
-      {groupConversations.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-gray-500 mb-2">Group Chats</h3>
-          {groupConversations.map(conv => (
-            <ConversationItem key={conv.id} conv={conv} onSelect={onSelect} isGroup={true} typingUser={typingUsers[conv.id]} />
-          ))}
-        </div>
-      )}
+          <ConversationList
+            title="Group Chats"
+            conversations={groupConversations}
+            onSelect={onSelect}
+            typingUsers={typingUsers}
+            isGroup={true}
+            currentUserId={currentUserId}
+          />
     </div>
   </div>
     {openModal && <AddConversationModal open={openModal} setOpen={setOpenModal} onStartConversation={handleStartConversation} />}

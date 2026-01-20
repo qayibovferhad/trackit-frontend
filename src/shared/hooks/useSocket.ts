@@ -27,52 +27,6 @@ const createSocketInstance = () => {
   return socket;
 };
 
-const setupSocketListeners = (
-  socket: Socket,
-  onConnect: () => void,
-  onDisconnect: () => void,
-  onTokenExpired: () => void,
-  onUnauthorized: () => void
-) => {
-  socket.on('connect', onConnect);
-  socket.on('disconnect', onDisconnect);
-  socket.on('token_expired', onTokenExpired);
-  socket.on('unauthorized', onUnauthorized);
-
-  socket.on('connect_error', (error) => {
-    console.error('Socket connection error:', error.message);
-
-    if (error.message === "TOKEN_EXPIRED") {
-      onTokenExpired()
-    }
-  });
-};
-
-const removeSocketListeners = (
-  socket: Socket,
-  onConnect: () => void,
-  onDisconnect: () => void,
-  onTokenExpired: () => void,
-  onUnauthorized: () => void
-) => {
-  socket.off('connect', onConnect);
-  socket.off('disconnect', onDisconnect);
-  socket.off('token_expired', onTokenExpired);
-  socket.off('unauthorized', onUnauthorized);
-  socket.off('connect_error');
-};
-
-const resendPendingMessages = (socket: Socket) => {
-  if (pendingMessages.length === 0) return;
-
-  const messagesToSend = [...pendingMessages];
-  pendingMessages = [];
-
-  messagesToSend.forEach(({ data, callback }) => {
-    socket.emit('sendMessage', data, callback);
-  });
-};
-
 export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
