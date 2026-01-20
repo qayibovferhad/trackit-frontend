@@ -17,7 +17,7 @@ export function useSendMessage(
         mutationFn: uploadMessageAttachments,
     });
 
-    const sendMessage = useCallback(async (messageText: string, files: File[]) => {
+    const sendMessage = useCallback(async (messageText: string, files?: File[]) => {
         if (!messageText.trim() && (!files || files.length === 0)) return;
         if (!conversationId || !socket || !user) return;
 
@@ -26,7 +26,7 @@ export function useSendMessage(
         let attachments: Attachment[] = [];
 
         // Upload attachments if any
-        if (files.length > 0) {
+        if (files && files.length > 0) {
             attachments = await uploadAttachmentsMutation.mutateAsync(files);
         }
 

@@ -205,7 +205,7 @@ export default function AddConversationModal({
                                 <UserListItem
                                     key={user.id}
                                     user={user}
-                                    isSelected={selectedUsersSet.has(user.id)}
+                                    isSelected={selectedUsersSet.has(user.id || "")}
                                     onToggle={toggleUserSelection}
                                 />
                             ))}

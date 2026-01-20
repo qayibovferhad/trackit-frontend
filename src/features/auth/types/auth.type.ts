@@ -12,7 +12,7 @@ export interface User {
   lastSeen: string,
   presence: 'online' | 'offline' | 'away';
   isOnline:boolean;
-  lastSeenAt:Date
+  lastSeenAt:string
 }
 
 export interface LoginResponse {
