@@ -67,6 +67,8 @@ const UserListItem = memo<{
         }
     }, [user.id, onToggle]);
 
+    console.log(user,'sdsdsd');
+    
     return (
         <li>
             <button
@@ -76,7 +78,7 @@ const UserListItem = memo<{
             >
                 <div className="relative flex-shrink-0">
                     <UserAvatar name={user.name} src={user.profileImage} />
-                    {user.presence === 'online' && <OnlineBadge />}
+                    {user?.isOnline && <OnlineBadge />}
                 </div>
 
                 <div className="flex-1 min-w-0 text-left">
@@ -103,8 +105,7 @@ const UserListItem = memo<{
 }, (prev, next) => {
     return (
         prev.user.id === next.user.id &&
-        prev.isSelected === next.isSelected &&
-        prev.user.presence === next.user.presence
+        prev.isSelected === next.isSelected
     );
 });
 
@@ -133,7 +134,7 @@ export default function AddConversationModal({
     const [groupName, setGroupName] = useState('')
     const { data, isLoading } = useQuery({
         queryKey: ["all-users", searchQuery],
-        queryFn: () => searchUsers(searchQuery, ["id", "name", "username", "profileImage"]),
+        queryFn: () => searchUsers(searchQuery, ["id", "name", "username", "profileImage","isOnline"]),
         enabled: open,
         placeholderData: (prev) => prev,
     });

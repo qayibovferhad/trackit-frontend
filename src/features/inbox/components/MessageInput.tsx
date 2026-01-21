@@ -10,6 +10,7 @@ interface MessageInputProps {
   onTyping: (isTyping: boolean) => void;
 }
 
+const TYPING_TIMEOUT = 3000;
 export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
   const [value, setValue] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -18,7 +19,6 @@ export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserStore()
-  const TYPING_TIMEOUT = 3000;
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;

@@ -30,11 +30,9 @@ export default function Inbox() {
   const { handleTyping } = useTypingIndicator(conversationId, socket, user);
 
   useEffect(() => {
-
     if (conversationId) {
       setActiveConversation(conversationId);
     }
-
     return () => {
       setActiveConversation(null);
     };
