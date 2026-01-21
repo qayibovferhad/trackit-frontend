@@ -88,7 +88,8 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     ? conv.participants.find((p: any) => p.userId !== user?.id)
     : null;
 
-
+  console.log(conv,'conv');
+  
   const isOnline = otherParticipant?.user?.isOnline;
   const unreadCount = conv.unreadCount || 0;
 
@@ -150,12 +151,19 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     </div>
   );
 }, (prev, next) => {
+  const prevOtherParticipant = prev.conv.participants.find(
+    (p: any) => p.userId !== prev.currentUserId
+  );
+  const nextOtherParticipant = next.conv.participants.find(
+    (p: any) => p.userId !== next.currentUserId
+  );
 
   return (
     prev.conv.id === next.conv.id &&
     prev.conv.unreadCount === next.conv.unreadCount &&
     prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
-    prev.typingUser?.id === next.typingUser?.id
+    prev.typingUser?.id === next.typingUser?.id &&
+    prevOtherParticipant?.user?.isOnline === nextOtherParticipant?.user?.isOnline
   );
 })
 
@@ -168,7 +176,8 @@ const ConversationList = React.memo<{
   currentUserId: string;
 }>(({ title, conversations, onSelect, typingUsers, isGroup, currentUserId }) => {
   if (conversations.length === 0) return null;
-
+  console.log(conversations,'conversationsconversations');
+  
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 mb-2">{title}</h3>
@@ -204,6 +213,9 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
   const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
     startConversation({ userIds, groupName });
   };
+
+  console.log(data,'datadatadata');
+  
   const sortedConversations = useMemo(() => {
     if (!data) return { direct: [], group: [] };
 
