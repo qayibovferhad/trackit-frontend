@@ -13,9 +13,9 @@ import type { NavItem } from "../types/nav.types";
 
 export const MAIN_MENU: NavItem[] = [
   {
-    to: "/dashboard",
+    to: "/",
     label: "Home",
-    name: "Tasks",
+    name: "Tasks Home",
     icon: Home,
     exact: true,
   },

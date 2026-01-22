@@ -1,6 +1,7 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { timeAgo } from "@/shared/utils/date";
 import { MoreVertical } from "lucide-react";
+import type { User } from "@/features/auth/types/auth.type";
 
 
 interface ChatHeaderProps {
@@ -9,7 +10,7 @@ interface ChatHeaderProps {
   avatar: string | null;
   isGroup: boolean;
   username: string;
-  participants: Array<{ user: any }>;
+  participants: Array<{ user: User }>;
   isOnline: boolean
 }
 

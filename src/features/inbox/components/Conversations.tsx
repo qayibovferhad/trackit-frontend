@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
 import { useUserStore } from "@/stores/userStore";
 import type { Message } from "../types/messages";
-import type { Conversation } from "../types/conversation";
+import type { Conversation, Participant } from "../types/conversation";
 
 interface ConversationsProps {
   onSelect: (id: string) => void
@@ -56,7 +56,7 @@ const UnreadBadge = React.memo(({ count }: { count: number }) => {
   );
 });
 
-const GroupAvatar = React.memo(({ participants }: { participants: any[] }) => {
+const GroupAvatar = React.memo(({ participants }: { participants: Participant[] }) => {
   const visibleParticipants = participants.slice(0, 2);
   const remainingCount = participants.length - 2;
 
@@ -85,7 +85,7 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
 
 
   const otherParticipant = isDirect
-    ? conv.participants.find((p: any) => p.userId !== user?.id)
+    ? conv.participants.find((p: Participant) => p.userId !== user?.id)
     : null;
 
   console.log(conv,'conv');
@@ -118,7 +118,7 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
     );
   }
 
-  const otherUser = conv.participants.find((p: any) => p.user.id !== currentUserId)?.user;
+  const otherUser = conv.participants.find((p: Participant) => p.user.id !== currentUserId)?.user;
 
 
   return (
@@ -152,10 +152,10 @@ const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUs
   );
 }, (prev, next) => {
   const prevOtherParticipant = prev.conv.participants.find(
-    (p: any) => p.userId !== prev.currentUserId
+    (p: Participant) => p.userId !== prev.currentUserId
   );
   const nextOtherParticipant = next.conv.participants.find(
-    (p: any) => p.userId !== next.currentUserId
+    (p: Participant) => p.userId !== next.currentUserId
   );
 
   return (
