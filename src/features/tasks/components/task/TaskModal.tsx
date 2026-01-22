@@ -224,9 +224,20 @@ export default function TaskModal({
     setIsSubmitting(true);
 
     try {
-      const [hh, mm] = data.dueTime.split(":").map(Number);
-      const dueAt = new Date(data.dueDate);
-      dueAt.setHours(hh, mm, 0, 0);
+      let dueAt: Date | undefined = undefined;
+
+      if (data.dueDate) {
+        const date = new Date(data.dueDate);
+
+        if (data.dueTime) {
+          const [hh, mm] = data.dueTime.split(":").map(Number);
+          date.setHours(hh, mm, 0, 0);
+        } else {
+          date.setHours(0, 0, 0, 0);
+        }
+
+        dueAt = date;
+      }
 
       const payload = {
         title: data.title,
@@ -249,6 +260,8 @@ export default function TaskModal({
       onOpenChange(false);
       reset();
     } catch (error) {
+      console.log(error,'error');
+      
       setErrorMessage(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);

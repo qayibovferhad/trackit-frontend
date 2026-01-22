@@ -1,5 +1,6 @@
 import { Button } from "@/shared/ui/button";
-import { AtSign, Bell, Briefcase, Calendar, CalendarDays, CircuitBoard, Mail, MoreHorizontal, Plus, Search, Tag, User } from "lucide-react";
+import { useUserStore } from "@/stores/userStore";
+import { AtSign,  Briefcase,  CalendarDays, Mail } from "lucide-react";
 
 
 type StatItemProps = {
@@ -11,25 +12,26 @@ type StatItemProps = {
 const StatItem = ({ icon, label, value }: StatItemProps) => {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-purple-300 text-purple-500">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-violet-300 text-violet-500">
         {icon}
       </div>
       <div>
         <p className="text-md text-gray-500">{label}</p>
-        <p className="text-lg font-semibold text-gray-900">{value}</p>
+        <p className="text-2xl font-semibold text-gray-900">{value}</p>
       </div>
     </div>
   );
 };
 
 const DashboardWelcomeCard: React.FC = () => {
+    const {user} = useUserStore()
   return (
     <div className="w-full rounded-xl border bg-white p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            Hi Johnson, You are almost done.
+            Hi {user?.name}, You are almost done.
           </h2>
           <p className="mt-1 text-sm text-gray-500">
             Please complete few steps to setup your account completely.
