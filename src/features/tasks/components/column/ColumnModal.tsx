@@ -4,6 +4,7 @@ import { useZodForm } from "@/shared/hooks/useZodForm";
 import { InputField } from "@/shared/components/InputField";
 import ColorSelect from "./ColorSelect";
 import { Button } from "@/shared/ui/button";
+import ColumnTypeSelect from "./ColumnTypeSelect";
 
 interface ColumnModalProps {
   open: boolean;
@@ -28,10 +29,12 @@ export default function ColumnModal({
     defaultValues: defaultValues || {
       title: "",
       color: "gray",
+      type:"CUSTOM"
     },
   });
 
   const selectedColor = watch("color");
+  const selectedType = watch("type");
 
   const handleFormSubmit = (data: ColumnFormData) => {
     onSubmit(data);
@@ -47,7 +50,7 @@ export default function ColumnModal({
     <Modal open={open} onOpenChange={handleClose} title="Edit Column">
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         <InputField
-          label="Column title"
+          label="Title"
           htmlFor="title"
           register={register}
           error={errors.title}
@@ -56,6 +59,11 @@ export default function ColumnModal({
         <ColorSelect
           selectedColor={selectedColor}
           onClick={(color) => setValue("color", color)}
+        />
+
+      <ColumnTypeSelect
+          value={selectedType}
+          onChange={(role) => setValue("type", role)}
         />
 
         <Button className="w-full">Edit</Button>

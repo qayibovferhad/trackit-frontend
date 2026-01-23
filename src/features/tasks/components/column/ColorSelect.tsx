@@ -10,7 +10,7 @@ export default function ColorSelect({
 }) {
   return (
     <div className="flex gap-1">
-      <Label className="lock text-sm mb-1 text-gray-600">Color: </Label>
+      <Label className="lock text-sm text-gray-600">Color: </Label>
       <div className="flex gap-1">
         {colorOptions.map((colorOption) => (
           <button

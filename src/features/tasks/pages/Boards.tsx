@@ -216,6 +216,7 @@ export default function Boards() {
               ? {
                 title: editingColumn.title,
                 color: editingColumn.color,
+                type: editingColumn?.type || "CUSTOM"
               }
               : undefined
           }

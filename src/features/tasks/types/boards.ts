@@ -17,6 +17,10 @@ export interface Column {
   createdAt: Date;
   updatedAt: Date;
   tasks: TaskType[];
+  type?:ColumnType
 }
+
+export type ColumnType = "TODO" | "IN_PROGRESS" | "DONE" | "CUSTOM";
+
 
 export type BoardOption = { value: string; label: string; board: Board };

@@ -8,6 +8,10 @@ export const boardSchema = z.object({
 export const columnSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   color: z.string(),
+   type: z
+    .enum(["TODO", "IN_PROGRESS", "DONE", "CUSTOM"])
+    .nullable()
+    .default(null), 
 });
 
 export type BoardFormData = z.infer<typeof boardSchema>;
