@@ -3,6 +3,8 @@ import { Plus } from "lucide-react";
 import { columnSchema, type ColumnFormData } from "../../schemas/boards.schema";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import ColorSelect from "./ColorSelect";
+import ColumnTypeSelect from "./ColumnTypeSelect";
+import type { ColumnType } from "../../types/boards";
 
 export default function AddColumnButton({
   onAdd,
@@ -12,24 +14,28 @@ export default function AddColumnButton({
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [color, setColor] = useState("gray");
+  const [type, setType] = useState<ColumnType | null>("CUSTOM");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const parsed = columnSchema.safeParse({ title, color } as ColumnFormData);
+    const parsed = columnSchema.safeParse({ title, color,type } as ColumnFormData);
     if (!parsed.success) {
       const first = parsed.error.errors[0];
       setError(first ? first.message : "Invalid input");
       return;
     }
 
+    console.log('parsed',parsed);
+    
     setSubmitting(true);
     try {
       const newColumn: ColumnFormData = {
         title: parsed.data.title.trim(),
         color: parsed.data.color,
+        type: parsed.data.type,
       };
 
       onAdd(newColumn);
@@ -78,6 +84,16 @@ export default function AddColumnButton({
           <ColorSelect
             selectedColor={color}
             onClick={(color) => setColor(color)}
+          />
+
+
+          <ColumnTypeSelect
+            value={type}
+            onChange={(role) => {
+              console.log('role',role);
+              
+              setType(role)
+            }}
           />
 
           {error && <ErrorAlert message={error} />}
