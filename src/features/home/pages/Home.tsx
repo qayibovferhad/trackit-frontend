@@ -132,7 +132,7 @@ const MyTeams = () => {
 export default function Home(){
    return (
     <div className="min-h-screen p-6">
-      <div className="mt-2 space-y-6">
+      <div className="space-y-6">
         <HeroCard />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

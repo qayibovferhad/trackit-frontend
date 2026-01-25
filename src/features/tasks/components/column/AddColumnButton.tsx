@@ -28,7 +28,6 @@ export default function AddColumnButton({
       return;
     }
 
-    console.log('parsed',parsed);
     
     setSubmitting(true);
     try {
@@ -89,11 +88,8 @@ export default function AddColumnButton({
 
           <ColumnTypeSelect
             value={type}
-            onChange={(role) => {
-              console.log('role',role);
-              
-              setType(role)
-            }}
+            onChange={(role) =>  setType(role)
+            }
           />
 
           {error && <ErrorAlert message={error} />}

@@ -20,5 +20,7 @@ export const useUserStatsQuery = (
     gcTime: 10 * 60 * 1000, 
     retry: 2,
     refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000, 
+    refetchIntervalInBackground: false, 
   });
 };

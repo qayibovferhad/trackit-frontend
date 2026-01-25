@@ -2,15 +2,18 @@ import { useUserStore } from "@/stores/userStore";
 import { Button } from "../ui/button";
 import { AtSign, Briefcase, CalendarDays, Mail } from "lucide-react";
 import { useUserStatsQuery } from "../hooks/useUserStats";
+import { formatNumber } from "../utils/number";
+import { ErrorAlert } from "./ErrorAlert";
 
 
 type StatItemProps = {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: number;
+  isLoading?: boolean;
 };
 
-const StatItem = ({ icon, label, value }: StatItemProps) => {
+const StatItem = ({ icon, label, value,isLoading }: StatItemProps) => {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-14 w-14 items-center justify-center rounded-full border border-violet-300 text-violet-500">
@@ -18,7 +21,11 @@ const StatItem = ({ icon, label, value }: StatItemProps) => {
       </div>
       <div>
         <p className="text-md text-gray-500">{label}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
+         {isLoading ? (
+          <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
+        ) : (
+          <p className="text-2xl font-semibold text-gray-900">{formatNumber(value)}</p>
+        )}
       </div>
     </div>
   );
@@ -30,8 +37,10 @@ export default function HeroCard (){
 
     const { data: stats, isLoading, isError, error, refetch } = useUserStatsQuery(user?.id);
 
-    console.log(stats,'stats');
     
+    if(isError){
+      return <ErrorAlert message={error.message}/>
+    }
   return (
     <div className="w-full rounded-xl border bg-white p-6 shadow-sm">
       {/* Header */}
@@ -59,22 +68,26 @@ export default function HeroCard (){
         <StatItem
           icon={<Mail size={21} />}
           label="Completed Tasks"
-          value="10.2K"
+          value={stats?.completedTasks || 0}
+          isLoading={isLoading}
         />
         <StatItem
           icon={<AtSign size={21} />}
           label="Assigned Tasks"
-          value="3.4K"
+          value={stats?.assignedTasks || 0}
+          isLoading={isLoading}
         />
         <StatItem
           icon={<Briefcase size={21} />}
           label="All Boards"
-          value="450"
+          value={stats?.allBoards || 0}
+          isLoading={isLoading}
         />
         <StatItem
           icon={<CalendarDays size={18} />}
           label="Scheduled Tasks"
-          value="23"
+          value={stats?.scheduledTasks || 0}
+          isLoading={isLoading}
         />
       </div>
     </div>
