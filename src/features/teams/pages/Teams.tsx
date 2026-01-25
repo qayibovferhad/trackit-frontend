@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteTeam,
   fetchMyInvitesCount,
-  fetchTeams,
 } from "../services/teams.service";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import InvitesModal from "../components/InvitesModal";
@@ -14,6 +13,7 @@ import InviteUserModal from "../components/InviteUserModal";
 import type { Team } from "../types";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import PageHeader from "@/layouts/AppLayout/components/PageHeader";
+import { useTeamsQuery } from "../hooks/useTeams";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
@@ -27,12 +27,7 @@ export default function Teams() {
     data: teams,
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ["teams"],
-    queryFn: fetchTeams,
-    staleTime: 10_000,
-    gcTime: 30 * 60_000,
-  });
+  } = useTeamsQuery()
 
   const { data: invitesCount = 0 } = useQuery({
     queryKey: ["my-invites-count"],

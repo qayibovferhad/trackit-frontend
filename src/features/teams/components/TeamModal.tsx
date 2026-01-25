@@ -17,7 +17,7 @@ type TeamModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSaved?: () => void;
-  team: Team | null;
+  team?: Team | null;
   defaultValues?: Partial<AddTeamFormData>;
 };
 

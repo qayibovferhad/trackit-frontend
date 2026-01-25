@@ -32,15 +32,15 @@ const StatItem = ({ icon, label, value,isLoading }: StatItemProps) => {
 };
 
 
-export default function HeroCard (){
-  const {user} = useUserStore()
+export default function HeroCard() {
+  const { user } = useUserStore()
 
-    const { data: stats, isLoading, isError, error, refetch } = useUserStatsQuery(user?.id);
+  const { data: stats, isLoading, isError, error, refetch } = useUserStatsQuery(user?.id);
 
-    
-    if(isError){
-      return <ErrorAlert message={error.message}/>
-    }
+
+  if (isError) {
+    return <ErrorAlert message={error.message} />
+  }
   return (
     <div className="w-full rounded-xl border bg-white p-6 shadow-sm">
       {/* Header */}
