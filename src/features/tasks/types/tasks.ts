@@ -66,3 +66,17 @@ export interface CreateCommentPayload {
   taskId: string;
   content: string;
 }
+
+export interface TaskStats {
+  upcoming: number;
+  overdue: number;
+  completed: number;
+}
+
+export type TaskFilter = 'upcoming' | 'overdue' | 'completed';
+
+
+export interface TasksResponse {
+  data: TaskType[];
+  meta: TaskStats;
+}

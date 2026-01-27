@@ -3,6 +3,8 @@ import type {
   CommentType,
   CreateCommentPayload,
   CreateTaskPayload,
+  TaskFilter,
+  TasksResponse,
   TaskType,
 } from "../types/tasks";
 
@@ -10,6 +12,13 @@ export const createTask = async (data: CreateTaskPayload) => {
   const response = await api.post("/tasks", data);
   return response.data;
 };
+
+ export const getAll= async (filter?: TaskFilter) => {
+    const { data } = await api.get<TasksResponse>("/tasks", { 
+      params: filter ? { filter } : {} 
+    });
+    return data;
+  }
 
 export const updateTask = async (
   taskId: string,

@@ -8,13 +8,9 @@ import {
   DropdownMenuRow,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { getTagColor } from "../../utils/task";
 
-const getTagColor = (tag: string) => {
-  const hash = tag.split("").reduce((acc, char) => {
-    return char.charCodeAt(0) + ((acc << 5) - acc);
-  }, 0);
-  return randomColors[Math.abs(hash) % randomColors.length];
-};
+
 
 export default function TaskItem({
   task,
@@ -54,10 +50,10 @@ export default function TaskItem({
             isSubtask ? "text-xs" : "text-sm"
           } text-gray-600`}
         >
-          <div className="flex items-center gap-1.5">
+          {!!task.dueAt &&<div className="flex items-center gap-1.5">
             <Calendar className={`${isSubtask ? "w-3.5 h-3.5" : "w-4 h-4"}`} />
             <span>{formatDate(task.dueAt)}</span>
-          </div>
+          </div>}
           {task?.tags && task?.tags.length > 0 ? (
             <div className="flex items-center gap-1.5">
               <Tag className={`${isSubtask ? "w-3.5 h-3.5" : "w-4 h-4"}`} />
