@@ -1,6 +1,5 @@
 import { useTasksQuery } from "@/features/tasks/hooks/useTasks";
 import type { TaskFilter } from "@/features/tasks/types/tasks";
-import { getTagColor } from "@/features/tasks/utils/task";
 import TeamModal from "@/features/teams/components/TeamModal";
 import { useTeamsQuery } from "@/features/teams/hooks/useTeams";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
@@ -18,7 +17,7 @@ const TasksPriorities = () => {
   const { data, isLoading, isError, error } = useTasksQuery(activeFilter);
   console.log('data', data);
 
-  return (
+  return (<>
     <div className="rounded-xl border bg-white p-5">
       <div className="flex items-center justify-between">
         <div>
@@ -27,10 +26,6 @@ const TasksPriorities = () => {
             Team tasks sorted by priority
           </p>
         </div>
-
-        <button className="rounded-lg bg-purple-100 px-3 py-1 text-sm text-purple-600">
-          + Task
-        </button>
       </div>
 
       <div className="mt-4 flex gap-2">
@@ -77,23 +72,21 @@ const TasksPriorities = () => {
             </li>
           ) :
             <>
-         {data.data.map(task => (
-  <li key={task.id} className="flex gap-3">
-    <input type="checkbox" className="mt-1 shrink-0" />
+           {data.data.map(task => (
+  <li key={task.id} className="">
+    <div className="flex items-center gap-3">
+      <input type="checkbox" className="shrink-0" />
+      <p className="text-md font-medium">
+        {task.title}
+      </p>
+    </div>
 
-    <div className="flex-1">
-      {/* checkbox + title */}
-      <div className="flex items-center gap-3">
-        <p className="text-md font-medium">
-          {task.title}
-        </p>
-      </div>
-
-      {/* digər məlumatlar */}
-      <div className="flex items-center gap-4 flex-wrap mt-1">
-        <p className="text-sm text-gray-500">
+    <div className="mt-2 ml-6">
+      <div className="flex items-center gap-4 flex-wrap">
+        {task.dueAt &&  <p className="text-sm text-gray-500">
           {formatDate(task.dueAt)}
-        </p>
+        </p>}
+       
 
         {task?.tags && task.tags.length > 0 ? (
           <div className="flex items-center gap-1.5">
@@ -125,6 +118,7 @@ const TasksPriorities = () => {
           }
         </ul>}
     </div>
+  </>
   );
 };
 
@@ -256,13 +250,10 @@ export default function Home() {
       <div className="space-y-6">
         <HeroCard />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <TasksPriorities />
-          </div>
-
-          <Announcements />
-        </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<TasksPriorities />
+<Announcements />
+</div>
 
         <MyTeams />
       </div>
