@@ -77,38 +77,50 @@ const TasksPriorities = () => {
             </li>
           ) :
             <>
-              {data.data.map(task => (
-                <li className="flex items-start gap-3">
-                  <input type="checkbox" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {task.title}
-                    </p>
-                    <div className="flex items-center gap-4 flex-wrap mt-1">
-                      <p className="text-xs text-gray-500">{formatDate(task.dueAt)}</p>
-                      {task?.tags && task?.tags.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <Tag size={15} />
-                          <div className="flex gap-2 flex-wrap">
-                            {task.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className={`px-2 py-0.5 rounded text-xs ${getTagColor(
-                                  tag
-                                )}`}
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+         {data.data.map(task => (
+  <li key={task.id} className="flex gap-3">
+    <input type="checkbox" className="mt-1 shrink-0" />
 
-                  </div>
-                </li>
+    <div className="flex-1">
+      {/* checkbox + title */}
+      <div className="flex items-center gap-3">
+        <p className="text-md font-medium">
+          {task.title}
+        </p>
+      </div>
 
+      {/* digər məlumatlar */}
+      <div className="flex items-center gap-4 flex-wrap mt-1">
+        <p className="text-sm text-gray-500">
+          {formatDate(task.dueAt)}
+        </p>
+
+        {task?.tags && task.tags.length > 0 ? (
+          <div className="flex items-center gap-1.5">
+            <Tag size={16} />
+            <div className="flex gap-2 flex-wrap">
+              {task.tags.map(tag => (
+                <span
+                  key={tag}
+                  className="px-2 py-0.5 rounded text-xs bg-gray-100 uppercase"
+                >
+                  {tag}
+                </span>
               ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <Tag size={16} />
+            <span className="px-2 py-0.5 rounded text-xs bg-gray-100">
+              No Tag
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  </li>
+))}
             </>
           }
         </ul>}
