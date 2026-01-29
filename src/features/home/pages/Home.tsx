@@ -9,6 +9,7 @@ import { formatDate } from "@/shared/utils/date";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tag } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 
 const TasksPriorities = () => {
@@ -18,7 +19,7 @@ const TasksPriorities = () => {
   console.log('data', data);
 
   return (<>
-    <div className="rounded-xl border bg-white p-5">
+    <div className="rounded-xl border bg-white p-5 h-[500px] flex flex-col">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold">Tasks Priorities</h3>
@@ -53,7 +54,7 @@ const TasksPriorities = () => {
         </Button>
       </div>
       {isLoading ? (
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 overflow-y-auto flex-1">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-start gap-3 animate-pulse">
               <div className="h-4 w-4 bg-gray-200 rounded mt-0.5" />
@@ -65,7 +66,7 @@ const TasksPriorities = () => {
           ))}
         </div>
       ) :
-        <ul className="mt-4 space-y-4">
+        <ul className="mt-4 space-y-4 overflow-y-auto flex-1">
           {!data?.data || data.data.length === 0 ? (
             <li className="py-8 text-center text-sm text-gray-500">
               No {activeFilter} tasks
@@ -76,9 +77,9 @@ const TasksPriorities = () => {
   <li key={task.id} className="">
     <div className="flex items-center gap-3">
       <input type="checkbox" className="shrink-0" />
-      <p className="text-md font-medium">
+      <Link to={`/task/${task.id}`} className="text-md font-medium">
         {task.title}
-      </p>
+      </Link>
     </div>
 
     <div className="mt-2 ml-6">
@@ -125,11 +126,13 @@ const TasksPriorities = () => {
 
 const Announcements = () => {
   return (
-    <div className="rounded-xl border bg-white p-5">
-      <h3 className="font-semibold">Announcements</h3>
-      <p className="text-sm text-gray-500">From personal and team project</p>
+    <div className="rounded-xl border bg-white p-5 h-[500px] flex flex-col">
+      <div className="flex-shrink-0">
+        <h3 className="font-semibold">Announcements</h3>
+        <p className="text-sm text-gray-500">From personal and team project</p>
+      </div>
 
-      <ul className="mt-4 space-y-4">
+      <ul className="mt-4 space-y-4 overflow-y-auto flex-1">
         <li>
           <p className="text-sm font-medium">
             We have fixed our app's bugs based on test results
@@ -250,10 +253,10 @@ export default function Home() {
       <div className="space-y-6">
         <HeroCard />
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-<TasksPriorities />
-<Announcements />
-</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TasksPriorities />
+          <Announcements />
+        </div>
 
         <MyTeams />
       </div>

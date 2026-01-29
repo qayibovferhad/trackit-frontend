@@ -73,17 +73,7 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     [onChange]
   );
 
-  const selectProps: any = {
-    isMulti: true,
-    cacheOptions: true,
-    defaultOptions: [],
-    loadOptions: debouncedLoadOptions,
-    value,
-    onChange: handleChange,
-    placeholder,
-    noOptionsMessage,
-    allowCreateOption,
-  };
+
 
   const commonProps: any = {
     isMulti: true,
