@@ -6,7 +6,7 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import HeroCard from "@/shared/components/HeroCard";
 import { Button } from "@/shared/ui/button";
 import { formatDate } from "@/shared/utils/date";
-import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
@@ -291,7 +291,6 @@ const MyTeams = () => {
 
 
 export default function Home() {
-  // Hər widget müstəqil - istənilən sıra
   const defaultOrder: WidgetId[] = ["hero", "tasks", "announcements", "teams"];
 
   const [widgetOrder, setWidgetOrder] = useState<WidgetId[]>(() => {
@@ -299,16 +298,26 @@ export default function Home() {
     return saved ? JSON.parse(saved) : defaultOrder;
   });
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   useEffect(() => {
     localStorage.setItem("dashboardWidgetOrder", JSON.stringify(widgetOrder));
   }, [widgetOrder]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, 
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -320,6 +329,12 @@ export default function Home() {
         return arrayMove(items, oldIndex, newIndex);
       });
     }
+
+    setActiveId(null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
   };
 
   const widgets: Record<WidgetId, React.ReactNode> = {
@@ -329,33 +344,25 @@ export default function Home() {
     teams: <MyTeams />,
   };
 
-  // Helper function: check if next widget should be in same row (for grid layout)
-  const shouldBeInGrid = (currentId: WidgetId, index: number): boolean => {
-    const nextWidget = widgetOrder[index + 1];
-    // Tasks və Announcements yan-yana olduqda grid göstər
-    return (
-      (currentId === 'tasks' && nextWidget === 'announcements') ||
-      (currentId === 'announcements' && nextWidget === 'tasks')
-    );
-  };
 
   return (
     <div className="min-h-screen p-6">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <SortableContext
           items={widgetOrder}
-          strategy={rectSortingStrategy}
+          strategy={verticalListSortingStrategy}
         >
           <div className="space-y-6">
             {widgetOrder.map((widgetId, index) => {
               const nextWidget = widgetOrder[index + 1];
               const prevWidget = widgetOrder[index - 1];
 
-              // Əgər bu tasks/announcements-dırsa və növbəti announcements/tasks-dırsa
               if (
                 (widgetId === 'tasks' && nextWidget === 'announcements') ||
                 (widgetId === 'announcements' && nextWidget === 'tasks')
@@ -372,7 +379,6 @@ export default function Home() {
                 );
               }
 
-              // Əgər bu announcements/tasks-dırsa və əvvəlki tasks/announcements-dırsa, skip et
               if (
                 (widgetId === 'announcements' && prevWidget === 'tasks') ||
                 (widgetId === 'tasks' && prevWidget === 'announcements')
@@ -380,7 +386,6 @@ export default function Home() {
                 return null;
               }
 
-              // Tasks və ya Announcements tək qalanda - yarım genişlikdə
               if (widgetId === 'tasks' || widgetId === 'announcements') {
                 return (
                   <div key={widgetId} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -390,8 +395,6 @@ export default function Home() {
                   </div>
                 );
               }
-
-              // Hero və Teams - tam genişlikdə
               return (
                 <DraggableWidget key={widgetId} id={widgetId}>
                   {widgets[widgetId]}
@@ -400,6 +403,14 @@ export default function Home() {
             })}
           </div>
         </SortableContext>
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="opacity-80">
+              {widgets[activeId as WidgetId]}
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
