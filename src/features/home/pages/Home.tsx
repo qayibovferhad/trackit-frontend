@@ -73,48 +73,48 @@ const TasksPriorities = () => {
             </li>
           ) :
             <>
-           {data.data.map(task => (
-  <li key={task.id} className="">
-    <div className="flex items-center gap-3">
-      <input type="checkbox" className="shrink-0" />
-      <Link to={`/task/${task.id}`} className="text-md font-medium">
-        {task.title}
-      </Link>
-    </div>
+              {data.data.map(task => (
+                <li key={task.id} className="">
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" className="shrink-0" />
+                    <Link to={`/task/${task.id}`} className="text-md font-medium">
+                      {task.title}
+                    </Link>
+                  </div>
 
-    <div className="mt-2 ml-6">
-      <div className="flex items-center gap-4 flex-wrap">
-        {task.dueAt &&  <p className="text-sm text-gray-500">
-          {formatDate(task.dueAt)}
-        </p>}
-       
+                  <div className="mt-2 ml-6">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {task.dueAt && <p className="text-sm text-gray-500">
+                        {formatDate(task.dueAt)}
+                      </p>}
 
-        {task?.tags && task.tags.length > 0 ? (
-          <div className="flex items-center gap-1.5">
-            <Tag size={16} />
-            <div className="flex gap-2 flex-wrap">
-              {task.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded text-xs bg-gray-100 uppercase"
-                >
-                  {tag}
-                </span>
+
+                      {task?.tags && task.tags.length > 0 ? (
+                        <div className="flex items-center gap-1.5">
+                          <Tag size={16} />
+                          <div className="flex gap-2 flex-wrap">
+                            {task.tags.map(tag => (
+                              <span
+                                key={tag}
+                                className="px-2 py-0.5 rounded text-xs bg-gray-100 uppercase"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <Tag size={16} />
+                          <span className="px-2 py-0.5 rounded text-xs bg-gray-100">
+                            No Tag
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </li>
               ))}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5">
-            <Tag size={16} />
-            <span className="px-2 py-0.5 rounded text-xs bg-gray-100">
-              No Tag
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  </li>
-))}
             </>
           }
         </ul>}
