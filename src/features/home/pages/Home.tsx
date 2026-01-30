@@ -6,11 +6,53 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import HeroCard from "@/shared/components/HeroCard";
 import { Button } from "@/shared/ui/button";
 import { formatDate } from "@/shared/utils/date";
+import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
-import { Tag } from "lucide-react";
-import { useState } from "react";
+import { GripVertical, Tag } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+type WidgetId = "hero" | "tasks" | "announcements" | "teams";
+
+interface WidgetConfig {
+  id: WidgetId;
+  component: React.ReactNode;
+}
+
+const DraggableWidget = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group">
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10"
+      >
+        <div className="bg-white rounded-lg shadow-md border p-1.5 hover:bg-gray-50">
+          <GripVertical size={20} className="text-gray-400" />
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+};
 
 const TasksPriorities = () => {
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('upcoming');
@@ -247,19 +289,118 @@ const MyTeams = () => {
   );
 };
 
+
 export default function Home() {
+  // Hər widget müstəqil - istənilən sıra
+  const defaultOrder: WidgetId[] = ["hero", "tasks", "announcements", "teams"];
+
+  const [widgetOrder, setWidgetOrder] = useState<WidgetId[]>(() => {
+    const saved = localStorage.getItem("dashboardWidgetOrder");
+    return saved ? JSON.parse(saved) : defaultOrder;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("dashboardWidgetOrder", JSON.stringify(widgetOrder));
+  }, [widgetOrder]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setWidgetOrder((items) => {
+        const oldIndex = items.indexOf(active.id as WidgetId);
+        const newIndex = items.indexOf(over.id as WidgetId);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const widgets: Record<WidgetId, React.ReactNode> = {
+    hero: <HeroCard />,
+    tasks: <TasksPriorities />,
+    announcements: <Announcements />,
+    teams: <MyTeams />,
+  };
+
+  // Helper function: check if next widget should be in same row (for grid layout)
+  const shouldBeInGrid = (currentId: WidgetId, index: number): boolean => {
+    const nextWidget = widgetOrder[index + 1];
+    // Tasks və Announcements yan-yana olduqda grid göstər
+    return (
+      (currentId === 'tasks' && nextWidget === 'announcements') ||
+      (currentId === 'announcements' && nextWidget === 'tasks')
+    );
+  };
+
   return (
     <div className="min-h-screen p-6">
-      <div className="space-y-6">
-        <HeroCard />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={widgetOrder}
+          strategy={rectSortingStrategy}
+        >
+          <div className="space-y-6">
+            {widgetOrder.map((widgetId, index) => {
+              const nextWidget = widgetOrder[index + 1];
+              const prevWidget = widgetOrder[index - 1];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <TasksPriorities />
-          <Announcements />
-        </div>
+              // Əgər bu tasks/announcements-dırsa və növbəti announcements/tasks-dırsa
+              if (
+                (widgetId === 'tasks' && nextWidget === 'announcements') ||
+                (widgetId === 'announcements' && nextWidget === 'tasks')
+              ) {
+                return (
+                  <div key={`grid-${index}`} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <DraggableWidget id={widgetId}>
+                      {widgets[widgetId]}
+                    </DraggableWidget>
+                    <DraggableWidget id={nextWidget}>
+                      {widgets[nextWidget]}
+                    </DraggableWidget>
+                  </div>
+                );
+              }
 
-        <MyTeams />
-      </div>
+              // Əgər bu announcements/tasks-dırsa və əvvəlki tasks/announcements-dırsa, skip et
+              if (
+                (widgetId === 'announcements' && prevWidget === 'tasks') ||
+                (widgetId === 'tasks' && prevWidget === 'announcements')
+              ) {
+                return null;
+              }
+
+              // Tasks və ya Announcements tək qalanda - yarım genişlikdə
+              if (widgetId === 'tasks' || widgetId === 'announcements') {
+                return (
+                  <div key={widgetId} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <DraggableWidget id={widgetId}>
+                      {widgets[widgetId]}
+                    </DraggableWidget>
+                  </div>
+                );
+              }
+
+              // Hero və Teams - tam genişlikdə
+              return (
+                <DraggableWidget key={widgetId} id={widgetId}>
+                  {widgets[widgetId]}
+                </DraggableWidget>
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
