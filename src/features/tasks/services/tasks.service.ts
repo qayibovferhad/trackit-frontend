@@ -64,3 +64,8 @@ export const createComment = async (
 export const deleteComment = async (commentId: string): Promise<void> => {
   await api.delete(`/comments/${commentId}`);
 };
+
+export const getDoneTaskStats = async ():Promise<void>=>{
+  const { data } = await api.get("/tasks/stats/done-last-7-days");
+  return data
+}

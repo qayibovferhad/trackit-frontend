@@ -7,52 +7,17 @@ import HeroCard from "@/shared/components/HeroCard";
 import { Button } from "@/shared/ui/button";
 import { formatDate } from "@/shared/utils/date";
 import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
-import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { GripVertical, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import type { WidgetId } from "../types";
+import DraggableWidget from "@/shared/components/DraggableWidget";
 
-type WidgetId = "hero" | "tasks" | "announcements" | "teams";
+const widgetsLocalKey = 'homeWidgetOrder'
 
-interface WidgetConfig {
-  id: WidgetId;
-  component: React.ReactNode;
-}
-
-const DraggableWidget = ({ id, children }: { id: string; children: React.ReactNode }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className="relative group">
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10"
-      >
-        <div className="bg-white rounded-lg shadow-md border p-1.5 hover:bg-gray-50">
-          <GripVertical size={20} className="text-gray-400" />
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-};
 
 const TasksPriorities = () => {
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('upcoming');
@@ -289,19 +254,18 @@ const MyTeams = () => {
   );
 };
 
-
 export default function Home() {
   const defaultOrder: WidgetId[] = ["hero", "tasks", "announcements", "teams"];
 
   const [widgetOrder, setWidgetOrder] = useState<WidgetId[]>(() => {
-    const saved = localStorage.getItem("dashboardWidgetOrder");
+    const saved = localStorage.getItem(widgetsLocalKey);
     return saved ? JSON.parse(saved) : defaultOrder;
   });
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("dashboardWidgetOrder", JSON.stringify(widgetOrder));
+    localStorage.setItem(widgetsLocalKey, JSON.stringify(widgetOrder));
   }, [widgetOrder]);
 
   const sensors = useSensors(
