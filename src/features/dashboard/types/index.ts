@@ -1,1 +1,1 @@
-export type WidgetId = "hero" 
+export type WidgetId = "hero" | "tasksDone" | "taskStatus" | "teamsPerformance";

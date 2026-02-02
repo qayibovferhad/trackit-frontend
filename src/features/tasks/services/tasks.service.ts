@@ -3,8 +3,10 @@ import type {
   CommentType,
   CreateCommentPayload,
   CreateTaskPayload,
+  DoneTaskStatsResponse,
   TaskFilter,
   TasksResponse,
+  TaskStatusStatsResponse,
   TaskType,
 } from "../types/tasks";
 
@@ -65,7 +67,12 @@ export const deleteComment = async (commentId: string): Promise<void> => {
   await api.delete(`/comments/${commentId}`);
 };
 
-export const getDoneTaskStats = async ():Promise<void>=>{
+export const getDoneTaskStats = async ():Promise<DoneTaskStatsResponse>=>{
   const { data } = await api.get("/tasks/stats/done-last-7-days");
+  return data
+}
+
+export const getTaskStatusStats = async ():Promise<TaskStatusStatsResponse>=>{
+  const { data } = await api.get("/tasks/stats/status");
   return data
 }

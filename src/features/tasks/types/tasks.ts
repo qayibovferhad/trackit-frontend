@@ -80,3 +80,41 @@ export interface TasksResponse {
   data: TaskType[];
   meta: TaskStats;
 }
+
+
+export interface TaskStatusItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface TaskStatusStatsResponse {
+  statuses: TaskStatusItem[];
+  total: number;
+  customCount?: number;
+}
+
+export interface DoneTaskDay {
+  date: string;
+  count: number;
+}
+
+export interface DoneTaskStatsResponse {
+  days: DoneTaskDay[];
+}
+
+export interface TeamPerformanceData {
+  teams: string[];
+  monthlyData: MonthlyPerformance[];
+}
+
+export interface MonthlyPerformance {
+  month: string;
+  value: number;
+}
+
+// Chart data types (transformed for recharts)
+export interface ChartDataPoint {
+  name: string;
+  tasks: number;
+}

@@ -4,9 +4,9 @@ import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, 
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import HeroCard from "@/shared/components/HeroCard";
 import DraggableWidget from "@/shared/components/DraggableWidget";
-import {  ResponsiveContainer, XAxis, YAxis, Tooltip,PieChart, Pie, Cell , Legend, AreaChart, Area,  CartesianGrid  } from 'recharts'
+import {  ResponsiveContainer, XAxis, YAxis, Tooltip,PieChart, Pie, Cell , AreaChart, Area,  CartesianGrid  } from 'recharts'
 import { useQuery } from "@tanstack/react-query";
-import { getDoneTaskStats } from "@/features/tasks/services/tasks.service";
+import { getDoneTaskStats, getTaskStatusStats } from "@/features/tasks/services/tasks.service";
 const widgetsLocalKey = 'dashboardWidgetOrder'
 
 
@@ -118,33 +118,27 @@ const TeamsPerformanceWidget = () => {
 const TaskStatusWidget = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["taskStatus"],
-    queryFn: ()=>[],
+    queryFn: getTaskStatusStats,
   });
 
+  console.log('data',data);
+  
   if (isLoading) {
     return <div className="h-[300px] bg-gray-100 animate-pulse rounded-md" />;
   }
 
-  const statusData = data?.statuses || [
-    { name: 'To Do', value: 23, color: '#8B5CF6' },
-    { name: 'Completed', value: 45, color: '#10B981' },
-    { name: 'Pending', value: 12, color: '#F59E0B' },
-  ];
-
-  const COLORS = statusData.map(item => item.color);
+  const statusData = data?.statuses
 
   const renderLegend = () => {
     return (
-      <div className="space-y-3 mt-4">
-        {statusData.map((item, index) => (
-          <div key={item.name} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-sm text-gray-600">{item.name}</span>
-            </div>
+      <div className="flex flex-wrap justify-center gap-6 mt-4">
+        {statusData && statusData.map((item) => (
+          <div key={item.name} className="flex items-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: item.color }}
+            />
+            <span className="text-sm text-gray-600">{item.name}</span>
             <span className="text-sm font-semibold text-gray-900">{item.value}</span>
           </div>
         ))}
@@ -160,18 +154,18 @@ const TaskStatusWidget = () => {
       </div>
 
       <div className="flex flex-col items-center">
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={163}>
           <PieChart>
             <Pie
               data={statusData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={80}
+              innerRadius={50}
+              outerRadius={70}
               paddingAngle={2}
               dataKey="value"
             >
-              {statusData.map((entry, index) => (
+              {statusData && statusData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -335,7 +329,6 @@ export default function Dashboard() {
         const nextWidget = widgetOrder[i + 1];
         
         if (nextWidget && nextWidget !== "hero") {
-          // 2 widget yan-yana
           elements.push(
             <div key={`grid-${i}`} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DraggableWidget id={currentWidget}>
@@ -390,5 +383,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
