@@ -103,3 +103,9 @@ export const fetchMyAdminTeamsForInvite = async (userId: string): Promise<Team[]
   return response.data;
 };
 
+
+export const getMyTeamPerformance = async (teamId: string): Promise<any> => {
+  const response = await api.get(`/teams/my-team-performance/${teamId}`);
+  return response.data;
+};
+

@@ -6,24 +6,19 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import HeroCard from "@/shared/components/HeroCard";
 import { Button } from "@/shared/ui/button";
 import { formatDate } from "@/shared/utils/date";
-import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
-import { GripVertical, Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import {  Tag } from "lucide-react";
+import {  useState } from "react";
 import { Link } from "react-router-dom";
 import type { WidgetId } from "../types";
-import DraggableWidget from "@/shared/components/DraggableWidget";
-
-const widgetsLocalKey = 'homeWidgetOrder'
+import type { WidgetConfig } from "@/shared/components/DraggableWidgetLayout";
+import DraggableWidgetLayout from "@/shared/components/DraggableWidgetLayout";
 
 
 const TasksPriorities = () => {
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('upcoming');
 
-  const { data, isLoading, isError, error } = useTasksQuery(activeFilter);
-  console.log('data', data);
+  const { data, isLoading } = useTasksQuery(activeFilter);
 
   return (<>
     <div className="rounded-xl border bg-white p-5 h-[500px] flex flex-col">
@@ -255,127 +250,39 @@ const MyTeams = () => {
 };
 
 export default function Home() {
+ const widgets: WidgetConfig<WidgetId>[] = [
+    {
+      id: "hero",
+      component: <HeroCard />,
+      fullWidth: true,
+    },
+    {
+      id: "tasks",
+      component: <TasksPriorities />,
+      fullWidth: false,
+    },
+    {
+      id: "announcements",
+      component: <Announcements />,
+      fullWidth: false,
+    },
+    {
+      id: "teams",
+      component: <MyTeams />,
+      fullWidth: false,
+    },
+  ];
+
   const defaultOrder: WidgetId[] = ["hero", "tasks", "announcements", "teams"];
-
-  const [widgetOrder, setWidgetOrder] = useState<WidgetId[]>(() => {
-    const saved = localStorage.getItem(widgetsLocalKey);
-    return saved ? JSON.parse(saved) : defaultOrder;
-  });
-
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem(widgetsLocalKey, JSON.stringify(widgetOrder));
-  }, [widgetOrder]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, 
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setWidgetOrder((items) => {
-        const oldIndex = items.indexOf(active.id as WidgetId);
-        const newIndex = items.indexOf(over.id as WidgetId);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-
-    setActiveId(null);
-  };
-
-  const handleDragCancel = () => {
-    setActiveId(null);
-  };
-
-  const widgets: Record<WidgetId, React.ReactNode> = {
-    hero: <HeroCard />,
-    tasks: <TasksPriorities />,
-    announcements: <Announcements />,
-    teams: <MyTeams />,
-  };
 
 
   return (
-    <div className="min-h-screen p-6">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-      >
-        <SortableContext
-          items={widgetOrder}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-6">
-            {widgetOrder.map((widgetId, index) => {
-              const nextWidget = widgetOrder[index + 1];
-              const prevWidget = widgetOrder[index - 1];
-
-              if (
-                (widgetId === 'tasks' && nextWidget === 'announcements') ||
-                (widgetId === 'announcements' && nextWidget === 'tasks')
-              ) {
-                return (
-                  <div key={`grid-${index}`} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <DraggableWidget id={widgetId}>
-                      {widgets[widgetId]}
-                    </DraggableWidget>
-                    <DraggableWidget id={nextWidget}>
-                      {widgets[nextWidget]}
-                    </DraggableWidget>
-                  </div>
-                );
-              }
-
-              if (
-                (widgetId === 'announcements' && prevWidget === 'tasks') ||
-                (widgetId === 'tasks' && prevWidget === 'announcements')
-              ) {
-                return null;
-              }
-
-              if (widgetId === 'tasks' || widgetId === 'announcements') {
-                return (
-                  <div key={widgetId} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <DraggableWidget id={widgetId}>
-                      {widgets[widgetId]}
-                    </DraggableWidget>
-                  </div>
-                );
-              }
-              return (
-                <DraggableWidget key={widgetId} id={widgetId}>
-                  {widgets[widgetId]}
-                </DraggableWidget>
-              );
-            })}
-          </div>
-        </SortableContext>
-
-        <DragOverlay>
-          {activeId ? (
-            <div className="opacity-80">
-              {widgets[activeId as WidgetId]}
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-    </div>
+   <DraggableWidgetLayout
+      widgets={widgets}
+      defaultOrder={defaultOrder}
+      localStorageKey="homeWidgetOrder"
+      className="min-h-screen p-6"
+    />
   );
 }
+
