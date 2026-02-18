@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -18,10 +18,12 @@ import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 
 export default function Register() {
+  const navigate = useNavigate()
   const { mutate: registerFn, isPending } = useMutation({
     mutationFn: registerRequest,
     onSuccess: () => {
       setErrorMessage(null);
+      navigate('/onBoarding')
     },
     onError: (error) => {
       setErrorMessage(getErrorMessage(error));
