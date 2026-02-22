@@ -1,4 +1,5 @@
 import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { memo } from "react";
 import type { Column as ColumnType } from "../../types/boards";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
@@ -16,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 
-export default function Column({
+function Column({
   column,
   tasks,
   onAddTask,
@@ -174,3 +175,5 @@ export default function Column({
     </div>
   );
 }
+
+export default memo(Column);

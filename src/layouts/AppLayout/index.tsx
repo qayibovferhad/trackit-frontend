@@ -11,16 +11,16 @@ import { getConversations } from "@/features/inbox/services/conversation";
 const SIDEBAR_WIDTH = "w-64";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const menus = [...MAIN_MENU, ...SETTINGS_MENU].flat();
+  const menus = useMemo(() => [...MAIN_MENU, ...SETTINGS_MENU].flat(), []);
 
   const { data: conversations = [] } = useQuery({
   queryKey: ['conversations'],
   queryFn: getConversations,
 });
 
-const totalUnreadCount = conversations.reduce(
-  (sum, conv) => sum + (conv.unreadCount || 0), 
-  0
+const totalUnreadCount = useMemo(
+  () => conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0),
+  [conversations]
 );
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["teams"],

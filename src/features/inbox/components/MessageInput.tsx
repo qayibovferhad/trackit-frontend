@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { memo, useState, useRef, useEffect } from "react";
 import type { KeyboardEvent, ChangeEvent } from "react";
 import { Send, MoreHorizontal, Image, File, X } from "lucide-react";
 import UserAvatar from "@/shared/components/UserAvatar";
@@ -11,7 +11,7 @@ interface MessageInputProps {
 }
 
 const TYPING_TIMEOUT = 3000;
-export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
+function MessageInput({ onSend, onTyping }: MessageInputProps) {
   const [value, setValue] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -182,3 +182,5 @@ export default function MessageInput({ onSend, onTyping }: MessageInputProps) {
     </div>
   );
 }
+
+export default memo(MessageInput);

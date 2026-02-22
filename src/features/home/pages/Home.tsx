@@ -4,6 +4,7 @@ import type { WidgetConfig } from "@/shared/components/DraggableWidgetLayout";
 import DraggableWidgetLayout from "@/shared/components/DraggableWidgetLayout";
 import TasksPriorities from "../components/TasksPriorities";
 import MyTeams from "../components/MyTeams";
+import { useMemo } from "react";
 
 
 
@@ -41,7 +42,7 @@ const Announcements = () => {
 
 
 export default function Home() {
- const widgets: WidgetConfig<WidgetId>[] = [
+  const widgets: WidgetConfig<WidgetId>[] = useMemo(() => [
     {
       id: "hero",
       component: <HeroCard />,
@@ -62,9 +63,9 @@ export default function Home() {
       component: <MyTeams />,
       fullWidth: false,
     },
-  ];
+  ], []);
 
-  const defaultOrder: WidgetId[] = ["hero", "tasks", "announcements", "teams"];
+  const defaultOrder: WidgetId[] = useMemo(() => ["hero", "tasks", "announcements", "teams"], []);
 
 
   return (

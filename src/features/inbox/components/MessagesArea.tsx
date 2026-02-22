@@ -1,9 +1,9 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { useUserStore } from "@/stores/userStore";
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Attachment, Message } from "../types/messages";
 
-function AttachmentCard({
+const AttachmentCard = memo(function AttachmentCard({
   attachments,
   isOwn,
 }: {
@@ -54,10 +54,9 @@ function AttachmentCard({
       ))}
     </div>
   );
-}
+});
 
-
-function MessageBubble({ message, currentUserId }: { message: Message, currentUserId?: string }) {
+const MessageBubble = memo(function MessageBubble({ message, currentUserId }: { message: Message, currentUserId?: string }) {
   const isOwn = message.senderId === currentUserId;
 
   return <div key={message.id} className={`flex gap-2 ${isOwn ? 'justify-start' : 'justify-end'}`}>
@@ -72,9 +71,9 @@ function MessageBubble({ message, currentUserId }: { message: Message, currentUs
       <span className="text-xs text-gray-500 mt-1 px-1">{message.timestamp}</span>
     </div>
   </div>
-}
+});
 
-function TypingIndicator({ name, avatar }: { name: string, avatar: string }) {
+const TypingIndicator = memo(function TypingIndicator({ name, avatar }: { name: string, avatar: string }) {
   return (
     <div className="flex gap-2 items-end justify-end mb-4">
       <UserAvatar src={avatar} name={name} />
@@ -91,7 +90,7 @@ function TypingIndicator({ name, avatar }: { name: string, avatar: string }) {
       </div>
     </div>
   )
-}
+});
 
 interface MessagesAreaProps {
   messages: Message[],
@@ -102,7 +101,7 @@ interface MessagesAreaProps {
   isLoadingMore?: boolean;
 }
 
-export default function MessagesArea({
+function MessagesArea({
   messages,
   typingUsers,
   onLoadMore,
@@ -124,11 +123,11 @@ export default function MessagesArea({
   }, [messages, shouldScroll]);
 
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
-  }
+  }, []);
 
-    const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
@@ -149,11 +148,11 @@ export default function MessagesArea({
         }
       }, 100);
     }
-  };
+  }, [hasMore, isLoadingMore, onLoadMore]);
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, scrollToBottom])
 
   return <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-280px)]"
     ref={containerRef}
@@ -170,3 +169,5 @@ export default function MessagesArea({
     <div ref={messagesEndRef} />
   </div>
 }
+
+export default memo(MessagesArea);

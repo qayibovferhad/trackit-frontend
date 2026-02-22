@@ -1,5 +1,5 @@
 import BoardModal from "../components/board/BoardModal";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Board, BoardOption, Column } from "../types/boards";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
@@ -58,14 +58,14 @@ export default function Boards() {
     updateTaskMutation
   );
 
-  const options: BoardOption[] = (boards || []).map((b: Board) => ({
-    value: b.id,
-    label: b.name,
-    board: b,
-  }));
+  const options: BoardOption[] = useMemo(
+    () => (boards || []).map((b: Board) => ({ value: b.id, label: b.name, board: b })),
+    [boards]
+  );
 
-  const taskIds = columns.flatMap(
-    (column) => column.tasks?.map((task) => task.id) || []
+  const taskIds = useMemo(
+    () => columns.flatMap((column) => column.tasks?.map((task) => task.id) || []),
+    [columns]
   );
 
   const handleAddColumn = (formData: ColumnFormData) => {
@@ -77,10 +77,10 @@ export default function Boards() {
     });
   };
 
-  const handleOpenAddTaskModal = (columnId: string) => {
+  const handleOpenAddTaskModal = useCallback((columnId: string) => {
     setActiveColumnId(columnId);
     setOpenTaskModal(true);
-  };
+  }, []);
 
   const handleAddTask = (taskData: CreateTaskPayload) => {
     if (!activeColumnId) return;
@@ -103,18 +103,18 @@ export default function Boards() {
     });
   };
 
-  const handleEditColumn = (column: Column) => {
+  const handleEditColumn = useCallback((column: Column) => {
     setEditingColumn(column);
     setOpenColumnModal(true);
-  };
+  }, []);
 
-  const handleDeleteColumn = (columnId: string) => {
+  const handleDeleteColumn = useCallback((columnId: string) => {
     const column = columns.find((col) => col.id === columnId);
     if (!column) return;
 
     setDeletingColumn(column);
     setConfirmDeleteOpen(true);
-  };
+  }, [columns]);
 
   const handleConfirmDelete = () => {
     if (!selectedBoard?.id || !deletingColumn?.id) return;
@@ -167,7 +167,7 @@ export default function Boards() {
                     key={column.id}
                     column={column}
                     tasks={column.tasks || []}
-                    onAddTask={() => handleOpenAddTaskModal(column.id)}
+                    onAddTask={handleOpenAddTaskModal}
                     onEditColumn={handleEditColumn}
                     onDeleteColumn={handleDeleteColumn}
                   />

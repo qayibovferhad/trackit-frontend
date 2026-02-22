@@ -6,7 +6,7 @@ import { getAccessToken } from "@/shared/lib/authStorage";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useTransition } from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 
 interface UserTypingPayload {
   userId: string;
@@ -31,6 +31,18 @@ export const SocketProvider = ({ children }: { children: any }) => {
 
   const activeConversationId = useChatStore((state) => state.activeConversationId);
   const setTypingUser = useChatStore((state) => state.setTypingUser);
+
+  // Refs to avoid recreating callbacks (and re-attaching socket listeners)
+  // every time activeConversationId or user changes
+  const activeConversationIdRef = useRef(activeConversationId);
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
+
+  const userIdRef = useRef(user?.id);
+  useEffect(() => {
+    userIdRef.current = user?.id;
+  }, [user?.id]);
 
   const updateMessagesCache = useCallback((msg: Message) => {
     queryClient.setQueryData(['messages', msg.conversationId], (old: any) => {
@@ -84,8 +96,8 @@ export const SocketProvider = ({ children }: { children: any }) => {
       return old.map((conv) => {
         if (conv.id !== msg.conversationId) return conv;
 
-        const isActiveConversation = msg.conversationId === activeConversationId;
-        const isOwnMessage = msg.senderId === user?.id;
+        const isActiveConversation = msg.conversationId === activeConversationIdRef.current;
+        const isOwnMessage = msg.senderId === userIdRef.current;
         const shouldMarkAsRead = isActiveConversation && !isOwnMessage;
 
         let newUnreadCount = conv.unreadCount || 0;
@@ -109,7 +121,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
         };
       });
     });
-  }, [queryClient, activeConversationId, user?.id]);
+  }, [queryClient]);
 
   const handleNewMessage = useCallback((msg: Message) => {
     startTransition(() => {
@@ -117,13 +129,13 @@ export const SocketProvider = ({ children }: { children: any }) => {
       updateConversationsCache(msg);
     });
 
-    const isActiveConversation = msg.conversationId === activeConversationId;
-    const isOwnMessage = msg.senderId === user?.id;
+    const isActiveConversation = msg.conversationId === activeConversationIdRef.current;
+    const isOwnMessage = msg.senderId === userIdRef.current;
 
-    if (isActiveConversation && !isOwnMessage) {
-      markAsRead(activeConversationId);
+    if (isActiveConversation && !isOwnMessage && activeConversationIdRef.current) {
+      markAsRead(activeConversationIdRef.current);
     }
-  }, [updateMessagesCache, updateConversationsCache, activeConversationId, user?.id, markAsRead]);
+  }, [updateMessagesCache, updateConversationsCache, markAsRead]);
 
   const updateParticipantStatus = useCallback((participant: any, payload: UserStatusPayload) => {
     if (participant.userId !== payload.userId) {
@@ -168,7 +180,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
   }, [queryClient, updateParticipantStatus]);
 
   const handleUserTyping = useCallback((data: UserTypingPayload) => {
-    if (data.userId === user?.id) return;
+    if (data.userId === userIdRef.current) return;
 
     startTransition(() => {
       if (data.isTyping) {
@@ -181,7 +193,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
         setTypingUser(data.conversationId, null);
       }
     });
-  }, [user?.id, setTypingUser]);
+  }, [setTypingUser]);
 
   useEffect(() => {
     if (!socket || !user?.id) return;
@@ -191,7 +203,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
       (socket as any).auth = { token };
       socket.disconnect().connect();
     }
-  }, [user?.id]);
+  }, [socket, user?.id]);
 
   useEffect(() => {
     if (!socket) return;

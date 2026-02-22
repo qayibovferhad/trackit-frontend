@@ -3,11 +3,11 @@ import type { TaskType } from "../../types/tasks";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import { GripVertical } from "lucide-react";
 import { truncateText } from "@/shared/utils/string";
 
-export default function TaskCard({ task }: { task: TaskType }) {
+function TaskCard({ task }: { task: TaskType }) {
   const navigate = useNavigate();
   const isDragEnabledRef = useRef(false);
 
@@ -35,21 +35,21 @@ export default function TaskCard({ task }: { task: TaskType }) {
     transition,
   };
 
-  const handleTitleClick = (e: React.MouseEvent) => {
+  const handleTitleClick = useCallback((e: React.MouseEvent) => {
     if (!isDragEnabledRef.current) {
       e.stopPropagation();
       navigate(`/task/${task.id}`);
     }
-  };
+  }, [navigate, task.id]);
 
-  const handleUserClick = (e: React.MouseEvent) => {
+  const handleUserClick = useCallback((e: React.MouseEvent) => {
     if (!isDragEnabledRef.current) {
       e.stopPropagation();
       if (task.assignee?.username) {
         navigate(`/profile/${task.assignee.username}`);
       }
     }
-  };
+  }, [navigate, task.assignee?.username]);
 
   return (
     <div
@@ -122,3 +122,5 @@ export default function TaskCard({ task }: { task: TaskType }) {
     </div>
   );
 }
+
+export default memo(TaskCard);

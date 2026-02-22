@@ -1,7 +1,7 @@
 import UserAvatar from "@/shared/components/UserAvatar";
 import { Button } from "@/shared/ui/button";
 import { MoreVertical, Plus } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import AddConversationModal from "./AddConversationModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversations } from "../services/conversation";
@@ -79,16 +79,11 @@ const GroupAvatar = React.memo(({ participants }: { participants: Participant[] 
 });
 
 const ConversationItem = React.memo(({ conv, isGroup = false, onSelect, typingUser, currentUserId }: ConversationItemProps) => {
-  const { user } = useUserStore()
-
   const isDirect = conv.type === 'DIRECT';
 
-
   const otherParticipant = isDirect
-    ? conv.participants.find((p: Participant) => p.userId !== user?.id)
+    ? conv.participants.find((p: Participant) => p.userId !== currentUserId)
     : null;
-
-  console.log(conv,'conv');
   
   const isOnline = otherParticipant?.user?.isOnline;
   const unreadCount = conv.unreadCount || 0;
@@ -176,8 +171,7 @@ const ConversationList = React.memo<{
   currentUserId: string;
 }>(({ title, conversations, onSelect, typingUsers, isGroup, currentUserId }) => {
   if (conversations.length === 0) return null;
-  console.log(conversations,'conversationsconversations');
-  
+
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 mb-2">{title}</h3>
@@ -210,12 +204,10 @@ export default function Conversations({ onSelect, typingUsers }: ConversationsPr
 
   const { data } = useQuery({ queryFn: getConversations, queryKey: ['conversations'] })
 
-  const handleStartConversation = ({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
+  const handleStartConversation = useCallback(({ userIds, groupName }: { userIds: string[], groupName?: string | undefined }) => {
     startConversation({ userIds, groupName });
-  };
+  }, [startConversation]);
 
-  console.log(data,'datadatadata');
-  
   const sortedConversations = useMemo(() => {
     if (!data) return { direct: [], group: [] };
 

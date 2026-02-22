@@ -8,7 +8,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { usePageTitle } from "../../../shared/hooks/usePageTitle";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
@@ -43,11 +43,11 @@ export default function Topbar({
   const { user, logout } = useUserStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
-  const submit = () => {
+  const submit = useCallback(() => {
     const value = q.trim();
     if (!value) return;
     onSearchSubmit?.(value);
-  };
+  }, [q, onSearchSubmit]);
 
   const { mutate: handleLogout } = useMutation({
     mutationFn: logoutRequest,
@@ -163,7 +163,7 @@ export default function Topbar({
   );
 }
 
-function NotificationBell() {
+const NotificationBell = memo(function NotificationBell() {
   const navigate = useNavigate();
   const { data: unread = 0 } = useQuery({
     queryKey: ["unread-count"],
@@ -190,4 +190,4 @@ function NotificationBell() {
       )}
     </div>
   );
-}
+});

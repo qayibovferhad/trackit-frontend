@@ -5,19 +5,20 @@ import DraggableWidgetLayout from "@/shared/components/DraggableWidgetLayout";
 import TeamsPerformanceWidget from "../components/TeamsPerformance";
 import TaskStatusWidget from "../components/TaskStatus";
 import DoneTasksWidget from "../components/DoneTasks";
+import { useMemo } from "react";
 
 
 export default function Dashboard() {
-  const widgets:  WidgetConfig<WidgetId>[] = [
+  const widgets: WidgetConfig<WidgetId>[] = useMemo(() => [
     {
       id: "hero",
       component: <HeroCard />,
-      fullWidth: true, 
+      fullWidth: true,
     },
     {
       id: "tasksDone",
       component: <DoneTasksWidget />,
-      fullWidth: false, 
+      fullWidth: false,
     },
     {
       id: "taskStatus",
@@ -29,14 +30,14 @@ export default function Dashboard() {
       component: <TeamsPerformanceWidget />,
       fullWidth: false,
     },
-  ];
+  ], []);
 
-  const defaultOrder: WidgetId[] = [
+  const defaultOrder: WidgetId[] = useMemo(() => [
     "hero",
     "tasksDone",
     "taskStatus",
     "teamsPerformance",
-  ];
+  ], []);
 
   return (
     <DraggableWidgetLayout

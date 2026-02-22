@@ -1,4 +1,4 @@
-import { useEffect, useTransition, useMemo } from "react";
+import { useCallback, useEffect, useTransition, useMemo } from "react";
 import Conversations from "../components/Conversations";
 import ChatHeader, { ChatHeaderSkeleton } from "../components/ChatHeader";
 import MessagesArea from "../components/MessagesArea";
@@ -53,11 +53,11 @@ export default function Inbox() {
     if (conversationId) {
       markAsRead(conversationId)
     }
-  }, [conversationId]);
+  }, [conversationId, markAsRead]);
 
-  const handleSelect = (id: string) => {
+  const handleSelect = useCallback((id: string) => {
     navigate(`/inbox/${id}`);
-  };
+  }, [navigate]);
 
   const currentTypingUsers = useMemo(() => {
     const user = typingUsers[conversationId!];

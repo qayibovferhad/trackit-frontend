@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   closestCenter,
   DndContext,
@@ -54,11 +54,11 @@ export default function DraggableWidgetLayout<T extends string>({
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -72,19 +72,21 @@ export default function DraggableWidgetLayout<T extends string>({
     }
 
     setActiveId(null);
-  };
+  }, [localStorageKey]);
 
-  const handleDragCancel = () => {
+  const handleDragCancel = useCallback(() => {
     setActiveId(null);
-  };
+  }, []);
 
-  const widgetMap: Record<string, React.ReactNode> = {};
-  const widgetConfigMap: Record<string, WidgetConfig<T>> = {};
-  
-  widgets.forEach((widget) => {
-    widgetMap[widget.id] = widget.component;
-    widgetConfigMap[widget.id] = widget;
-  });
+  const { widgetMap, widgetConfigMap } = useMemo(() => {
+    const map: Record<string, React.ReactNode> = {};
+    const configMap: Record<string, WidgetConfig<T>> = {};
+    widgets.forEach((widget) => {
+      map[widget.id] = widget.component;
+      configMap[widget.id] = widget;
+    });
+    return { widgetMap: map, widgetConfigMap: configMap };
+  }, [widgets]);
 
   const renderWidgets = () => {
     const elements: React.ReactNode[] = [];

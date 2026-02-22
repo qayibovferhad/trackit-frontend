@@ -2,6 +2,7 @@ import UserAvatar from "@/shared/components/UserAvatar";
 import { timeAgo } from "@/shared/utils/date";
 import { MoreVertical } from "lucide-react";
 import type { User } from "@/features/auth/types/auth.type";
+import { memo } from "react";
 
 
 interface ChatHeaderProps {
@@ -33,7 +34,7 @@ export function ChatHeaderSkeleton() {
     </div>
   );
 }
-export default function ChatHeader({ name, lastSeenAt, avatar, isGroup, participants, username, isOnline }: ChatHeaderProps) {
+function ChatHeader({ name, lastSeenAt, avatar, isGroup, participants, username, isOnline }: ChatHeaderProps) {
 
   return (
     <div className="flex items-center justify-between p-4 border-b bg-white">
@@ -78,3 +79,5 @@ export default function ChatHeader({ name, lastSeenAt, avatar, isGroup, particip
     </div>
   );
 }
+
+export default memo(ChatHeader);

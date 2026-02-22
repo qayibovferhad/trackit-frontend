@@ -17,11 +17,6 @@ export function useBoardState(teamId: string | undefined) {
   });
 
   useEffect(() => {
-    setSelectedBoard(null);
-    setColumns([]);
-  }, [teamId]);
-
-  useEffect(() => {
     if (!boards || boards.length === 0) {
       setSelectedBoard(null);
       setColumns([]);
