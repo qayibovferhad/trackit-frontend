@@ -1,28 +1,42 @@
 import { BrowserRouter } from "react-router-dom";
 import RouteConfig from "./routes/RoutesConfig";
-import { Suspense, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUserStore } from "./stores/userStore";
 import { SocketProvider } from "./providers/SocketProvider";
+import Spinner from "./shared/components/Spinner";
+import NetworkStatus from "./shared/components/NetworkStatus";
+import NavigationProgress from "./shared/components/NavigationProgress";
 
 function App() {
+  const [hydrated, setHydrated] = useState(useUserStore.persist.hasHydrated());
+
   useEffect(() => {
+    if (hydrated) {
+      if (!useUserStore.getState().user) {
+        useUserStore.getState().fetchUser();
+      }
+      return;
+    }
+
     const unsub = useUserStore.persist.onFinishHydration((state) => {
       if (!state?.user) {
         useUserStore.getState().fetchUser();
       }
+      setHydrated(true);
     });
-    if (useUserStore.persist.hasHydrated() && !useUserStore.getState().user) {
-      useUserStore.getState().fetchUser();
-    }
+
     return unsub;
   }, []);
+
+  if (!hydrated) return <Spinner />;
+
   return (
     <SocketProvider>
-    <BrowserRouter>
-      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <NetworkStatus />
+      <BrowserRouter>
+        <NavigationProgress />
         <RouteConfig />
-      </Suspense>
-    </BrowserRouter>
+      </BrowserRouter>
     </SocketProvider>
   );
 }

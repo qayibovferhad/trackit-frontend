@@ -2,6 +2,7 @@ import { useMarkAsRead } from "@/features/inbox/hooks/useMarkAsRead";
 import type { Conversation } from "@/features/inbox/types/conversation";
 import type { Message } from "@/features/inbox/types/messages";
 import { useSocket } from "@/shared/hooks/useSocket";
+import { getAccessToken } from "@/shared/lib/authStorage";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryClient } from "@tanstack/react-query";
@@ -181,6 +182,16 @@ export const SocketProvider = ({ children }: { children: any }) => {
       }
     });
   }, [user?.id, setTypingUser]);
+
+  useEffect(() => {
+    if (!socket || !user?.id) return;
+
+    const token = getAccessToken();
+    if (token) {
+      (socket as any).auth = { token };
+      socket.disconnect().connect();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (!socket) return;

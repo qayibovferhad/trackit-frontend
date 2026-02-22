@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { useRoutes, type RouteObject } from "react-router-dom";
 import { allRoutes } from ".";
 import PrivateRoute from "../shared/components/PrivateRoute";
+import Spinner from "../shared/components/Spinner";
 import type { RouteConfig } from "@/shared/types/routes.types";
 
 const createRoute = ({
@@ -39,5 +41,9 @@ export default function RouteConfig() {
     { path: "*", element: <div>404 Not Found</div> },
   ]);
 
-  return routes;
+  return (
+    <Suspense fallback={<Spinner />}>
+      {routes}
+    </Suspense>
+  );
 }

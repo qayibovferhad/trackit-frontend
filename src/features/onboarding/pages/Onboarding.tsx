@@ -163,7 +163,7 @@ export default function Onboarding() {
           </div>
           <Button
             variant="link"
-            onClick={handleFinish}
+            onClick={()=>navigate("/",{replace:true})}
             disabled={isPending}
             className="text-xs font-semibold text-violet-500 hover:text-violet-700 p-0"
           >

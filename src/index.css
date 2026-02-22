@@ -118,3 +118,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes navigationProgress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes delayedFadeIn {
+  0%, 100% { opacity: 0; }
+  100% { opacity: 1; }
+}

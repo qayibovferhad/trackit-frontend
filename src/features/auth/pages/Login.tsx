@@ -16,6 +16,7 @@ import { useUserStore } from "@/stores/userStore";
 import { setAccessToken } from "@/shared/lib/authStorage";
 import { PATHS } from "@/shared/constants/routes";
 export default function Login() {
+  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { setUser } = useUserStore();
   const { mutateAsync: login, isPending } = useMutation({
@@ -39,7 +40,7 @@ export default function Login() {
     if (response?.accessToken && response.user) {
       setUser(response.user);
       setAccessToken(response.accessToken);
-      window.location.href =  PATHS.SETTINGS
+      navigate(response.user.isOnboarded ? PATHS.HOME : PATHS.ONBOARDING);
     }
   };
   return (
