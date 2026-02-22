@@ -21,8 +21,9 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import UserAvatar from "@/shared/components/UserAvatar";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchUnreadCount } from "@/features/notifications/services/notifications.service";
+import { logoutRequest } from "@/features/auth/services/auth.service";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -39,7 +40,7 @@ export default function Topbar({
   showBack = true,
 }: TopbarProps) {
   const computedTitle = usePageTitle(menus, "Back");
-  const { user } = useUserStore();
+  const { user, logout } = useUserStore();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
   const submit = () => {
@@ -48,7 +49,10 @@ export default function Topbar({
     onSearchSubmit?.(value);
   };
 
-  function logout() {}
+  const { mutate: handleLogout } = useMutation({
+    mutationFn: logoutRequest,
+    onSuccess: () => logout(),
+  });
   return (
     <header
       className="fixed top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4"
@@ -148,7 +152,7 @@ export default function Topbar({
               iconCircle
               icon={<LogOut className="!size-5" />}
               label="Logout"
-              onClick={() => logout()}
+              onClick={handleLogout}
             />
           </DropdownMenuContent>
         </DropdownMenu>

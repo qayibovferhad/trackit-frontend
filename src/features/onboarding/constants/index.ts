@@ -8,7 +8,8 @@ export const STEP_CONFIG = {
   company: [
     { key: "accountType", title: "What type of account?", subtitle: "Choose the option that best describes you" },
     { key: "company", title: "Tell us about your company", subtitle: "Help us personalize your experience" },
-    { key: "experience", title: "What's your experience level?", subtitle: "Help us tailor your workspace" },
+    { key: "role", title: "What's your role?", subtitle: "Tell us your position in the company" },
+    { key: "goal", title: "What's your main goal?", subtitle: "Help us tailor TrackIt for your needs" },
   ],
 };
 
@@ -31,6 +32,22 @@ export const COMPANY_SECTORS = [
 ];
 
 export const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
+
+export const COMPANY_ROLES = [
+  { id: "ceo", emoji: "👑", title: "CEO / Founder", subtitle: "Leading the company" },
+  { id: "cto", emoji: "⚙️", title: "CTO / Tech Lead", subtitle: "Managing the tech team" },
+  { id: "pm", emoji: "📋", title: "Project Manager", subtitle: "Coordinating projects & teams" },
+  { id: "developer", emoji: "💻", title: "Developer", subtitle: "Building products" },
+  { id: "designer", emoji: "🎨", title: "Designer", subtitle: "Creating experiences" },
+  { id: "hr", emoji: "🤝", title: "HR / People Ops", subtitle: "Managing people & culture" },
+];
+
+export const COMPANY_GOALS = [
+  { id: "task_tracking", emoji: "✅", title: "Task Tracking", subtitle: "Keep tasks organized & on track" },
+  { id: "team_management", emoji: "👥", title: "Team Management", subtitle: "Coordinate and manage your team" },
+  { id: "project_planning", emoji: "🗂️", title: "Project Planning", subtitle: "Plan and execute projects" },
+  { id: "performance", emoji: "📈", title: "Performance Monitoring", subtitle: "Track team productivity" },
+];
 
 export const EXPERIENCE_LEVELS = [
   { id: "junior", emoji: "👶", title: "Junior", subtitle: "0–2 years of experience" },

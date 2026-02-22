@@ -43,3 +43,12 @@ export const getCurrentUserRequest = async (): Promise<User> => {
   const response = await api.get("/auth/me");
   return response.data;
 };
+
+export const logoutRequest = async () => {
+  await api.post("/auth/logout");
+};
+
+export const completeOnboardingRequest = async (data: Record<string, any>) => {
+  const response = await api.patch("/me/onboarding", data);
+  return response.data;
+};

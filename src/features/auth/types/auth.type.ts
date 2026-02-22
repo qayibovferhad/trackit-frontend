@@ -11,8 +11,9 @@ export interface User {
   description: string;
   lastSeen: string,
   presence: 'online' | 'offline' | 'away';
-  isOnline:boolean;
-  lastSeenAt:string
+  isOnline: boolean;
+  lastSeenAt: string;
+  isOnboarded: boolean;
 }
 
 export interface LoginResponse {

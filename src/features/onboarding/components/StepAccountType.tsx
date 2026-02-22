@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { ACCOUNT_TYPES } from "../constants";
 
-export function StepAccountType({ value, onChange }) {
+export function StepAccountType({ value, onChange }: { value: string | undefined; onChange: (v: "personal" | "company") => void }) {
   return (
     <div className="flex flex-col gap-3">
       {ACCOUNT_TYPES.map((type) => {

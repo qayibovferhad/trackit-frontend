@@ -4,6 +4,7 @@ import { AtSign, Briefcase, CalendarDays, Mail } from "lucide-react";
 import { useUserStatsQuery } from "../hooks/useUserStats";
 import { formatNumber } from "../utils/number";
 import { ErrorAlert } from "./ErrorAlert";
+import { useNavigate } from "react-router-dom";
 
 
 type StatItemProps = {
@@ -34,7 +35,7 @@ const StatItem = ({ icon, label, value,isLoading }: StatItemProps) => {
 
 export default function HeroCard() {
   const { user } = useUserStore()
-
+  const navigate = useNavigate()
   const { data: stats, isLoading, isError, error, refetch } = useUserStatsQuery(user?.id);
 
 
@@ -47,17 +48,21 @@ export default function HeroCard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            Hi {user?.name}, You are almost done.
+            Hi {user?.name}{user?.isOnboarded ? "!" : ", You are almost done."}
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Please complete few steps to setup your account completely.
-          </p>
+          {!user?.isOnboarded && (
+            <p className="mt-1 text-sm text-gray-500">
+              Please complete few steps to setup your account completely.
+            </p>
+          )}
         </div>
 
-        <Button variant={'violet'}>
-          Setup Account
-          <span className="text-lg">›</span>
-        </Button>
+        {!user?.isOnboarded && (
+          <Button variant={'violet'} onClick={() => navigate('/onBoarding')}>
+            Setup Account
+            <span className="text-lg">›</span>
+          </Button>
+        )}
       </div>
 
       {/* Divider */}

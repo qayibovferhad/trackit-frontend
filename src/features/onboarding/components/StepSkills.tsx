@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { PERSONAL_SKILLS } from "../constants";
 
-export function StepSkills({ selected, onToggle }) {
+export function StepSkills({ selected, onToggle }: { selected: string[]; onToggle: (skill: string) => void }) {
   const half = Math.ceil(PERSONAL_SKILLS.length / 2);
   const col1 = PERSONAL_SKILLS.slice(0, half);
   const col2 = PERSONAL_SKILLS.slice(half);
