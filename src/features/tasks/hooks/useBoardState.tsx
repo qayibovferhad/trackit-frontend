@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Board, Column } from "../types/boards";
 import { useQuery } from "@tanstack/react-query";
 import { fetchBoards } from "../services/boards.service";
@@ -39,7 +39,7 @@ export function useBoardState(teamId: string | undefined) {
     }
   }, [boards]);
 
-  const handleSelectChange = (board: Board | null) => {
+  const handleSelectChange = useCallback((board: Board | null) => {
     setSelectedBoard(board);
 
     if (board) {
@@ -49,7 +49,7 @@ export function useBoardState(teamId: string | undefined) {
       localStorage.removeItem(SELECTED_BOARD_KEY);
       setColumns([]);
     }
-  };
+  }, []);
 
   return {
     boards,

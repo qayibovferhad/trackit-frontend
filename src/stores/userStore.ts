@@ -3,6 +3,7 @@ import type { UserStoreState } from "./types";
 import { devtools, persist } from "zustand/middleware";
 import { getCurrentUserRequest } from "@/features/auth/services/auth.service";
 import { setAccessToken } from "@/shared/lib/authStorage";
+import { disconnectSocket } from "@/shared/hooks/useSocket";
 
 export const useUserStore = create<UserStoreState>()(
   devtools(
@@ -37,16 +38,10 @@ export const useUserStore = create<UserStoreState>()(
           }
         },
         logout: () => {
-          set({
-            user: null,
-            error: null,
-            isLoading: false,
-          });
+          disconnectSocket();
           setAccessToken(null);
           localStorage.removeItem("user-storage");
-          if (!window.location.pathname.startsWith("/login")) {
-            window.location.href = "/login";
-          }
+          window.location.replace("/login");
         },
         clearError: () => {
           set({ error: null });

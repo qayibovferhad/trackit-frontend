@@ -68,24 +68,47 @@ export default function Register() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField label="Email address" error={errors.email} htmlFor="email">
           <input
+            id="email"
             type="text"
             {...register("email")}
+            placeholder="you@example.com"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+          />
+        </FormField>
+
+        <FormField label="Name" error={errors.name} htmlFor="name">
+          <input
+            id="name"
+            type="text"
+            {...register("name")}
+            placeholder="Your full name"
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
           />
         </FormField>
 
         <FormField label="Username" error={errors.username} htmlFor="username">
-          <input
-            type="text"
-            {...register("username")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-          />
+          <div className="flex">
+            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-500 text-sm">
+              Trackit/
+            </span>
+            <input
+              id="username"
+              type="text"
+              {...register("username")}
+              placeholder="your_username"
+              className="w-full px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Letters, numbers, and underscores only
+          </p>
         </FormField>
 
         <PasswordField
           label="Password"
           error={errors.password}
           registration={register("password")}
+          placeholder="Min. 8 characters"
         />
 
         <div

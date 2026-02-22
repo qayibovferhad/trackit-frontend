@@ -3,6 +3,7 @@ import type { Board, BoardOption } from "../../types/boards";
 import Select, { type SingleValue } from "react-select";
 import { Button } from "@/shared/ui/button";
 import { Plus } from "lucide-react";
+import { memo } from "react";
 
 type BoardHeaderProps = {
   onOpenChange: (v: boolean) => void;
@@ -12,7 +13,7 @@ type BoardHeaderProps = {
   onSelectChange: (opt: SingleValue<BoardOption>) => void;
 };
 
-export default function BoardHeader({
+function BoardHeader({
   onOpenChange,
   boardsLoading,
   options,
@@ -77,3 +78,5 @@ export default function BoardHeader({
     />
   );
 }
+
+export default memo(BoardHeader);

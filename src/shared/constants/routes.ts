@@ -18,4 +18,6 @@ export const PATHS = {
   PROFILE:"/profile/:username",
   INBOX:"/inbox/:conversationId?",
   ONBOARDING:"/onboarding",
+  SUBSCRIPTION:"/subscription",
+  SETTINGS_SUBSCRIPTION: "/settings/subscription",
 } as const;

@@ -1,9 +1,14 @@
 import BoardModal from "../components/board/BoardModal";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Board, BoardOption, Column } from "../types/boards";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragOverlay, MeasuringStrategy } from "@dnd-kit/core";
+
+const dndModifiers = [restrictToWindowEdges];
+const dndMeasuring = {
+  droppable: { strategy: MeasuringStrategy.BeforeDragging },
+};
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -14,6 +19,7 @@ import BoardColumn from "../components/column/Column";
 import AddColumnButton from "../components/column/AddColumnButton";
 import type { ColumnFormData } from "../schemas/boards.schema";
 import TaskModal from "../components/task/TaskModal";
+import { TaskCardOverlay } from "../components/task/TaskCard";
 import type { CreateTaskPayload } from "../types/tasks";
 import ColumnModal from "../components/column/ColumnModal";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
@@ -42,6 +48,9 @@ export default function Boards() {
     handleSelectChange,
   } = useBoardState(teamId);
 
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
+
   const { createColumnMutation, updateColumnMutation, deleteColumnMutation } =
     useColumnMutations(setColumns, setSelectedBoard);
 
@@ -52,15 +61,23 @@ export default function Boards() {
     }
   );
 
-  const { sensors, handleDragOver, handleDragEnd } = useDragAndDrop(
-    columns,
-    setColumns,
-    updateTaskMutation
-  );
+  const {
+    sensors,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragCancel,
+    activeTask,
+  } = useDragAndDrop(columns, setColumns, updateTaskMutation);
 
   const options: BoardOption[] = useMemo(
     () => (boards || []).map((b: Board) => ({ value: b.id, label: b.name, board: b })),
     [boards]
+  );
+
+  const handleBoardSelectChange = useCallback(
+    (opt: SingleValue<BoardOption>) => handleSelectChange(opt ? opt.board : null),
+    [handleSelectChange]
   );
 
   const taskIds = useMemo(
@@ -109,12 +126,12 @@ export default function Boards() {
   }, []);
 
   const handleDeleteColumn = useCallback((columnId: string) => {
-    const column = columns.find((col) => col.id === columnId);
+    const column = columnsRef.current.find((col) => col.id === columnId);
     if (!column) return;
 
     setDeletingColumn(column);
     setConfirmDeleteOpen(true);
-  }, [columns]);
+  }, []);
 
   const handleConfirmDelete = () => {
     if (!selectedBoard?.id || !deletingColumn?.id) return;
@@ -139,9 +156,7 @@ export default function Boards() {
           options={options}
           boardsLoading={boardsLoading}
           selectedBoard={selectedBoard}
-          onSelectChange={(opt: SingleValue<BoardOption>) =>
-            handleSelectChange(opt ? opt.board : null)
-          }
+          onSelectChange={handleBoardSelectChange}
         />
       </div>
 
@@ -150,14 +165,18 @@ export default function Boards() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
-            modifiers={[restrictToWindowEdges]}
+            onDragCancel={handleDragCancel}
+            modifiers={dndModifiers}
+            measuring={dndMeasuring}
+            // accessibility={{ announcements: {} }}
           >
             <div className="flex gap-3 overflow-x-hidden items-stretch pb-4 h-[calc(100vh-7.5rem)]">
               <SortableContext
                 items={[
-                  ...(selectedBoard?.columns?.map((col) => col.id) || []),
+                  ...columns.map((col) => col.id),
                   ...taskIds,
                 ]}
                 strategy={horizontalListSortingStrategy}
@@ -178,6 +197,10 @@ export default function Boards() {
                 <AddColumnButton onAdd={handleAddColumn} />
               )}
             </div>
+
+            <DragOverlay dropAnimation={null}>
+              {activeTask ? <TaskCardOverlay task={activeTask} /> : null}
+            </DragOverlay>
           </DndContext>
         )}
       </div>

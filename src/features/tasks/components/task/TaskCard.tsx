@@ -20,10 +20,7 @@ function TaskCard({ task }: { task: TaskType }) {
     isDragging,
   } = useSortable({
     id: task.id,
-    data: {
-      type: "Task",
-      task,
-    },
+    data: { type: "Task", task },
     transition: {
       duration: 200,
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
@@ -51,17 +48,25 @@ function TaskCard({ task }: { task: TaskType }) {
     }
   }, [navigate, task.assignee?.username]);
 
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={{ ...style, minHeight: "80px" }}
+        {...attributes}
+        {...listeners}
+        className="rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/30 opacity-40 mb-3"
+      />
+    );
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`overflow-x-hidden bg-white rounded-lg border border-gray-200 shadow-sm p-3 mb-3 cursor-grab active:cursor-grabbing select-none ${
-        isDragging
-          ? "opacity-50 rotate-2 shadow-xl scale-105 border-blue-300 bg-blue-50"
-          : "hover:shadow-md hover:border-gray-300"
-      } transition-all duration-200`}
+      className="overflow-x-hidden bg-white rounded-lg border border-gray-200 shadow-sm p-3 mb-3 cursor-grab active:cursor-grabbing select-none hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
       <div className="flex items-start gap-3">
         <div className="mt-1  flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
@@ -116,11 +121,59 @@ function TaskCard({ task }: { task: TaskType }) {
         </div>
       </div>
 
-      {isDragging && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full shadow-lg animate-pulse"></div>
-      )}
     </div>
   );
 }
 
 export default memo(TaskCard);
+
+export const TaskCardOverlay = memo(function TaskCardOverlay({ task }: { task: TaskType }) {
+  return (
+    <div className="overflow-x-hidden bg-white rounded-lg border-2 border-blue-300 shadow-xl p-3 mb-3 cursor-grabbing select-none rotate-1 scale-105 opacity-95">
+      <div className="flex items-start gap-3">
+        <div className="mt-1 flex-shrink-0 text-blue-400">
+          <GripVertical className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-xs font-medium text-gray-800 leading-tight break-words line-clamp-2">
+            {truncateText(task.title, 50)}
+          </h4>
+          {task.description && (
+            <p className="text-xs text-gray-500 mt-1 line-clamp-2 break-words">
+              {truncateText(task.description, 60)}
+            </p>
+          )}
+          <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+            <div className="flex items-center gap-2 min-w-0">
+              <UserAvatar
+                name={task.assignee?.username}
+                src={task.assignee?.profileImage}
+                size="sm"
+              />
+              {task.assignee?.username && (
+                <span className="truncate max-w-[80px] text-[10px]">
+                  {task.assignee.username}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {task.priority && (
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                    task.priority === "high"
+                      ? "bg-red-100 text-red-700"
+                      : task.priority === "medium"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {task.priority}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});

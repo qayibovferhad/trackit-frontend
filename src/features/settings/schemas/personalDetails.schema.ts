@@ -1,4 +1,5 @@
 import z from "zod";
+import { USERNAME_REGEX } from "@/shared/constants/regex";
 
 export const profileDetailsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -6,7 +7,7 @@ export const profileDetailsSchema = z.object({
     .string()
     .min(3, "Username must be at least 3 characters")
     .regex(
-      /^[a-zA-Z0-9_]+$/,
+      USERNAME_REGEX,
       "Username can only contain letters, numbers, and underscores"
     ),
     description:z.string().optional()
@@ -16,7 +17,6 @@ export const emailUpdateSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
-// Telefon güncelleme için schema
 export const phoneUpdateSchema = z.object({
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
 });

@@ -1,5 +1,5 @@
 import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import type { Column as ColumnType } from "../../types/boards";
 import TaskCard from "../task/TaskCard";
 import { colorOptions } from "@/shared/constants/colors";
@@ -32,14 +32,15 @@ function Column({
 }) {
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: column.id,
-    data: {
-      type: "Column",
-      column,
-    },
+    data: { type: "Column", column },
   });
 
-  const colorOption =
-    colorOptions.find((c) => c.name === column.color) || colorOptions[0];
+  const colorOption = useMemo(
+    () => colorOptions.find((c) => c.name === column.color) ?? colorOptions[0],
+    [column.color]
+  );
+
+  const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
 
   return (
     <div className="flex-1 min-w-0 h-full">
@@ -132,7 +133,7 @@ function Column({
         >
           {tasks && tasks.length > 0 ? (
             <SortableContext
-              items={tasks.map((task) => task.id)}
+              items={taskIds}
               strategy={verticalListSortingStrategy}
             >
               {tasks.map((task) => (

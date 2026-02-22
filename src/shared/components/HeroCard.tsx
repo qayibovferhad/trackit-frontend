@@ -38,7 +38,6 @@ export default function HeroCard() {
   const navigate = useNavigate()
   const { data: stats, isLoading, isError, error, refetch } = useUserStatsQuery(user?.id);
 
-
   if (isError) {
     return <ErrorAlert message={error.message} />
   }
