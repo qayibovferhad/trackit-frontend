@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Lock, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -7,90 +7,100 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useMutation } from "@tanstack/react-query";
+import { Modal } from "@/shared/ui/modal";
 import { Button } from "@/shared/ui/button";
+import { InputField } from "@/shared/components/InputField";
+import { ErrorAlert } from "@/shared/components/ErrorAlert";
+import { useZodForm } from "@/shared/hooks/useZodForm";
+import { getErrorMessage } from "@/shared/lib/error";
+import { checkoutSchema } from "../schemas/checkout.schema";
 import {
-  createIntentRequest,
   activateRequest,
+  createIntentRequest,
 } from "../services/subscription.service";
 import type { BillingPeriod, Plan } from "../types/subscription.types";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 type Props = {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
   plan: Plan;
   billing: BillingPeriod;
   seats: number;
-  onClose: () => void;
   onSuccess: () => void;
 };
 
-type FormProps = {
-  plan: Plan;
-  billing: BillingPeriod;
-  seats: number;
-  paymentIntentId: string;
-  onSuccess: () => void;
+type InnerProps = Omit<Props, "open" | "onOpenChange"> & {
   onError: (msg: string) => void;
 };
 
-function PaymentForm({
-  plan,
-  billing,
-  seats,
-  paymentIntentId,
-  onSuccess,
-  onError,
-}: FormProps) {
+function PaymentForm({ plan, billing, seats, onSuccess, onError }: InnerProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const [loading, setLoading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useZodForm(checkoutSchema);
+
+  const { mutate: activate, isPending: isActivating } = useMutation({
+    mutationFn: activateRequest,
+    onSuccess,
+    onError: (err) => onError(getErrorMessage(err.message)),
+  });
+
+  const loading = isConfirming || isActivating;
+
+  const onSubmit = handleSubmit(async () => {
     if (!stripe || !elements) return;
 
-    setLoading(true);
+    setIsConfirming(true);
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       redirect: "if_required",
     });
 
+    setIsConfirming(false);
+
     if (error) {
       onError(error.message ?? "Payment failed");
-      setLoading(false);
       return;
     }
 
     if (paymentIntent?.status === "succeeded") {
-      try {
-        await activateRequest({
-          plan: plan.planKey as "STARTER" | "PREMIUM",
-          billingPeriod: billing === "yearly" ? "YEARLY" : "MONTHLY",
-          seats,
-          paymentIntentId: paymentIntent.id,
-        });
-        onSuccess();
-      } catch {
-        onError("Payment succeeded but activation failed. Please contact support.");
-      }
+      activate({
+        plan: plan.planKey as "STARTER" | "PREMIUM",
+        billingPeriod: billing === "yearly" ? "YEARLY" : "MONTHLY",
+        seats,
+        paymentIntentId: paymentIntent.id,
+      });
     }
-
-    setLoading(false);
-  }
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
-      <PaymentElement
-        options={{
-          layout: "tabs",
-        }}
+    <form onSubmit={onSubmit} className="space-y-4">
+      <InputField
+        htmlFor="cardHolder"
+        label="Cardholder Name"
+        placeholder="John Doe"
+        register={register}
+        error={errors.cardHolder}
       />
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Card Details</label>
+        <PaymentElement options={{ layout: "tabs" }} />
+      </div>
 
       <Button
         type="submit"
         disabled={!stripe || loading}
-        className="w-full h-11 font-semibold gap-2"
+        className="w-full gap-2"
       >
         <Lock className="w-4 h-4" />
         {loading ? "Processing..." : `Pay $${plan.price}`}
@@ -105,94 +115,94 @@ function PaymentForm({
 }
 
 export default function CheckoutModal({
+  open,
+  onOpenChange,
   plan,
   billing,
   seats,
-  onClose,
   onSuccess,
 }: Props) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string>("");
-  const [initError, setInitError] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
 
+  const {
+    mutate: createIntent,
+    isPending: intentLoading,
+    error: intentError,
+    reset: resetIntent,
+  } = useMutation({
+    mutationFn: createIntentRequest,
+    onSuccess: ({ clientSecret }) => setClientSecret(clientSecret),
+  });
+
   useEffect(() => {
-    createIntentRequest({
-      plan: plan.planKey as "STARTER" | "PREMIUM",
-      billingPeriod: billing === "yearly" ? "YEARLY" : "MONTHLY",
-      seats,
-    })
-      .then(({ clientSecret }) => {
-        setClientSecret(clientSecret);
-        // extract intent id from client_secret
-        setPaymentIntentId(clientSecret.split("_secret_")[0]);
-      })
-      .catch(() => setInitError("Could not initialize payment. Try again."));
-  }, [plan.planKey, billing, seats]);
+    if (open) {
+      setClientSecret(null);
+      setPayError(null);
+      createIntent({
+        plan: plan.planKey as "STARTER" | "PREMIUM",
+        billingPeriod: billing === "yearly" ? "YEARLY" : "MONTHLY",
+        seats,
+      });
+    } else {
+      resetIntent();
+    }
+  }, [open]);
+
+  function handleSuccess() {
+    onOpenChange(false);
+    onSuccess();
+  }
+
+  const description = `${plan.price > 0 ? `$${plan.price}/month` : "Free"} · ${seats} users · ${billing === "yearly" ? "Yearly" : "Monthly"}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-        {/* Header */}
-        <div className="bg-violet-600 px-6 py-5 flex items-center justify-between">
-          <div>
-            <p className="text-violet-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
-              Checkout
-            </p>
-            <h2 className="text-white text-lg font-bold">{plan.name}</h2>
-            <p className="text-violet-200 text-sm mt-0.5">
-              ${plan.price}/month · {seats} users ·{" "}
-              {billing === "yearly" ? "Yearly" : "Monthly"}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-violet-200 hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={plan.name}
+      description={description}
+      size="md"
+    >
+      {intentError && (
+        <ErrorAlert
+          className="mb-4"
+          message={getErrorMessage(intentError.message)}
+        />
+      )}
 
-        {/* Body */}
-        {initError ? (
-          <div className="px-6 py-8 text-center text-sm text-red-500">{initError}</div>
-        ) : !clientSecret ? (
-          <div className="px-6 py-10 text-center text-sm text-gray-400 animate-pulse">
-            Loading payment form...
-          </div>
-        ) : (
-          <>
-            {payError && (
-              <div className="mx-6 mt-4 text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2.5">
-                {payError}
-              </div>
-            )}
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: "stripe",
-                  variables: {
-                    colorPrimary: "#7c3aed",
-                    borderRadius: "12px",
-                    fontFamily: "inherit",
-                  },
-                },
-              }}
-            >
-              <PaymentForm
-                plan={plan}
-                billing={billing}
-                seats={seats}
-                paymentIntentId={paymentIntentId}
-                onSuccess={onSuccess}
-                onError={setPayError}
-              />
-            </Elements>
-          </>
-        )}
-      </div>
-    </div>
+      {payError && (
+        <ErrorAlert className="mb-4" message={payError} />
+      )}
+
+      {intentLoading || !clientSecret ? (
+        <div className="py-10 text-center text-sm text-gray-400 animate-pulse">
+          Loading payment form...
+        </div>
+      ) : (
+        <Elements
+          stripe={stripePromise}
+          options={{
+            clientSecret,
+            appearance: {
+              theme: "stripe",
+              variables: {
+                colorPrimary: "#7c3aed",
+                borderRadius: "8px",
+                fontFamily: "inherit",
+              },
+            },
+          }}
+        >
+          <PaymentForm
+            plan={plan}
+            billing={billing}
+            seats={seats}
+            onSuccess={handleSuccess}
+            onError={setPayError}
+          />
+        </Elements>
+      )}
+    </Modal>
   );
 }

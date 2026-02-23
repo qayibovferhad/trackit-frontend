@@ -62,10 +62,11 @@ export default function Subscription() {
 
       {selectedPlan && (
         <CheckoutModal
+          open={!!selectedPlan}
+          onOpenChange={(v) => !v && setSelectedPlan(null)}
           plan={selectedPlan}
           billing={billing}
           seats={users}
-          onClose={() => setSelectedPlan(null)}
           onSuccess={handleSuccess}
         />
       )}
