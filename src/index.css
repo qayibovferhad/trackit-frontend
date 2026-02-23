@@ -119,6 +119,35 @@
   }
 }
 
+/* Modern scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 @keyframes navigationProgress {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(0%); }
