@@ -8,7 +8,7 @@ type Props = {
   onSubscribe?: (plan: Plan) => void;
 };
 
-export default function PlanCard({ plan, onSubscribe }: Props) {
+export default function PlanCard({ plan, billing, onSubscribe }: Props) {
   return (
     <div
       className={`relative rounded-2xl p-8 flex flex-col justify-between min-h-[580px] transition-all duration-200 ${
@@ -47,10 +47,15 @@ export default function PlanCard({ plan, onSubscribe }: Props) {
                   plan.highlight ? "text-violet-200" : "text-gray-400"
                 }`}
               >
-                /month
+                /{billing === "yearly" ? "year" : "month"}
               </span>
             )}
           </div>
+          {plan.price > 0 && billing === "yearly" && (
+            <p className={`text-sm mt-1 ${plan.highlight ? "text-violet-200" : "text-gray-400"}`}>
+              ${Math.round(plan.price / 12)}/mo · save 20%
+            </p>
+          )}
           {plan.price === 0 && (
             <p className={`text-sm mt-1 ${plan.highlight ? "text-violet-200" : "text-gray-400"}`}>
               Free forever

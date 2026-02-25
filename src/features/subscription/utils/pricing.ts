@@ -6,8 +6,8 @@ import { USER_MIN } from "../constants";
 // Yearly: 20% endirim
 
 export function calcStarter(users: number, yearly: boolean) {
-  const base = 49 + (users - USER_MIN) * 2;
-  const price = Math.round(base * (yearly ? 0.8 : 1));
+  const base = 29 + (users - USER_MIN) * 1;
+  const price = Math.round(base * (yearly ? 0.8 * 12 : 1));
   const boards = 5 + Math.floor((users - USER_MIN) / 10);
   const bots = 2 + Math.floor((users - USER_MIN) / 50);
   return {
@@ -23,8 +23,8 @@ export function calcStarter(users: number, yearly: boolean) {
 }
 
 export function calcPremium(users: number, yearly: boolean) {
-  const base = 99 + (users - USER_MIN) * 3;
-  const price = Math.round(base * (yearly ? 0.8 : 1));
+  const base = 59 + (users - USER_MIN) * 2;
+  const price = Math.round(base * (yearly ? 0.8 * 12 : 1));
   const boards = users >= 250 ? "Unlimited" : String(25 + Math.floor((users - USER_MIN) / 8));
   const bots = users >= 200 ? "Unlimited" : String(5 + Math.floor((users - USER_MIN) / 20));
   return {

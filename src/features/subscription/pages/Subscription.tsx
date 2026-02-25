@@ -65,7 +65,7 @@ export default function Subscription() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Upgrade to Premium Plan</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Get Unlimited features with 50% Off in Yearly Plan
+            Get Unlimited features with 20% Off in Yearly Plan
           </p>
         </div>
         <BillingToggle value={billing} onChange={setBilling} />
@@ -79,7 +79,7 @@ export default function Subscription() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         {plans.map((plan) => (
-          <PlanCard key={plan.name} plan={plan} onSubscribe={handleSubscribe} />
+          <PlanCard key={plan.name} plan={plan} billing={billing} onSubscribe={handleSubscribe} />
         ))}
       </div>
 

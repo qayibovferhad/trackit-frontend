@@ -154,7 +154,7 @@ export default function CheckoutModal({
     onSuccess();
   }
 
-  const description = `${plan.price > 0 ? `$${plan.price}/month` : "Free"} · ${seats} users · ${billing === "yearly" ? "Yearly" : "Monthly"}`;
+  const description = `${plan.price > 0 ? `$${plan.price}/${billing === "yearly" ? "year" : "month"}` : "Free"} · ${seats} users · ${billing === "yearly" ? "Yearly" : "Monthly"}`;
 
   return (
     <Modal
