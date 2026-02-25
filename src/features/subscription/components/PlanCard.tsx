@@ -1,9 +1,10 @@
 import { Check } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import type { Plan } from "../types/subscription.types";
+import type { BillingPeriod, Plan } from "../types/subscription.types";
 
 type Props = {
   plan: Plan;
+  billing: BillingPeriod;
   onSubscribe?: (plan: Plan) => void;
 };
 
@@ -98,20 +99,26 @@ export default function PlanCard({ plan, onSubscribe }: Props) {
         </ul>
       </div>
 
-      <div className="mt-8">
-        {plan.isCurrent ? (
-          <p className={`text-xs font-semibold ${plan.highlight ? "text-violet-200" : "text-gray-400"}`}>
-            ✓ Current Plan
-          </p>
-        ) : (
+      <div className="mt-8 space-y-3">
+        {plan.isCurrent && (
+          <div className={`flex items-center gap-1.5 text-xs font-semibold ${
+            plan.highlight ? "text-violet-200" : "text-violet-600"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              plan.highlight ? "bg-violet-200" : "bg-violet-500"
+            }`} />
+            Active Plan
+          </div>
+        )}
+        {!(plan.isCurrent && plan.planKey === "FREE") && (
           <Button
-            variant={plan.highlight ? "default" : "soft"}
+            variant={plan.isCurrent ? "soft" : plan.highlight ? "default" : "soft"}
             className={`w-full h-11 font-semibold ${
-              plan.highlight ? "bg-white text-violet-600 hover:bg-violet-50" : ""
+              !plan.isCurrent && plan.highlight ? "bg-white text-violet-600 hover:bg-violet-50" : ""
             }`}
             onClick={() => onSubscribe?.(plan)}
           >
-            {plan.cta}
+            {plan.isCurrent ? "Change Plan" : plan.cta}
           </Button>
         )}
       </div>

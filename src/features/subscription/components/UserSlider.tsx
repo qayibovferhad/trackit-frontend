@@ -38,22 +38,20 @@ export default function UserSlider({ value, onChange }: Props) {
           -webkit-appearance: none;
           width: 18px;
           height: 18px;
-          margin-top: -2px;
           border-radius: 50%;
-          background: white;
-          border: 2px solid #7c3aed;
+          background: #7c3aed;
+          border: 2px solid white;
+          box-shadow: 0 0 0 1.5px #7c3aed, 0 1px 4px rgba(0,0,0,0.15);
           cursor: pointer;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.15);
         }
         input[type='range']::-moz-range-thumb {
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          background: white;
-          border: 2px solid #7c3aed;
+          background: #7c3aed;
+          border: 2px solid white;
+          box-shadow: 0 0 0 1.5px #7c3aed, 0 1px 4px rgba(0,0,0,0.15);
           cursor: pointer;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-          border: none;
         }
       `}</style>
     </div>

@@ -3,7 +3,11 @@ import { calcStarter, calcPremium } from "../utils/pricing";
 import { FREE_FEATURES } from "../constants";
 import type { Plan, BillingPeriod } from "../types/subscription.types";
 
-export function usePlans(users: number, billing: BillingPeriod): Plan[] {
+export function usePlans(
+  users: number,
+  billing: BillingPeriod,
+  currentPlanKey: "FREE" | "STARTER" | "PREMIUM" = "FREE",
+): Plan[] {
   const isYearly = billing === "yearly";
 
   const starter = useMemo(() => calcStarter(users, isYearly), [users, isYearly]);
@@ -15,8 +19,8 @@ export function usePlans(users: number, billing: BillingPeriod): Plan[] {
         name: "Free Plan",
         price: 0,
         features: FREE_FEATURES,
-        isCurrent: true,
-        cta: null,
+        isCurrent: currentPlanKey === "FREE",
+        cta: "Downgrade to Free",
         highlight: false,
         planKey: "FREE",
       },
@@ -24,7 +28,7 @@ export function usePlans(users: number, billing: BillingPeriod): Plan[] {
         name: "Starter Plan",
         price: starter.price,
         features: starter.features,
-        isCurrent: false,
+        isCurrent: currentPlanKey === "STARTER",
         cta: "Get Started",
         highlight: false,
         planKey: "STARTER",
@@ -33,12 +37,12 @@ export function usePlans(users: number, billing: BillingPeriod): Plan[] {
         name: "Premium Plan",
         price: premium.price,
         features: premium.features,
-        isCurrent: false,
+        isCurrent: currentPlanKey === "PREMIUM",
         cta: "Get Premium",
         highlight: true,
         planKey: "PREMIUM",
       },
     ],
-    [starter, premium]
+    [starter, premium, currentPlanKey]
   );
 }
