@@ -1,11 +1,14 @@
 export type NotificationType =
-  | "TEAM_TASK_COMPLETED"
   | "TEAM_INVITE"
-  | "TEAM_REQUEST_ACCEPTED"
-  | "MONTHLY_REPORT"
-  | "MENTION_TASK"
-  | "WEEKLY_REPORT"
-  | "MENTION_TEAM";
+  | "ANNOUNCEMENT_CREATED"
+  | "ANNOUNCEMENT_UPDATED"
+  | "TASK_ASSIGNED"
+  | "TASK_COMPLETED"
+  | "COMMENT_ADDED"
+  | "TEAM_MEMBER_JOINED"
+  | "JOIN_REQUEST_RECEIVED"
+  | "JOIN_REQUEST_ACCEPTED"
+  | "GROUP_CREATED";
 
 export type NotificationItem = {
   id: string;
@@ -16,8 +19,11 @@ export type NotificationItem = {
   readAt?: string | null;
   href?: string;
   payload: {
-    teamName: string;
-    invitedByName: string;
-    teamId: string;
+    referenceId: string;
+    referenceType: "team" | "task" | "announcement" | "comment";
+    title: string;
+    actorName: string;
+    token?: string;
+    role?: string;
   };
 };

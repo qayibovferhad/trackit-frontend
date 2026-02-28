@@ -5,12 +5,15 @@ import { InputField } from "@/shared/components/InputField";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
 import { useZodForm } from "@/shared/hooks/useZodForm";
+import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 import { fetchTeams } from "@/features/teams/services/teams.service";
 import {
   announcementSchema,
   type AnnouncementFormData,
 } from "../schemas/announcement.schema";
 import type { Announcement } from "../types";
+
+type TeamOption = { value: string; label: string };
 
 type Props = {
   open: boolean;
@@ -130,18 +133,24 @@ export default function AnnouncementModal({
 
         {!isPublic && (
           <FormField label="Team" htmlFor="teamId">
-            <select
-              id="teamId"
-              {...register("teamId")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none"
-            >
-              <option value="">— Personal (only you) —</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            <GenericAsyncSelect<TeamOption>
+              value={
+                watch("teamId")
+                  ? [{ value: watch("teamId")!, label: teams.find((t) => t.id === watch("teamId"))?.name ?? "" }]
+                  : []
+              }
+              onChange={(selected) => setValue("teamId", selected[0]?.value ?? "")}
+              placeholder="Search team..."
+              loadOptions={async (input) =>
+                teams
+                  .filter((t) => t.name.toLowerCase().includes(input.toLowerCase()))
+                  .map((t) => ({ value: t.id, label: t.name }))
+              }
+              isMulti={false}
+              allowCreateOption={false}
+              noOptionsMessage={() => "No team found"}
+              minInputLength={0}
+            />
           </FormField>
         )}
       </form>
