@@ -1,5 +1,5 @@
 import AsyncCreatableSelect from "react-select/async-creatable";
-import type { GroupBase, MultiValue } from "react-select";
+import type { GroupBase, MultiValue, SingleValue } from "react-select";
 import { useCallback, useRef } from "react";
 import AsyncSelect from "react-select/async";
 
@@ -21,7 +21,8 @@ interface GenericAsyncSelectProps<T extends BaseOption> {
   debounceMs?: number;
   minInputLength?: number;
   allowCreateOption?: boolean;
-  isDisabled?:boolean
+  isDisabled?: boolean;
+  isMulti?: boolean;
 }
 
 export default function GenericAsyncSelect<T extends BaseOption>({
@@ -36,7 +37,8 @@ export default function GenericAsyncSelect<T extends BaseOption>({
   debounceMs = 500,
   minInputLength = 2,
   allowCreateOption = false,
-  isDisabled=false
+  isDisabled = false,
+  isMulti = true,
 }: GenericAsyncSelectProps<T>) {
   const timeoutRef = useRef<NodeJS.Timeout>(null);
 
@@ -66,25 +68,28 @@ export default function GenericAsyncSelect<T extends BaseOption>({
   );
 
   const handleChange = useCallback(
-    (selectedOptions: MultiValue<T>) => {
-      const options = selectedOptions as T[];
-      onChange(options);
+    (selected: MultiValue<T> | SingleValue<T>) => {
+      if (isMulti) {
+        onChange((selected as MultiValue<T>) as T[]);
+      } else {
+        onChange(selected ? [selected as T] : []);
+      }
     },
-    [onChange]
+    [onChange, isMulti]
   );
 
-
+  const selectValue = isMulti ? value : (value?.[0] ?? null);
 
   const commonProps: any = {
-    isMulti: true,
+    isMulti,
     cacheOptions: true,
     defaultOptions: [],
     loadOptions: debouncedLoadOptions,
-    value,
+    value: selectValue,
     onChange: handleChange,
     placeholder,
     noOptionsMessage,
-    isDisabled
+    isDisabled,
   };
 
   if (!allowCreateOption) {
@@ -98,5 +103,5 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     ...(getNewOptionData ? { getNewOptionData } : {}),
   };
 
-  return <AsyncCreatableSelect<T, true, GroupBase<T>> {...creatableProps}/>;
+  return <AsyncCreatableSelect<T, true, GroupBase<T>> {...creatableProps} />;
 }

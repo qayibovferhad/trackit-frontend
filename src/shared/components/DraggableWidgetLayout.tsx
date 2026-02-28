@@ -22,6 +22,7 @@ export interface WidgetConfig<T extends string> {
   id: T;
   component: React.ReactNode;
   fullWidth?: boolean;
+  actions?: React.ReactNode;
 }
 
 interface DraggableWidgetLayoutProps<T extends string> {
@@ -98,7 +99,7 @@ export default function DraggableWidgetLayout<T extends string>({
 
       if (currentConfig?.fullWidth) {
         elements.push(
-          <DraggableWidget key={currentWidgetId} id={currentWidgetId}>
+          <DraggableWidget key={currentWidgetId} id={currentWidgetId} actions={currentConfig.actions}>
             {widgetMap[currentWidgetId]}
           </DraggableWidget>
         );
@@ -110,10 +111,10 @@ export default function DraggableWidgetLayout<T extends string>({
         if (nextWidgetId && !nextConfig?.fullWidth) {
           elements.push(
             <div key={`grid-${i}`} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DraggableWidget id={currentWidgetId}>
+              <DraggableWidget id={currentWidgetId} actions={currentConfig.actions}>
                 {widgetMap[currentWidgetId]}
               </DraggableWidget>
-              <DraggableWidget id={nextWidgetId}>
+              <DraggableWidget id={nextWidgetId} actions={nextConfig.actions}>
                 {widgetMap[nextWidgetId]}
               </DraggableWidget>
             </div>
@@ -121,7 +122,7 @@ export default function DraggableWidgetLayout<T extends string>({
           i += 2;
         } else {
           elements.push(
-            <DraggableWidget key={currentWidgetId} id={currentWidgetId}>
+            <DraggableWidget key={currentWidgetId} id={currentWidgetId} actions={currentConfig.actions}>
               {widgetMap[currentWidgetId]}
             </DraggableWidget>
           );

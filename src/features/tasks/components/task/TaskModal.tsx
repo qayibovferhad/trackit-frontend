@@ -1,104 +1,33 @@
+import { useEffect, useState } from "react";
 import { useZodForm } from "@/shared/hooks/useZodForm";
 import { Modal } from "@/shared/ui/modal";
-import {
-  taskSchema,
-  type TaskFormData,
-  type AssigneeData,
-} from "../../schemas/tasks.schema";
-import { InputField } from "@/shared/components/InputField";
 import { Button } from "@/shared/ui/button";
-import { FormField } from "@/shared/components/FormField";
-import type {
-  CreateTaskPayload,
-  TaskPriority,
-  TaskType,
-  TeamOption,
-  UserOption,
-} from "../../types/tasks";
-import { fetchSharedTeams, getTeamMembers } from "@/features/teams/services/teams.service";
-import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
-import { useEffect, useState } from "react";
-import { getErrorMessage } from "@/shared/lib/error";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
-import type { User } from "@/features/auth/types/auth.type";
-import type { Team } from "@/features/teams/types";
-import Select from "react-select";
+import { getErrorMessage } from "@/shared/lib/error";
+import { taskSchema, type TaskFormData, type AssigneeData } from "../../schemas/tasks.schema";
 import { useBoardState } from "../../hooks/useBoardState";
-import type { Column } from "../../types/boards"
+import type { CreateTaskPayload, TaskPriority, TaskType, TeamOption, UserOption } from "../../types/tasks";
+import type { Column } from "../../types/boards";
+import type { User } from "@/features/auth/types/auth.type";
+import TaskBasicFields from "./TaskBasicFields";
+import TaskAssigneeField from "./TaskAssigneeField";
+import TaskTeamBoardColumn from "./TaskTeamBoardColumn";
+import TaskTagsField from "./TaskTagsField";
 
 type TaskModalProps = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   parentTaskId?: string;
   defaultColumnId?: string | null;
-  defaultUser?: User | null
+  defaultUser?: User | null;
   onAddTask?: (taskData: CreateTaskPayload) => void;
   onEditTask?: (taskId: string, taskData: CreateTaskPayload) => void;
   teamId?: string;
   editingTask?: TaskType | null;
 };
 
-const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> => {
-  return (
-    assignee &&
-    typeof assignee.id === "string" &&
-    typeof assignee.email === "string"
-  );
-};
-
-async function fetchUserOptions(
-  teamId: string,
-  input: string
-): Promise<UserOption[]> {
-  if (!input || input.length < 2) return [];
-
-  try {
-    const data = await getTeamMembers(teamId, input);
-
-    return (data ?? []).map((member: any) => {
-      const user = member.user;
-      return {
-        id: user.id,
-        value: user.id,
-        label: user.username || user.email,
-        email: user.email,
-        username: user.username,
-        profileImage: user.profileImage,
-      };
-    });
-  } catch (error) {
-    return [];
-  }
-}
-
-async function fetchTeamOptions(
-  input: string,
-  defaultUserId: string
-): Promise<TeamOption[]> {
-  if (!input || input.length < 2) return [];
-  try {
-
-    const data = await fetchSharedTeams(input, defaultUserId);
-
-
-    return (data ?? []).map((team: Team) => {
-      return {
-        id: team.id,
-        value: team.id,
-        label: team.name,
-      };
-    });
-  } catch (error) {
-    return [];
-  }
-}
-
-async function fetchTagOptions(teamId: string, input: string) {
-  if (!input || input.length < 1) return [];
-  return [];
-}
-
-type TagOption = { label: string; value: string };
+const isValidAssignee = (assignee: any): assignee is Required<AssigneeData> =>
+  assignee && typeof assignee.id === "string" && typeof assignee.email === "string";
 
 export default function TaskModal({
   open,
@@ -114,26 +43,16 @@ export default function TaskModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTeamOption, setSelectedTeamOption] = useState<TeamOption | null>(null);
-  const [columnsOptions, setColumnsOptions] = useState<Column[] | null>(null)
-  const [selectedColumnId,setSelectedColumnId] = useState<string | null>(null)
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    unregister,
-    formState: { errors },
-    reset,
-  } = useZodForm(taskSchema);
+  const [columnsOptions, setColumnsOptions] = useState<Column[] | null>(null);
+  const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
+
+  const { register, handleSubmit, setValue, watch, unregister, formState: { errors }, reset } =
+    useZodForm(taskSchema);
 
   const assigneeValue = watch("assignee");
   const tagsValue = watch("tags") as string[] | undefined;
-  const selectedTeam = watch('team')
-  const {
-    boards,
-    boardsLoading,
-  } = useBoardState(selectedTeam);
-
+  const selectedTeam = watch("team");
+  const { boards, boardsLoading } = useBoardState(selectedTeam);
 
   useEffect(() => {
     if (open && editingTask) {
@@ -141,25 +60,13 @@ export default function TaskModal({
       setValue("description", editingTask.description || "");
 
       if (editingTask.dueAt) {
-        const dueDateObj = new Date(editingTask.dueAt);
-        const dateStr = dueDateObj.toISOString().split("T")[0];
-        const timeStr = `${String(dueDateObj.getHours()).padStart(
-          2,
-          "0"
-        )}:${String(dueDateObj.getMinutes()).padStart(2, "0")}`;
-
-        setValue("dueDate" as keyof TaskFormData, dateStr);
-        setValue("dueTime", timeStr);
+        const d = new Date(editingTask.dueAt);
+        setValue("dueDate" as keyof TaskFormData, d.toISOString().split("T")[0]);
+        setValue("dueTime", `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
       }
-      if (
-        editingTask.priority &&
-        (editingTask.priority === "low" ||
-          editingTask.priority === "medium" ||
-          editingTask.priority === "high")
-      ) {
+      if (editingTask.priority && ["low", "medium", "high"].includes(editingTask.priority)) {
         setValue("priority", editingTask.priority as TaskPriority);
       }
-
       if (editingTask.assignee) {
         setValue("assignee", {
           id: editingTask.assignee.id,
@@ -168,86 +75,84 @@ export default function TaskModal({
           profileImage: editingTask.assignee.profileImage,
         });
       }
-
-      if (editingTask.tags && editingTask.tags.length > 0) {
+      if (editingTask.tags?.length) {
         setValue("tags", editingTask.tags);
       }
     } else if (open && !editingTask) {
       reset();
     }
+
+    if (!open) {
+      setSelectedTeamOption(null);
+      setColumnsOptions(null);
+      setSelectedColumnId(null);
+      setErrorMessage(null);
+    }
   }, [open, editingTask, setValue, reset]);
 
-  useEffect(() => {
-    if (defaultUser) setValue("assignee", {
-      id: defaultUser.id,
-      email: defaultUser.email,
-      username: defaultUser.username,
-      profileImage: defaultUser.profileImage,
-    });
-  }, [defaultUser])
+
+  const currentAssignee: UserOption[] =
+    assigneeValue && isValidAssignee(assigneeValue)
+      ? [{ id: assigneeValue.id, value: assigneeValue.id, label: assigneeValue.username || "Unknown User", email: assigneeValue.email }]
+      : [];
+
+  const currentTags = (tagsValue ?? []).map((t) => ({ label: t, value: t }));
 
   const handleAssigneeChange = (selectedUsers: UserOption[]) => {
-    const selectedUser = selectedUsers[0] || null;
-
-    if (selectedUser) {
-      const assigneeData: AssigneeData = {
-        id: selectedUser.id,
-        email: selectedUser.email,
-        username: selectedUser.username,
-        profileImage: selectedUser.profileImage,
-      };
-      setValue("assignee", assigneeData);
+    const user = selectedUsers[0] || null;
+    if (user) {
+      setValue("assignee", { id: user.id, email: user.email, username: user.username, profileImage: user.profileImage });
     } else {
       unregister("assignee");
     }
   };
 
-  const currentAssignee: UserOption[] =
-    assigneeValue && isValidAssignee(assigneeValue)
-      ? [
-        {
-          id: assigneeValue.id,
-          label: assigneeValue.username || "Unknown User",
-          value: assigneeValue.id,
-          email: assigneeValue.email,
-        },
-      ]
-      : [];
+  const handleTeamChange = (selectedTeams: TeamOption[]) => {
+    const team = selectedTeams[0];
+    setColumnsOptions(null);
+    setSelectedColumnId(null);
+    if (team) {
+      setValue("team", team.id);
+      setSelectedTeamOption(team);
+    } else {
+      setValue("team", "");
+      setSelectedTeamOption(null);
+    }
+  };
 
+  const handleTagsChange = (selected: { label: string; value: string }[]) => {
+    setValue("tags", selected?.map((s) => s.value) ?? []);
+  };
 
   async function onSubmit(data: TaskFormData) {
-    if (!parentTaskId && (!defaultColumnId && !selectedColumnId)) {
+    if (!parentTaskId && !defaultColumnId && !selectedColumnId) {
       setErrorMessage("No column selected");
       return;
     }
     setErrorMessage(null);
     setIsSubmitting(true);
-
     try {
-      let dueAt: Date | undefined = undefined;
-
+      let dueAt: Date | undefined;
       if (data.dueDate) {
         const date = new Date(data.dueDate);
-
         if (data.dueTime) {
           const [hh, mm] = data.dueTime.split(":").map(Number);
           date.setHours(hh, mm, 0, 0);
         } else {
           date.setHours(0, 0, 0, 0);
         }
-
         dueAt = date;
       }
 
-      const payload = {
+      const payload: CreateTaskPayload = {
         title: data.title,
         description: data.description,
         dueAt,
         assignee: isValidAssignee(data.assignee) ? data.assignee : undefined,
         priority: data.priority,
-        columnId: (selectedColumnId || defaultColumnId )?? undefined,
-        teamId: (selectedTeam ||   teamId) ?? undefined,
-        parentTaskId: parentTaskId,
+        columnId: (selectedColumnId || defaultColumnId) ?? undefined,
+        teamId: (selectedTeam || teamId) ?? undefined,
+        parentTaskId,
         tags: data.tags || [],
       };
 
@@ -260,22 +165,11 @@ export default function TaskModal({
       onOpenChange(false);
       reset();
     } catch (error) {
-      console.log(error,'error');
-      
       setErrorMessage(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
   }
-
-  const handleTagsChange = (selected: TagOption[] | null) => {
-    if (!selected || selected.length === 0) {
-      setValue("tags", []);
-      return;
-    }
-    const tags = selected.map((s) => s.value);
-    setValue("tags", tags);
-  };
 
   const getModalTitle = () => {
     if (editingTask) return "Edit Task";
@@ -283,239 +177,38 @@ export default function TaskModal({
     return "Create Task";
   };
 
-  const handleSelectTeam = (selectedTeams: TeamOption[]) => {
-    const team = selectedTeams[0];
-    if (team) {
-      setValue("team", team.id);
-      setSelectedTeamOption(team);
-    } else {
-      setValue("team", "");
-      setSelectedTeamOption(null);
-    }
-  };
-  const currentTags = (tagsValue ?? []).map((t) => ({ label: t, value: t }));
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={getModalTitle()}>
-      <form
-        id="add-task-form"
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4 pl-5 pr-5"
-      >
-        <InputField
-          label={parentTaskId ? "Subtask Name" : "Task Name"}
-          htmlFor="title"
-          register={register}
-          error={errors.title}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-5">
+        <TaskBasicFields register={register} errors={errors} isSubtask={!!parentTaskId} />
+
+        {defaultUser && (
+          <TaskTeamBoardColumn
+            defaultUserId={defaultUser.id}
+            selectedTeamOption={selectedTeamOption}
+            boards={boards}
+            boardsLoading={boardsLoading}
+            columnsOptions={columnsOptions}
+            onTeamChange={handleTeamChange}
+            onBoardChange={(b) => { setColumnsOptions(b?.columns || null); setSelectedColumnId(null); }}
+            onColumnChange={(c) => setSelectedColumnId(c?.value || null)}
+          />
+        )}
+
+        <TaskAssigneeField
+          value={currentAssignee}
+          onChange={handleAssigneeChange}
+          teamId={defaultUser ? selectedTeam : teamId}
+          isDisabled={defaultUser ? !selectedTeam : false}
+          error={Array.isArray(errors.assignee) ? errors.assignee.find(Boolean) : errors.assignee}
         />
-        {!parentTaskId && (
-          <InputField
-            label="Description"
-            htmlFor="description"
-            register={register}
-            error={errors.description}
-          />
-        )}
 
-        <div className="flex gap-2">
-          <FormField
-            label="Due Date"
-            htmlFor="dueDate"
-            error={errors.dueDate}
-            className="flex-1"
-          >
-            <input
-              type="date"
-              id="date"
-              {...register("dueDate")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </FormField>
+        <TaskTagsField value={currentTags} onChange={handleTagsChange} error={errors.tags as any} />
 
-          <FormField
-            label="Due Time"
-            htmlFor="dueTime"
-            error={errors.dueTime}
-            className="flex-1"
-          >
-            <input
-              type="time"
-              id="dueTime"
-              {...register("dueTime")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </FormField>
-        </div>
-        {!parentTaskId && (
-          <FormField
-            label="Priority"
-            htmlFor="priority"
-            error={errors.priority}
-          >
-            <select
-              id="priority"
-              {...register("priority")}
-              className="w-full border border-gray-300 r rounded-md p-2 text-sm "
-              defaultValue="medium"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </FormField>
-        )}
-        <FormField
-          label="Assign To"
-          htmlFor="assignee"
-          error={
-            Array.isArray(errors.assignee)
-              ? errors.assignee.find(Boolean)
-              : errors.assignee
-          }
-        >
-          <GenericAsyncSelect<UserOption>
-            value={currentAssignee}
-            onChange={handleAssigneeChange}
-            placeholder="Search by email or username..."
-            loadOptions={(input) => fetchUserOptions(teamId || "", input)}
-            formatCreateLabel={(s) => `Invite "${s}"`}
-            allowCreateOption={false}
-            getNewOptionData={(inputValue) => ({
-              label: inputValue,
-              value: inputValue.trim(),
-            })}
-            isDisabled={!!defaultUser}
-            noOptionsMessage={() => "No users found"}
-          />
-        </FormField>
-
-        {defaultUser && <><FormField
-          label="Team"
-          htmlFor="team"
-          error={
-            Array.isArray(errors.assignee)
-              ? errors.assignee.find(Boolean)
-              : errors.assignee
-          }
-        >
-          <GenericAsyncSelect<TeamOption>
-            onChange={handleSelectTeam}
-            value={selectedTeamOption ? [selectedTeamOption] : []} // ✅ artıq team seçimi görünəcək
-            placeholder="Search by name..."
-            loadOptions={(input) => fetchTeamOptions(input, defaultUser.id)}
-            formatCreateLabel={(s) => `Select "${s}"`}
-            allowCreateOption={false}
-            getNewOptionData={(inputValue) => ({
-              label: inputValue,
-              value: inputValue.trim(),
-            })}
-            noOptionsMessage={() => "No team found"}
-          />
-        </FormField>
-          {selectedTeamOption && <FormField
-            label="Board"
-            htmlFor="board"
-          >
-            <Select
-              isLoading={boardsLoading}
-              options={boards && boards.map((b) => ({
-                value: b.id,
-                label: b.name,
-                columns: b.columns
-              }))}
-              placeholder={boardsLoading ? "Loading boards..." : "Select a board"}
-              isClearable={false}
-              onChange={(b) => setColumnsOptions(b?.columns || null)}
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  boxShadow: "none",
-                  minHeight: "35px",
-                  height: "35px",
-                }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isFocused
-                    ? "#f3f3f3"
-                    : state.isSelected
-                      ? "#e5e5e5"
-                      : "white",
-                  color: "#1a1a1a",
-                  cursor: "pointer",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 50,
-                }),
-              }}
-            />
-          </FormField>
-          }
-
-          {columnsOptions && <FormField
-            label="Column"
-            htmlFor="column"
-          >
-            <Select
-              options={columnsOptions && columnsOptions.map((c) => ({
-                value: c.id,
-                label: c.title,
-              }))}
-              placeholder={"Select a column"}
-              isClearable={false}
-              onChange={(c) => setSelectedColumnId(c?.value || null)}
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  boxShadow: "none",
-                  minHeight: "35px",
-                  height: "35px",
-                }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isFocused
-                    ? "#f3f3f3"
-                    : state.isSelected
-                      ? "#e5e5e5"
-                      : "white",
-                  color: "#1a1a1a",
-                  cursor: "pointer",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 50,
-                }),
-              }}
-            />
-          </FormField>
-          }
-        </>
-        }
-
-        <FormField label="Tags" htmlFor="tags" error={errors.tags as any}>
-          <GenericAsyncSelect<TagOption>
-            value={currentTags}
-            onChange={(opts) => handleTagsChange(opts as TagOption[])}
-            placeholder="Add or select tags..."
-            loadOptions={(input) => fetchTagOptions(teamId || "", input)}
-            allowCreateOption={true}
-            formatCreateLabel={(s) => `Create tag "${s}"`}
-            getNewOptionData={(inputValue) => ({
-              label: inputValue,
-              value: inputValue.trim(),
-            })}
-            noOptionsMessage={() => "No tags"}
-          />
-        </FormField>
         {errorMessage && <ErrorAlert message={errorMessage} />}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting
-            ? editingTask
-              ? "Updating..."
-              : "Creating..."
-            : editingTask
-              ? "Update"
-              : "Create"}
+          {isSubmitting ? (editingTask ? "Updating..." : "Creating...") : (editingTask ? "Update" : "Create")}
         </Button>
       </form>
     </Modal>

@@ -20,4 +20,5 @@ export const PATHS = {
   ONBOARDING:"/onboarding",
   SUBSCRIPTION:"/subscription",
   SETTINGS_SUBSCRIPTION: "/settings/subscription",
+  ANNOUNCEMENTS: "/announcements",
 } as const;

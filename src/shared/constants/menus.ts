@@ -6,6 +6,7 @@ import {
   Home,
   Inbox,
   Lock,
+  Megaphone,
   Settings,
   User,
   Users,
@@ -24,6 +25,7 @@ export const MAIN_MENU: NavItem[] = [
   { to: "/teams", label: "Teams", icon: Users },
   { to: "/boards", label: "Boards", icon: CircuitBoard, name: "Board" },
   { to: "/inbox", label: "Inbox", icon: Inbox },
+  { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/subscription", label: "Subscription", icon: CreditCard },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

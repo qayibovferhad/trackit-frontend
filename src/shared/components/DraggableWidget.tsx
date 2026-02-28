@@ -2,15 +2,14 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 
-export default function DraggableWidget({ id, children }: { id: string; children: React.ReactNode }){
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+type Props = {
+  id: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+};
+
+export default function DraggableWidget({ id, children, actions }: Props) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -20,17 +19,17 @@ export default function DraggableWidget({ id, children }: { id: string; children
 
   return (
     <div ref={setNodeRef} style={style} className="relative">
-      {/* Drag Handle - always visible, top-right */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute right-1 top-1 cursor-grab active:cursor-grabbing z-10"
-      >
-        <div className="rounded-lg p-1 hover:bg-gray-50">
-          <GripVertical size={20} className="text-gray-400" />
+      <div className="absolute right-2 top-3 flex items-center gap-1 z-10">
+        {actions}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-50"
+        >
+          <GripVertical size={18} className="text-gray-400" />
         </div>
       </div>
       {children}
     </div>
   );
-};
+}
