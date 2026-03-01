@@ -14,6 +14,8 @@ export interface User {
   isOnline: boolean;
   lastSeenAt: string;
   isOnboarded: boolean;
+  accountType?: string;
+  companyName?: string | null;
 }
 
 export interface LoginResponse {

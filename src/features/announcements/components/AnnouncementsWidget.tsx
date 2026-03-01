@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Megaphone } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { fetchAnnouncements } from "@/features/announcements/services/announcements.service";
 import { formatDate } from "@/shared/utils/date";
 import UserAvatar from "@/shared/components/UserAvatar";
+import { Link } from "react-router-dom";
 
 export default function AnnouncementsWidget() {
   const { data = [], isLoading } = useQuery({
@@ -41,7 +42,9 @@ export default function AnnouncementsWidget() {
         <ul className="mt-4 space-y-4 overflow-y-auto flex-1">
           {recent.map((item) => (
             <li key={item.id} className="flex items-start gap-3">
-              <UserAvatar name={item.author.name} src={item.author.profileImage} />
+              <Link to={`/profile/${item.author.username}`} className="shrink-0">
+                <UserAvatar name={item.author.name} src={item.author.profileImage} />
+              </Link>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {item.title}
@@ -56,9 +59,12 @@ export default function AnnouncementsWidget() {
                   </span>
                   <span>
                     From{" "}
-                    <span className="text-violet-600 font-medium">
+                    <Link
+                      to={`/profile/${item.author.username}`}
+                      className="text-violet-600 font-medium hover:underline"
+                    >
                       {item.author.name ?? item.author.username ?? "Unknown"}
-                    </span>
+                    </Link>
                   </span>
                 </div>
               </div>

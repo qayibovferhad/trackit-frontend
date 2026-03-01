@@ -16,8 +16,8 @@ export const useUserStore = create<UserStoreState>()(
           set({ isLoading: true, error: null });
           try {
             const data = await getCurrentUserRequest();
-            
-            set({ user: data, isLoading: false });
+            const currentUser = get().user;
+            set({ user: { ...currentUser, ...data }, isLoading: false });
           } catch (error: any) {
             const errorMessage =
               error.response?.data?.message || "Failed to fetch user";

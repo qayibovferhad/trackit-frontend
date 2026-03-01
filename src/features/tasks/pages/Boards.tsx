@@ -27,8 +27,11 @@ import { useBoardState } from "../hooks/useBoardState";
 import { useColumnMutations } from "../hooks/useColumnMutations";
 import { useTaskMutations } from "../hooks/useTaskMutations";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
+import { useUserStore } from "@/stores/userStore";
 
 export default function Boards() {
+  const user = useUserStore((s) => s.user);
+  const canCreateBoard = user?.accountType === 'company';
   const [openModal, setOpenModal] = useState(false);
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
@@ -157,6 +160,7 @@ export default function Boards() {
           boardsLoading={boardsLoading}
           selectedBoard={selectedBoard}
           onSelectChange={handleBoardSelectChange}
+          canCreateBoard={canCreateBoard}
         />
       </div>
 

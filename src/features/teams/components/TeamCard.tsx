@@ -11,11 +11,13 @@ import { useState } from "react";
 
 export default function TeamCard({
   team,
+  canManage,
   onOpenInviteUserModal,
   onRequestDelete,
   onEditTeam,
 }: {
   team: Team;
+  canManage: boolean;
   onOpenInviteUserModal: () => void;
   onRequestDelete: () => void;
   onEditTeam: () => void;
@@ -60,47 +62,49 @@ export default function TeamCard({
             </div>
           </div>
 
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="flex items-center justify-center rounded-md hover:bg-muted"
-              >
-                <Ellipsis className="opacity-70" />
-              </Button>
-            </DropdownMenuTrigger>
+          {canManage && (
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="flex items-center justify-center rounded-md hover:bg-muted"
+                >
+                  <Ellipsis className="opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-46">
-              <DropdownMenuRow
-                iconCircle={false}
-                icon={<PlusIcon className="!size-5" />}
-                label="Invite User"
-                onClick={() => {
-                  onOpenInviteUserModal();
-                  setMenuOpen(false);
-                }}
-              />
-              <DropdownMenuRow
-                iconCircle={false}
-                icon={<Pen className="!size-5" />}
-                label="Edit Team"
-                onClick={() => {
-                  onEditTeam();
-                  setMenuOpen(false);
-                }}
-              />
-              <DropdownMenuRow
-                iconCircle={false}
-                icon={<Trash2 className="!size-5" />}
-                label="Delete Team"
-                onClick={() => {
-                  onRequestDelete();
-                  setMenuOpen(false);
-                }}
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <DropdownMenuContent align="end" className="w-46">
+                <DropdownMenuRow
+                  iconCircle={false}
+                  icon={<PlusIcon className="!size-5" />}
+                  label="Invite User"
+                  onClick={() => {
+                    onOpenInviteUserModal();
+                    setMenuOpen(false);
+                  }}
+                />
+                <DropdownMenuRow
+                  iconCircle={false}
+                  icon={<Pen className="!size-5" />}
+                  label="Edit Team"
+                  onClick={() => {
+                    onEditTeam();
+                    setMenuOpen(false);
+                  }}
+                />
+                <DropdownMenuRow
+                  iconCircle={false}
+                  icon={<Trash2 className="!size-5" />}
+                  label="Delete Team"
+                  onClick={() => {
+                    onRequestDelete();
+                    setMenuOpen(false);
+                  }}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </div>

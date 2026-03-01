@@ -11,6 +11,7 @@ type BoardHeaderProps = {
   options: BoardOption[];
   selectedBoard?: Board | null;
   onSelectChange: (opt: SingleValue<BoardOption>) => void;
+  canCreateBoard?: boolean;
 };
 
 function BoardHeader({
@@ -19,6 +20,7 @@ function BoardHeader({
   options,
   selectedBoard,
   onSelectChange,
+  canCreateBoard = true,
 }: BoardHeaderProps) {
   return (
     <PageHeader
@@ -65,14 +67,16 @@ function BoardHeader({
               }),
             }}
           />
-          <Button
-            type="button"
-            variant="violet"
-            onClick={() => onOpenChange(true)}
-          >
-            <Plus className="w-4 h-4" />
-            Create Board
-          </Button>
+          {canCreateBoard && (
+            <Button
+              type="button"
+              variant="violet"
+              onClick={() => onOpenChange(true)}
+            >
+              <Plus className="w-4 h-4" />
+              Create Board
+            </Button>
+          )}
         </>
       }
     />

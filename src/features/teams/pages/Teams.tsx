@@ -14,9 +14,12 @@ import type { Team } from "../types";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import PageHeader from "@/layouts/AppLayout/components/PageHeader";
 import { useTeamsQuery } from "../hooks/useTeams";
+import { useUserStore } from "@/stores/userStore";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
+  const user = useUserStore((s) => s.user);
+  const canCreateTeam = user?.accountType === 'company';
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [invitesUserOpen, setInvitesUserOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -92,43 +95,51 @@ export default function Teams() {
                 )}
               </Button>
 
-              <Button variant="soft" onClick={() => setOpen(true)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-4 w-4 mr-2"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Team
-              </Button>
+              {canCreateTeam && (
+                <Button variant="soft" onClick={() => setOpen(true)}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="h-4 w-4 mr-2"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Team
+                </Button>
+              )}
             </>
           }
         />
         {isLoading && <p>Loading teams...</p>}
         {isError && <ErrorAlert message="Failed to load teams" />}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {teams?.map((team) => (
-            <TeamCard
-              key={team.id}
-              team={team}
-              onOpenInviteUserModal={() => {
-                setSelectedTeam(team);
-                setInvitesUserOpen(true);
-              }}
-              onRequestDelete={() => {
-                setSelectedTeam(team);
-                setConfirmOpen(true);
-              }}
-              onEditTeam={() => {
-                setSelectedTeam(team);
-                setOpen(true);
-              }}
-            />
-          ))}
+          {teams?.map((team) => {
+            const canManage =
+              user?.accountType === 'company' &&
+              team.users.some((m) => m.userId === user.id && m.role === 'admin');
+            return (
+              <TeamCard
+                key={team.id}
+                team={team}
+                canManage={canManage}
+                onOpenInviteUserModal={() => {
+                  setSelectedTeam(team);
+                  setInvitesUserOpen(true);
+                }}
+                onRequestDelete={() => {
+                  setSelectedTeam(team);
+                  setConfirmOpen(true);
+                }}
+                onEditTeam={() => {
+                  setSelectedTeam(team);
+                  setOpen(true);
+                }}
+              />
+            );
+          })}
         </div>
       </div>
       <TeamModal

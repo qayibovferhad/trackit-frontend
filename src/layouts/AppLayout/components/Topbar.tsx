@@ -118,6 +118,11 @@ export default function Topbar({
                 size="md"
                 className="border-0"
               />
+              {user?.accountType === "company" && user.companyName && (
+                <span className="text-sm font-medium text-gray-700 max-w-[120px] truncate">
+                  {user.companyName}
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
 

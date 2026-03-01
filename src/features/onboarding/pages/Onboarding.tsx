@@ -57,7 +57,7 @@ export default function Onboarding() {
   const { mutate: finishOnboarding, isPending } = useMutation({
     mutationFn: completeOnboardingRequest,
     onSuccess: () => {
-      updateUser({ isOnboarded: true });
+      updateUser({ isOnboarded: true, accountType: watch("accountType") });
       navigate("/");
     },
   });
