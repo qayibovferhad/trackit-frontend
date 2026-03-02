@@ -9,6 +9,8 @@ import { Button } from "@/shared/ui/button";
 import type { Team } from "@/features/teams/types";
 import { addBoard } from "../../services/boards.service";
 import { useEffect } from "react";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error";
 
 type BoardModalProps = {
   open: boolean;
@@ -44,8 +46,12 @@ export default function BoardModal({
     },
   });
   async function onSubmit(data: BoardFormData) {
-    await mutateAsync(data);
-    onOpenChange(false);
+    try {
+      await mutateAsync(data);
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
   }
   useEffect(() => {
     if (defaultTeamId && teams) {

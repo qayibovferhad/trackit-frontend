@@ -41,8 +41,6 @@ export default function AnnouncementModal({
     formState: { errors },
   } = useZodForm(announcementSchema);
 
-  const isPublic = watch("isPublic");
-
   const { data: teams = [] } = useQuery({
     queryKey: ["teams"],
     queryFn: fetchTeams,
@@ -113,26 +111,7 @@ export default function AnnouncementModal({
           />
         </FormField>
 
-        <FormField htmlFor="isPublic">
-          <div className="flex items-center gap-2">
-            <input
-              id="isPublic"
-              type="checkbox"
-              {...register("isPublic")}
-              onChange={(e) => {
-                setValue("isPublic", e.target.checked);
-                if (e.target.checked) setValue("teamId", "");
-              }}
-              className="h-4 w-4 rounded accent-violet-600"
-            />
-            <label htmlFor="isPublic" className="text-sm text-gray-700">
-              Make public (visible to everyone)
-            </label>
-          </div>
-        </FormField>
-
-        {!isPublic && (
-          <FormField label="Team" htmlFor="teamId">
+        <FormField label="Team" htmlFor="teamId">
             <GenericAsyncSelect<TeamOption>
               value={
                 watch("teamId")
@@ -152,7 +131,6 @@ export default function AnnouncementModal({
               minInputLength={0}
             />
           </FormField>
-        )}
       </form>
     </Modal>
   );

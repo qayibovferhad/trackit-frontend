@@ -32,8 +32,8 @@ export function InputField({
         type={type}
         autoFocus={false}
         {...(register ? register(htmlFor) : {})}
+        {...(onChange ? { onChange } : {})}
         className={`${base} ${className}`}
-        onChange={onChange}
         placeholder={placeholder}
       />
     </FormField>

@@ -13,6 +13,8 @@ import type { Page } from "../types";
 import { ErrorAlert } from "@/shared/components/ErrorAlert";
 import { useMemo } from "react";
 import UserAvatar from "@/shared/components/UserAvatar";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib/error";
 
 type InviteUserModalProps = {
   open: boolean;
@@ -100,12 +102,11 @@ function InviteButton({ teamId, userId }: { teamId: string; userId: string }) {
   const { mutate, isPending } = useMutation({
     mutationFn: () => inviteUser(teamId, userId),
     onSuccess: () => {
-      qc.invalidateQueries({
-        queryKey: ["eligible-users", teamId],
-      });
-      qc.invalidateQueries({
-        queryKey: ["my-invites-count"],
-      });
+      qc.invalidateQueries({ queryKey: ["eligible-users", teamId] });
+      qc.invalidateQueries({ queryKey: ["my-invites-count"] });
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
     },
   });
 
