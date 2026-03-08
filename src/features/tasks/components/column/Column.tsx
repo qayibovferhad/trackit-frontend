@@ -30,9 +30,10 @@ function Column({
   onEditColumn: (column: ColumnType) => void;
   onDeleteColumn: (columnId: string) => void;
 }) {
+  const droppableData = useMemo(() => ({ type: "Column" as const, column }), [column.id]);
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: column.id,
-    data: { type: "Column", column },
+    data: droppableData,
   });
 
   const colorOption = useMemo(

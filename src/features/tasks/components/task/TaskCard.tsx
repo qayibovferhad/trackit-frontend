@@ -3,13 +3,14 @@ import type { TaskType } from "../../types/tasks";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "react-router-dom";
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { GripVertical } from "lucide-react";
 import { truncateText } from "@/shared/utils/string";
 
 function TaskCard({ task }: { task: TaskType }) {
   const navigate = useNavigate();
-  const isDragEnabledRef = useRef(false);
+  // const isDragEnabledRef = useRef(false);
+  const sortableData = useMemo(() => ({ type: "Task" as const, task }), [task.id, task.columnId]);
 
   const {
     setNodeRef,
@@ -20,7 +21,7 @@ function TaskCard({ task }: { task: TaskType }) {
     isDragging,
   } = useSortable({
     id: task.id,
-    data: { type: "Task", task },
+    data: sortableData,
     transition: {
       duration: 200,
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
