@@ -2,10 +2,11 @@ import type { WidgetId } from "../types";
 import HeroCard from "@/shared/components/HeroCard";
 import type { WidgetConfig } from "@/shared/components/DraggableWidgetLayout";
 import DraggableWidgetLayout from "@/shared/components/DraggableWidgetLayout";
-import TeamsPerformanceWidget from "../components/TeamsPerformance";
-import TaskStatusWidget from "../components/TaskStatus";
-import DoneTasksWidget from "../components/DoneTasks";
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
+
+const TeamsPerformanceWidget = lazy(() => import("../components/TeamsPerformance"));
+const TaskStatusWidget = lazy(() => import("../components/TaskStatus"));
+const DoneTasksWidget = lazy(() => import("../components/DoneTasks"));
 
 
 export default function Dashboard() {
@@ -17,17 +18,17 @@ export default function Dashboard() {
     },
     {
       id: "tasksDone",
-      component: <DoneTasksWidget />,
+      component: <Suspense fallback={null}><DoneTasksWidget /></Suspense>,
       fullWidth: false,
     },
     {
       id: "taskStatus",
-      component: <TaskStatusWidget />,
+      component: <Suspense fallback={null}><TaskStatusWidget /></Suspense>,
       fullWidth: false,
     },
     {
       id: "teamsPerformance",
-      component: <TeamsPerformanceWidget />,
+      component: <Suspense fallback={null}><TeamsPerformanceWidget /></Suspense>,
       fullWidth: false,
     },
   ], []);

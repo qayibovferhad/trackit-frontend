@@ -9,6 +9,9 @@ import { useState, type ReactNode } from "react";
 import BoardsItem from "./BoardsDropdown";
 import type { Team } from "@/features/teams/types";
 
+const EMPTY_NAV_ITEMS: NavItem[] = [];
+const EMPTY_TEAMS: Team[] = [];
+
 type SidebarBaseProps = {
   items?: NavItem[];
   title?: string;
@@ -20,9 +23,9 @@ type SidebarBaseProps = {
 };
 
 export function SidebarBase({
-  items = [],
+  items = EMPTY_NAV_ITEMS,
   title = "Menu",
-  teams = [],
+  teams = EMPTY_TEAMS,
   showMobileTrigger = true,
   headerSlot,
   widthClass = "w-64",
@@ -82,7 +85,7 @@ export function SidebarContent({
   title,
   items,
   headerSlot,
-  teams = [],
+  teams = EMPTY_TEAMS,
   isLoadingTeams = false,
 }: {
   title: string;

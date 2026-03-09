@@ -41,6 +41,8 @@ function convertToOptions(members: MemberInput[]): MembersOption[] {
   }));
 }
 
+const EMPTY_MEMBERS: MemberInput[] = [];
+
 interface InviteMembersInputProps {
   value?: MemberInput[];
   onChange: (members: MemberInput[]) => void;
@@ -48,7 +50,7 @@ interface InviteMembersInputProps {
 }
 
 export default function InviteMembersInput({
-  value = [],
+  value = EMPTY_MEMBERS,
   onChange,
   placeholder,
 }: InviteMembersInputProps) {

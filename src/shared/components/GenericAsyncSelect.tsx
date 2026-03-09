@@ -25,8 +25,10 @@ interface GenericAsyncSelectProps<T extends BaseOption> {
   isMulti?: boolean;
 }
 
+const EMPTY_ARRAY: BaseOption[] = [];
+
 export default function GenericAsyncSelect<T extends BaseOption>({
-  value = [],
+  value = EMPTY_ARRAY as T[],
   onChange,
   placeholder = "Type to search...",
   loadOptions,

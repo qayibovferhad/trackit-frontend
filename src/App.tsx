@@ -8,7 +8,7 @@ import NetworkStatus from "./shared/components/NetworkStatus";
 import NavigationProgress from "./shared/components/NavigationProgress";
 
 function App() {
-  const [hydrated, setHydrated] = useState(useUserStore.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(() => useUserStore.persist.hasHydrated());
 
   useEffect(() => {
     if (hydrated) {

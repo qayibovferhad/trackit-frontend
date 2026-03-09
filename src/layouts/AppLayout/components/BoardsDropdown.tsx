@@ -12,11 +12,13 @@ type BoardsItemProps = {
   isLoading?: boolean;
 };
 
+const EMPTY_TEAMS: Team[] = [];
+
 export default function BoardsItem({
   boardsItem,
   isExpanded,
   onToggle,
-  teams = [],
+  teams = EMPTY_TEAMS,
   isLoading = false,
 }: BoardsItemProps) {
   return (

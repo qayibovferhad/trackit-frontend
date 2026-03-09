@@ -26,8 +26,6 @@ export default function Onboarding() {
     }
   }, [user?.isOnboarded]);
 
-  if (user?.isOnboarded) return null;
-
   const { register, watch, setValue, formState: { errors } } = useZodForm(onboardingSchema, {
     defaultValues: {
       accountType: undefined,
@@ -38,6 +36,16 @@ export default function Onboarding() {
       experience: undefined,
     },
   });
+
+  const { mutate: finishOnboarding, isPending } = useMutation({
+    mutationFn: completeOnboardingRequest,
+    onSuccess: () => {
+      updateUser({ isOnboarded: true, accountType: watch("accountType") });
+      navigate("/");
+    },
+  });
+
+  if (user?.isOnboarded) return null;
 
   const accountType = watch("accountType");
   const steps = accountType ? STEP_CONFIG[accountType] : STEP_CONFIG["personal"];
@@ -53,14 +61,6 @@ export default function Onboarding() {
     if (current.key === "goal") return !!watch("goal");
     return true;
   };
-
-  const { mutate: finishOnboarding, isPending } = useMutation({
-    mutationFn: completeOnboardingRequest,
-    onSuccess: () => {
-      updateUser({ isOnboarded: true, accountType: watch("accountType") });
-      navigate("/");
-    },
-  });
 
   const handleFinish = () => finishOnboarding(watch());
 
