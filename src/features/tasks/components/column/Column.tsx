@@ -31,10 +31,12 @@ const ColumnHeader = memo(function ColumnHeader({
   column: ColumnType;
   taskCount: number;
   colorOption: ColorOption;
-  onAddTask: (id: string) => void;
-  onEditColumn: (column: ColumnType) => void;
-  onDeleteColumn: (columnId: string) => void;
+  onAddTask?: (id: string) => void;
+  onEditColumn?: (column: ColumnType) => void;
+  onDeleteColumn?: (columnId: string) => void;
 }) {
+  const hasMenu = onEditColumn || onDeleteColumn;
+
   return (
     <div className={`px-4 py-3 border-b-2 ${colorOption.border} rounded-t-xl ${colorOption.bg}`}>
       <div className="flex items-center justify-between">
@@ -56,50 +58,58 @@ const ColumnHeader = memo(function ColumnHeader({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={`h-7 w-7 rounded-lg hover:${
-              colorOption.name === "gray" ? "bg-gray-100" : `bg-${colorOption.name}-50`
-            } transition-colors`}
-            aria-label="Add task"
-            onClick={() => onAddTask(column.id)}
-          >
-            <Plus className={`w-4 h-4 ${colorOption.text}`} />
-          </Button>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={`h-7 w-7 rounded-lg hover:${
-                  colorOption.name === "gray" ? "bg-gray-100" : `bg-${colorOption.name}-50`
-                } transition-colors`}
-                aria-label="Column menu"
-              >
-                <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
-              </Button>
-            </DropdownMenuTrigger>
+          {onAddTask && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={`h-7 w-7 rounded-lg hover:${
+                colorOption.name === "gray" ? "bg-gray-100" : `bg-${colorOption.name}-50`
+              } transition-colors`}
+              aria-label="Add task"
+              onClick={() => onAddTask(column.id)}
+            >
+              <Plus className={`w-4 h-4 ${colorOption.text}`} />
+            </Button>
+          )}
+          {hasMenu && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={`h-7 w-7 rounded-lg hover:${
+                    colorOption.name === "gray" ? "bg-gray-100" : `bg-${colorOption.name}-50`
+                  } transition-colors`}
+                  aria-label="Column menu"
+                >
+                  <MoreHorizontal className={`w-4 h-4 ${colorOption.text}`} />
+                </Button>
+              </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="center" className="w-16">
-              <DropdownMenuRow
-                iconCircle
-                icon={<Edit />}
-                label="Edit"
-                onClick={() => onEditColumn(column)}
-                iconSize={4}
-              />
-              <DropdownMenuRow
-                iconCircle
-                icon={<Trash2 />}
-                label="Delete"
-                onClick={() => onDeleteColumn(column.id)}
-                iconSize={4}
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <DropdownMenuContent align="center" className="w-16">
+                {onEditColumn && (
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Edit />}
+                    label="Edit"
+                    onClick={() => onEditColumn(column)}
+                    iconSize={4}
+                  />
+                )}
+                {onDeleteColumn && (
+                  <DropdownMenuRow
+                    iconCircle
+                    icon={<Trash2 />}
+                    label="Delete"
+                    onClick={() => onDeleteColumn(column.id)}
+                    iconSize={4}
+                  />
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </div>
@@ -162,9 +172,9 @@ function Column({
 }: {
   column: ColumnType;
   tasks: TaskType[];
-  onAddTask: (id: string) => void;
-  onEditColumn: (column: ColumnType) => void;
-  onDeleteColumn: (columnId: string) => void;
+  onAddTask?: (id: string) => void;
+  onEditColumn?: (column: ColumnType) => void;
+  onDeleteColumn?: (columnId: string) => void;
 }) {
   const droppableData = useMemo(() => ({ type: "Column" as const, column }), [column.id]);
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({

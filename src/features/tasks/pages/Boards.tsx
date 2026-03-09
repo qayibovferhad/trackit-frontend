@@ -27,15 +27,20 @@ import { useBoardState } from "../hooks/useBoardState";
 import { useColumnMutations } from "../hooks/useColumnMutations";
 import { useTaskMutations } from "../hooks/useTaskMutations";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
-import { useUserStore } from "@/stores/userStore";
+import { useTeamPermissions } from "@/features/teams/hooks/useTeamPermissions";
 
 export default function Boards() {
-  const user = useUserStore((s) => s.user);
-  const canCreateBoard = user?.accountType === 'company';
   const [openModal, setOpenModal] = useState(false);
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const { id: teamId } = useParams<{ id: string }>();
+  const {
+    canCreateBoard,
+    canCreateColumn,
+    canEditColumn,
+    canDeleteColumn,
+    canCreateTask,
+  } = useTeamPermissions(teamId);
   const [editingColumn, setEditingColumn] = useState<Column | null>(null);
   const [openColumnModal, setOpenColumnModal] = useState(false);
   const [deletingColumn, setDeletingColumn] = useState<Column | null>(null);
@@ -179,14 +184,14 @@ export default function Boards() {
                     key={column.id}
                     column={column}
                     tasks={column.tasks || []}
-                    onAddTask={handleOpenAddTaskModal}
-                    onEditColumn={handleEditColumn}
-                    onDeleteColumn={handleDeleteColumn}
+                    onAddTask={canCreateTask ? handleOpenAddTaskModal : undefined}
+                    onEditColumn={canEditColumn ? handleEditColumn : undefined}
+                    onDeleteColumn={canDeleteColumn ? handleDeleteColumn : undefined}
                   />
                 ))}
               </SortableContext>
 
-              {columns.length < 5 && (
+              {columns.length < 5 && canCreateColumn && (
                 <AddColumnButton onAdd={handleAddColumn} />
               )}
             </div>

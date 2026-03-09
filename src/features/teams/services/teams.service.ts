@@ -81,7 +81,7 @@ export const fetchMyAdminTeams = async (): Promise<Team[]> => {
 export async function getTeamMembers(
   teamId: string,
   search: string
-): Promise<User[]> {
+): Promise<import("../types").TeamMember[]> {
   const searchParam = search ? `?search=${encodeURIComponent(search)}` : "";
   const { data } = await api.get(`/teams/${teamId}/members${searchParam}`);
   return data;
@@ -108,4 +108,16 @@ export const getMyTeamPerformance = async (teamId: string): Promise<any> => {
   const response = await api.get(`/teams/my-team-performance/${teamId}`);
   return response.data;
 };
+
+export async function updateMemberPermissions(
+  teamId: string,
+  memberId: string,
+  permissions: import("../types").MemberPermissions
+) {
+  const { data } = await api.patch(
+    `/teams/${teamId}/members/${memberId}/permissions`,
+    permissions
+  );
+  return data;
+}
 

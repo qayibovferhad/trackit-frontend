@@ -20,13 +20,30 @@ export interface MemberInput {
   role?: "admin" | "member";
 }
 
+export interface MemberPermissions {
+  canCreateBoard: boolean;
+  canDeleteBoard: boolean;
+  canCreateColumn: boolean;
+  canEditColumn: boolean;
+  canDeleteColumn: boolean;
+  canCreateTask: boolean;
+  canDeleteTask: boolean;
+  canAssignTask: boolean;
+  canInviteMembers: boolean;
+  canRemoveMembers: boolean;
+}
+
+
 export interface TeamMember {
   id: string;
   role: "admin" | "member";
+  permissions?: MemberPermissions | null;
   user: {
     id: string;
     email: string;
     name?: string | null;
+    username?: string;
+    profileImage?: string;
   };
   teamId: string;
   userId: string;

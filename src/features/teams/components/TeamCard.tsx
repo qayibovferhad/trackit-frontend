@@ -1,4 +1,4 @@
-import { Ellipsis, Pen, PlusIcon, Trash2 } from "lucide-react";
+import { Ellipsis, Pen, PlusIcon, Trash2, Users } from "lucide-react";
 import type { Team } from "../types";
 import {
   DropdownMenu,
@@ -15,12 +15,14 @@ export default function TeamCard({
   onOpenInviteUserModal,
   onRequestDelete,
   onEditTeam,
+  onManageMembers,
 }: {
   team: Team;
   canManage: boolean;
   onOpenInviteUserModal: () => void;
   onRequestDelete: () => void;
   onEditTeam: () => void;
+  onManageMembers: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -81,6 +83,15 @@ export default function TeamCard({
                   label="Invite User"
                   onClick={() => {
                     onOpenInviteUserModal();
+                    setMenuOpen(false);
+                  }}
+                />
+                <DropdownMenuRow
+                  iconCircle={false}
+                  icon={<Users className="!size-5" />}
+                  label="Manage Members"
+                  onClick={() => {
+                    onManageMembers();
                     setMenuOpen(false);
                   }}
                 />

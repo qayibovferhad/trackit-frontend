@@ -15,15 +15,18 @@ import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import PageHeader from "@/layouts/AppLayout/components/PageHeader";
 import { useTeamsQuery } from "../hooks/useTeams";
 import { useUserStore } from "@/stores/userStore";
+import { getTeamPermissions, useTeamPermissions } from "../hooks/useTeamPermissions";
+import TeamMembersModal from "../components/TeamMembersModal";
 
 export default function Teams() {
   const [open, setOpen] = useState(false);
   const user = useUserStore((s) => s.user);
-  const canCreateTeam = user?.accountType === 'company';
+  const { canCreateTeam } = useTeamPermissions();
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [invitesUserOpen, setInvitesUserOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const {
@@ -117,9 +120,7 @@ export default function Teams() {
         {isError && <ErrorAlert message="Failed to load teams" />}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {teams?.map((team) => {
-            const canManage =
-              user?.accountType === 'company' &&
-              team.users.some((m) => m.userId === user.id && m.role === 'admin');
+            const { canEditTeam: canManage } = getTeamPermissions(user, team);
             return (
               <TeamCard
                 key={team.id}
@@ -136,6 +137,10 @@ export default function Teams() {
                 onEditTeam={() => {
                   setSelectedTeam(team);
                   setOpen(true);
+                }}
+                onManageMembers={() => {
+                  setSelectedTeam(team);
+                  setMembersModalOpen(true);
                 }}
               />
             );
@@ -158,6 +163,16 @@ export default function Teams() {
           open={invitesUserOpen}
           onOpenChange={handleInviteUserModalOpenChange}
           teamId={selectedTeam.id}
+        />
+      )}
+      {selectedTeam && membersModalOpen && (
+        <TeamMembersModal
+          open={membersModalOpen}
+          onOpenChange={(v) => {
+            setMembersModalOpen(v);
+            if (!v) setSelectedTeam(null);
+          }}
+          team={selectedTeam}
         />
       )}
       {selectedTeam && (
