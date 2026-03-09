@@ -1,5 +1,5 @@
 import BoardModal from "../components/board/BoardModal";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Board, BoardOption, Column } from "../types/boards";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
@@ -51,9 +51,6 @@ export default function Boards() {
     handleSelectChange,
   } = useBoardState(teamId);
 
-  const columnsRef = useRef(columns);
-  columnsRef.current = columns;
-
   const { createColumnMutation, updateColumnMutation, deleteColumnMutation } =
     useColumnMutations(setColumns, setSelectedBoard);
 
@@ -81,11 +78,6 @@ export default function Boards() {
   const handleBoardSelectChange = useCallback(
     (opt: SingleValue<BoardOption>) => handleSelectChange(opt ? opt.board : null),
     [handleSelectChange]
-  );
-
-  const taskIds = useMemo(
-    () => columns.flatMap((column) => column.tasks?.map((task) => task.id) || []),
-    [columns]
   );
 
   const handleAddColumn = (formData: ColumnFormData) => {
@@ -129,12 +121,12 @@ export default function Boards() {
   }, []);
 
   const handleDeleteColumn = useCallback((columnId: string) => {
-    const column = columnsRef.current.find((col) => col.id === columnId);
+    const column = columns.find((col) => col.id === columnId);
     if (!column) return;
 
     setDeletingColumn(column);
     setConfirmDeleteOpen(true);
-  }, []);
+  }, [columns]);
 
   const handleConfirmDelete = () => {
     if (!selectedBoard?.id || !deletingColumn?.id) return;
@@ -179,10 +171,7 @@ export default function Boards() {
           >
             <div className="flex gap-3 overflow-x-hidden items-stretch pb-4 h-[calc(100vh-7.5rem)]">
               <SortableContext
-                items={[
-                  ...columns.map((col) => col.id),
-                  ...taskIds,
-                ]}
+                items={columns.map((col) => col.id)}
                 strategy={horizontalListSortingStrategy}
               >
                 {columns?.map((column) => (

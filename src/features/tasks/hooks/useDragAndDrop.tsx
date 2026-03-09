@@ -10,7 +10,7 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Column } from "../types/boards";
 import type { TaskType } from "../types/tasks";
-import { useCallback, useRef, useState } from "react";
+import { startTransition, useCallback, useRef, useState } from "react";
 
 export function useDragAndDrop(
   columns: Column[],
@@ -23,6 +23,8 @@ export function useDragAndDrop(
 
   const [activeTask, setActiveTask] = useState<TaskType | null>(null);
 
+  const lastDragOverKey = useRef<string | null>(null);
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
@@ -31,6 +33,7 @@ export function useDragAndDrop(
 
   const handleDragCancel = useCallback(() => {
     setActiveTask(null);
+    lastDragOverKey.current = null;
   }, []);
 
   const sensors = useSensors(
@@ -42,9 +45,6 @@ export function useDragAndDrop(
     })
   );
 
-  // Only handle SAME-column reordering during drag.
-  // Cross-column moves happen in handleDragEnd to prevent
-  // unmount/remount of the active item (which causes infinite useSortable loops).
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -54,34 +54,42 @@ export function useDragAndDrop(
 
     if (!isActiveTask || !isOverTask) return;
 
-    setColumns((prevColumns) => {
-      const activeColIdx = prevColumns.findIndex((col) =>
-        col.tasks?.some((t) => t.id === active.id)
-      );
-      const overColIdx = prevColumns.findIndex((col) =>
-        col.tasks?.some((t) => t.id === over.id)
-      );
+    const key = `${active.id}:${over.id}`;
+    if (lastDragOverKey.current === key) return;
+    lastDragOverKey.current = key;
 
-      if (activeColIdx === -1 || overColIdx === -1) return prevColumns;
-      // Skip cross-column moves — handled in dragEnd
-      if (activeColIdx !== overColIdx) return prevColumns;
+    startTransition(() => {
+      setColumns((prevColumns) => {
+        const activeColIdx = prevColumns.findIndex((col) =>
+          col.tasks?.some((t) => t.id === active.id)
+        );
+        const overColIdx = prevColumns.findIndex((col) =>
+          col.tasks?.some((t) => t.id === over.id)
+        );
 
-      const activeTaskIdx = prevColumns[activeColIdx].tasks?.findIndex((t) => t.id === active.id) ?? -1;
-      const overTaskIdx = prevColumns[overColIdx].tasks?.findIndex((t) => t.id === over.id) ?? -1;
+        if (activeColIdx === -1 || overColIdx === -1) return prevColumns;
+        // Skip cross-column moves — handled in dragEnd
+        if (activeColIdx !== overColIdx) return prevColumns;
 
-      if (activeTaskIdx === -1 || overTaskIdx === -1) return prevColumns;
+        const activeTaskIdx = prevColumns[activeColIdx].tasks?.findIndex((t) => t.id === active.id) ?? -1;
+        const overTaskIdx = prevColumns[overColIdx].tasks?.findIndex((t) => t.id === over.id) ?? -1;
 
-      const newTasks = [...(prevColumns[activeColIdx].tasks || [])];
-      const [moved] = newTasks.splice(activeTaskIdx, 1);
-      newTasks.splice(overTaskIdx, 0, moved);
-      return prevColumns.map((col, i) =>
-        i === activeColIdx ? { ...col, tasks: newTasks } : col
-      );
+        if (activeTaskIdx === -1 || overTaskIdx === -1) return prevColumns;
+        if (activeTaskIdx === overTaskIdx) return prevColumns;
+
+        const newTasks = [...(prevColumns[activeColIdx].tasks || [])];
+        const [moved] = newTasks.splice(activeTaskIdx, 1);
+        newTasks.splice(overTaskIdx, 0, moved);
+        return prevColumns.map((col, i) =>
+          i === activeColIdx ? { ...col, tasks: newTasks } : col
+        );
+      });
     });
   }, [setColumns]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveTask(null);
+    lastDragOverKey.current = null;
     const { active, over } = event;
     if (!over) return;
 
@@ -100,10 +108,7 @@ export function useDragAndDrop(
         col.tasks?.some((t) => t.id === over.id)
       )?.id;
     }
-    console.log(targetColumnId,'targetColumnId');
-    
-    console.log(originalColumnId,'originalColumnId');
-    
+
     if (!targetColumnId || targetColumnId === originalColumnId) return;
 
     // Move task to new column in state
@@ -120,9 +125,9 @@ export function useDragAndDrop(
       if (activeTaskIdx === -1) return prevColumns;
 
       const movedTask = prevColumns[activeColIdx].tasks?.[activeTaskIdx];
-      console.log(movedTask,'movedTask');
-      
       if (!movedTask) return prevColumns;
+
+      const movedTaskWithNewColumn = { ...movedTask, columnId: targetColumnId };
 
       // If dropping onto a task, insert at that position; otherwise append
       let insertIdx: number | undefined;
@@ -139,9 +144,9 @@ export function useDragAndDrop(
         if (i === targetColIdx) {
           const newTasks = [...(col.tasks || [])];
           if (insertIdx !== undefined && insertIdx >= 0) {
-            newTasks.splice(insertIdx, 0, movedTask);
+            newTasks.splice(insertIdx, 0, movedTaskWithNewColumn);
           } else {
-            newTasks.push(movedTask);
+            newTasks.push(movedTaskWithNewColumn);
           }
           return { ...col, tasks: newTasks };
         }

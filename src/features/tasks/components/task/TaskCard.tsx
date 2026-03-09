@@ -7,10 +7,78 @@ import { memo, useCallback, useMemo } from "react";
 import { GripVertical } from "lucide-react";
 import { truncateText } from "@/shared/utils/string";
 
-function TaskCard({ task }: { task: TaskType }) {
+const TaskCardContent = memo(function TaskCardContent({ task }: { task: TaskType }) {
   const navigate = useNavigate();
-  // const isDragEnabledRef = useRef(false);
-  const sortableData = useMemo(() => ({ type: "Task" as const, task }), [task.id, task.columnId]);
+
+  const handleTitleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/task/${task.id}`);
+  }, [navigate, task.id]);
+
+  const handleUserClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.assignee?.username) {
+      navigate(`/profile/${task.assignee.username}`);
+    }
+  }, [navigate, task.assignee?.username]);
+
+  return (
+    <div className="flex items-start gap-3">
+      <div className="mt-1 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+        <GripVertical className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4
+          onClick={handleTitleClick}
+          className="text-xs font-medium text-gray-800 hover:text-gray-600 leading-tight break-words cursor-pointer line-clamp-2"
+        >
+          {truncateText(task.title, 50)}
+        </h4>
+        {task.description && (
+          <p className="text-xs text-gray-500 mt-1 line-clamp-2 break-words">
+            {truncateText(task.description, 60)}
+          </p>
+        )}
+        <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+          <div
+            data-clickable="true"
+            className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={handleUserClick}
+          >
+            <UserAvatar
+              name={task.assignee?.username}
+              src={task.assignee?.profileImage}
+              size="sm"
+            />
+            {task.assignee?.username && (
+              <span className="truncate max-w-[80px] text-[10px]">
+                {task.assignee.username}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {task.priority && (
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                  task.priority === "high"
+                    ? "bg-red-100 text-red-700"
+                    : task.priority === "medium"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {task.priority}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+function TaskCard({ task }: { task: TaskType }) {
+  const sortableData = useMemo(() => ({ type: "Task" as const, task }), [task.id]);
 
   const {
     setNodeRef,
@@ -33,22 +101,6 @@ function TaskCard({ task }: { task: TaskType }) {
     transition,
   };
 
-  const handleTitleClick = useCallback((e: React.MouseEvent) => {
-    if (!isDragEnabledRef.current) {
-      e.stopPropagation();
-      navigate(`/task/${task.id}`);
-    }
-  }, [navigate, task.id]);
-
-  const handleUserClick = useCallback((e: React.MouseEvent) => {
-    if (!isDragEnabledRef.current) {
-      e.stopPropagation();
-      if (task.assignee?.username) {
-        navigate(`/profile/${task.assignee.username}`);
-      }
-    }
-  }, [navigate, task.assignee?.username]);
-
   if (isDragging) {
     return (
       <div
@@ -69,59 +121,7 @@ function TaskCard({ task }: { task: TaskType }) {
       {...listeners}
       className="overflow-x-hidden bg-white rounded-lg border border-gray-200 shadow-sm p-3 mb-3 cursor-grab active:cursor-grabbing select-none hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
-      <div className="flex items-start gap-3">
-        <div className="mt-1  flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
-          <GripVertical className="w-4 h-4" />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h4
-            onClick={handleTitleClick}
-            className="text-xs font-medium text-gray-800 hover:text-gray-600 leading-tight break-words cursor-pointer line-clamp-2"
-          >
-            {truncateText(task.title, 50)}
-          </h4>
-          {task.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2 break-words">
-              {truncateText(task.description, 60)}
-            </p>
-          )}
-          <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-            <div
-              data-clickable="true"
-              className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-70 transition-opacity"
-              onClick={handleUserClick}
-            >
-              <UserAvatar
-                name={task.assignee?.username}
-                src={task.assignee?.profileImage}
-                size="sm"
-              />
-              {task.assignee?.username && (
-                <span className="truncate max-w-[80px] text-[10px]">
-                  {task.assignee.username}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {task.priority && (
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                    task.priority === "high"
-                      ? "bg-red-100 text-red-700"
-                      : task.priority === "medium"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
-                >
-                  {task.priority}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <TaskCardContent task={task} />
     </div>
   );
 }
