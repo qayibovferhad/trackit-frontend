@@ -78,6 +78,11 @@ export const fetchMyAdminTeams = async (): Promise<Team[]> => {
   return response.data;
 };
 
+export const fetchMyBoardCreatorTeams = async (): Promise<Team[]> => {
+  const response = await api.get("/teams/my-board-creator-teams");
+  return response.data;
+};
+
 export async function getTeamMembers(
   teamId: string,
   search: string

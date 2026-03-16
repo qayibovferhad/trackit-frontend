@@ -2,7 +2,7 @@ import { InputField } from "@/shared/components/InputField";
 import { Modal } from "@/shared/ui/modal";
 import { boardSchema, type BoardFormData } from "../../schemas/boards.schema";
 import { useZodForm } from "@/shared/hooks/useZodForm";
-import { fetchMyAdminTeams } from "@/features/teams/services/teams.service";
+import { fetchMyBoardCreatorTeams } from "@/features/teams/services/teams.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormField } from "@/shared/components/FormField";
 import { Button } from "@/shared/ui/button";
@@ -34,11 +34,14 @@ export default function BoardModal({
 
   const queryClient = useQueryClient();
   const { data: teams } = useQuery({
-    queryKey: ["my-admin-teams"],
-    queryFn: fetchMyAdminTeams,
+    queryKey: ["my-board-creator-teams"],
+    queryFn: fetchMyBoardCreatorTeams,
     staleTime: 10_000,
     gcTime: 30 * 60_000,
   });
+
+  console.log(teams,'teams');
+  
 
   const { mutateAsync } = useMutation({
     mutationFn: addBoard,
