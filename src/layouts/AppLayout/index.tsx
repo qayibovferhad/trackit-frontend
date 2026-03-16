@@ -7,10 +7,13 @@ import { Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTeams } from "@/features/teams/services/teams.service";
 import { getConversations } from "@/features/inbox/services/conversation";
+import { useUserStore } from "@/stores/userStore";
 
 const SIDEBAR_WIDTH = "w-64";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const { user } = useUserStore();
+  const isCompany = user?.accountType === "company";
   const menus = useMemo(() => [...MAIN_MENU, ...SETTINGS_MENU].flat(), []);
 
   const { data: conversations = [] } = useQuery({
@@ -29,13 +32,15 @@ const totalUnreadCount = useMemo(
     gcTime: 30 * 60_000,
   });
 
-    const menuItemsWithBadge = useMemo(() => 
-    MAIN_MENU.map(item => 
-      item.to === '/inbox' 
-        ? { ...item, badge: totalUnreadCount }
-        : item
-    ),
-    [totalUnreadCount]
+    const menuItemsWithBadge = useMemo(() =>
+    MAIN_MENU
+      .filter(item => item.to !== '/subscription' || isCompany)
+      .map(item =>
+        item.to === '/inbox'
+          ? { ...item, badge: totalUnreadCount }
+          : item
+      ),
+    [totalUnreadCount, isCompany]
   );
   
   return (

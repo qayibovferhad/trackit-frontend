@@ -2,6 +2,8 @@ import Select from "react-select";
 import { FormField } from "@/shared/components/FormField";
 import GenericAsyncSelect from "@/shared/components/GenericAsyncSelect";
 import { fetchSharedTeams } from "@/features/teams/services/teams.service";
+import { getTeamPermissions } from "@/features/teams/hooks/useTeamPermissions";
+import { useUserStore } from "@/stores/userStore";
 import type { Team } from "@/features/teams/types";
 import type { Column } from "../../types/boards";
 import type { TeamOption } from "../../types/tasks";
@@ -30,20 +32,6 @@ const selectStyles = {
   menu: (base: any) => ({ ...base, zIndex: 50 }),
 };
 
-async function fetchTeamOptions(input: string, defaultUserId: string): Promise<TeamOption[]> {
-  if (!input || input.length < 2) return [];
-  try {
-    const data = await fetchSharedTeams(input, defaultUserId);
-    return (data ?? []).map((team: Team) => ({
-      id: team.id,
-      value: team.id,
-      label: team.name,
-    }));
-  } catch {
-    return [];
-  }
-}
-
 export default function TaskTeamBoardColumn({
   defaultUserId,
   selectedTeamOption,
@@ -54,6 +42,27 @@ export default function TaskTeamBoardColumn({
   onBoardChange,
   onColumnChange,
 }: Props) {
+  const user = useUserStore((s) => s.user);
+
+  async function fetchTeamOptions(input: string): Promise<TeamOption[]> {
+    if (!input || input.length < 2) return [];
+    try {
+      const data = await fetchSharedTeams(input, defaultUserId);
+      console.log((data ?? [])
+        .filter((team: Team) => getTeamPermissions(user, team).canCreateTask),'data');
+      
+      return (data ?? [])
+        .filter((team: Team) => getTeamPermissions(user, team).canCreateTask)
+        .map((team: Team) => ({
+          id: team.id,
+          value: team.id,
+          label: team.name,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
   return (
     <>
       <FormField label="Team" htmlFor="team">
@@ -61,7 +70,7 @@ export default function TaskTeamBoardColumn({
           value={selectedTeamOption ? [selectedTeamOption] : []}
           onChange={onTeamChange}
           placeholder="Search by name..."
-          loadOptions={(input) => fetchTeamOptions(input, defaultUserId)}
+          loadOptions={fetchTeamOptions}
           allowCreateOption={false}
           isMulti={false}
           noOptionsMessage={() => "No team found"}

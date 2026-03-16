@@ -17,11 +17,15 @@ export default function TaskItem({
   onEdit,
   onDelete,
   isSubtask = false,
+  canEdit = true,
+  canDelete = true,
 }: {
   task: TaskType;
   onEdit: (task: TaskType) => void;
   onDelete: (task: TaskType) => void;
   isSubtask?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   return (
     <div
@@ -83,32 +87,38 @@ export default function TaskItem({
           </div>
         </div>
       </div>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Task options"
-          >
-            <MoreHorizontal className="w-5 h-5 text-gray-600" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-7">
-          <DropdownMenuRow
-            iconCircle
-            icon={<Edit2 />}
-            label="Edit"
-            iconSize={4}
-            onClick={() => onEdit(task)}
-          />
-          <DropdownMenuRow
-            iconCircle
-            icon={<Trash2 />}
-            label="Delete"
-            iconSize={4}
-            onClick={() => onDelete(task)}
-          />
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {(canEdit || canDelete) && (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Task options"
+            >
+              <MoreHorizontal className="w-5 h-5 text-gray-600" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-7">
+            {canEdit && (
+              <DropdownMenuRow
+                iconCircle
+                icon={<Edit2 />}
+                label="Edit"
+                iconSize={4}
+                onClick={() => onEdit(task)}
+              />
+            )}
+            {canDelete && (
+              <DropdownMenuRow
+                iconCircle
+                icon={<Trash2 />}
+                label="Delete"
+                iconSize={4}
+                onClick={() => onDelete(task)}
+              />
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }

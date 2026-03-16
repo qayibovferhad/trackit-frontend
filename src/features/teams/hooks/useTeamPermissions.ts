@@ -65,6 +65,8 @@ export function getTeamPermissions(
   user: User | null,
   team: Team | null | undefined
 ): TeamPermissions {
+  console.log(compute(user, team),'compute(user, team)');
+  
   return compute(user, team);
 }
 

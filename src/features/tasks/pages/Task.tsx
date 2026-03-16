@@ -15,6 +15,7 @@ import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import TaskItem from "../components/task/TaskItem";
 import { CommentsSection } from "../components/comments/CommentsSection";
 import SubtaskList from "../components/task/SubtaskList";
+import { useTeamPermissions } from "@/features/teams/hooks/useTeamPermissions";
 
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -93,6 +94,7 @@ export default function TaskDetailPage() {
   }, [deletingTask, deleteTaskMutation, navigate]);
 
   const subtasks = task?.subtasks ?? [];
+  const { canCreateTask, canDeleteTask } = useTeamPermissions(task?.teamId);
 
   if (isLoadingTask) {
     return (
@@ -122,11 +124,19 @@ export default function TaskDetailPage() {
               task={task}
               onEdit={handleEditTask}
               onDelete={handleDeleteTaskClick}
+              canEdit={canCreateTask}
+              canDelete={canDeleteTask}
             />
           )}
-          <SubtaskList subtasks={subtasks} onEdit={handleEditTask} onDelete={handleDeleteTaskClick} setOpenModal={() => {
-            setModals((prev) => ({ ...prev, subtask: true }))
-          }} />
+          <SubtaskList
+            subtasks={subtasks}
+            onEdit={handleEditTask}
+            onDelete={handleDeleteTaskClick}
+            setOpenModal={() => setModals((prev) => ({ ...prev, subtask: true }))}
+            canCreateTask={canCreateTask}
+            canEdit={canCreateTask}
+            canDelete={canDeleteTask}
+          />
           <CommentsSection taskId={id} />
         </div>
       </div>

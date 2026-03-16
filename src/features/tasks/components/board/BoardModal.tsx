@@ -28,6 +28,7 @@ export default function BoardModal({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useZodForm(boardSchema);
 
@@ -79,6 +80,7 @@ export default function BoardModal({
         <FormField label="Team" error={errors.teamId}>
           <select
             {...register("teamId")}
+            value={watch("teamId")}
             disabled={!!defaultTeamId}
             className="w-full border rounded-md p-2 text-sm text-gray-600"
           >

@@ -4,6 +4,7 @@ import { devtools, persist } from "zustand/middleware";
 import { getCurrentUserRequest } from "@/features/auth/services/auth.service";
 import { setAccessToken } from "@/shared/lib/authStorage";
 import { disconnectSocket } from "@/shared/hooks/useSocket";
+import type { User } from "@/features/auth/types/auth.type";
 
 export const useUserStore = create<UserStoreState>()(
   devtools(
@@ -28,7 +29,8 @@ export const useUserStore = create<UserStoreState>()(
           }
         },
         setUser: (user) => {
-          set({ user, error: null });
+          const currentUser = get().user;
+          set({ user: { ...currentUser, ...user } as User, error: null });
         },
         updateUser: (userData) => {
           const currentUser = get().user;

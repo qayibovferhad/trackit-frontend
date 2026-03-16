@@ -14,11 +14,14 @@ const EmptySubtasks = () => (
     </div>
 );
 
-export default function SubtaskList({ subtasks, onEdit, onDelete,setOpenModal }: {
+export default function SubtaskList({ subtasks, onEdit, onDelete, setOpenModal, canCreateTask = true, canEdit = true, canDelete = true }: {
     subtasks: TaskType[],
-    setOpenModal:()=>void,
+    setOpenModal: () => void,
     onEdit: (task: TaskType) => void;
     onDelete: (task: TaskType) => void;
+    canCreateTask?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
 }) {
     return <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
@@ -30,13 +33,15 @@ export default function SubtaskList({ subtasks, onEdit, onDelete,setOpenModal }:
                     You can add subtasks and assign to others
                 </p>
             </div>
-            <Button
-                variant="violet"
-                onClick={setOpenModal}
-            >
-                <Plus className="w-4 h-4" />
-                Add Subtask
-            </Button>
+            {canCreateTask && (
+                <Button
+                    variant="violet"
+                    onClick={setOpenModal}
+                >
+                    <Plus className="w-4 h-4" />
+                    Add Subtask
+                </Button>
+            )}
         </div>
 
         {subtasks.length === 0 ? (
@@ -50,6 +55,8 @@ export default function SubtaskList({ subtasks, onEdit, onDelete,setOpenModal }:
                         onEdit={onEdit}
                         onDelete={onDelete}
                         isSubtask
+                        canEdit={canEdit}
+                        canDelete={canDelete}
                     />
                 ))}
             </div>

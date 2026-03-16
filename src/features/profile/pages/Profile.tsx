@@ -10,6 +10,8 @@ import TaskModal from '@/features/tasks/components/task/TaskModal';
 import { useTaskMutations } from '@/features/tasks/hooks/useTaskMutations';
 import InviteTeamModal from '@/features/teams/components/InviteTeamModal';
 import { useUserStore } from '@/stores/userStore';
+import { useTeamsQuery } from '@/features/teams/hooks/useTeams';
+import { getTeamPermissions } from '@/features/teams/hooks/useTeamPermissions';
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -18,6 +20,8 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const { user:myUser } = useUserStore();
   const { createTaskMutation } = useTaskMutations();
+  const { data: myTeams } = useTeamsQuery();
+  const canInviteInAnyTeam = myTeams?.some((team) => getTeamPermissions(myUser, team).canInviteMembers) ?? false;
   const navigate = useNavigate()
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['profile', username],
@@ -63,9 +67,11 @@ export default function ProfilePage() {
                 <User className="w-3.5 h-3.5" />
                 Assign Task
               </Button>
-              <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors" onClick={()=>setOpenInviteModal(true)}>
-                <Plus className="w-3.5 h-3.5" /> Invite
-              </Button>
+              {canInviteInAnyTeam && (
+                <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors" onClick={()=>setOpenInviteModal(true)}>
+                  <Plus className="w-3.5 h-3.5" /> Invite
+                </Button>
+              )}
               </>}
           
             </div>

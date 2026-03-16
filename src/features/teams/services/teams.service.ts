@@ -109,6 +109,11 @@ export const getMyTeamPerformance = async (teamId: string): Promise<any> => {
   return response.data;
 };
 
+export async function removeMember(teamId: string, memberId: string) {
+  const { data } = await api.delete(`/teams/${teamId}/members/${memberId}`);
+  return data;
+}
+
 export async function updateMemberPermissions(
   teamId: string,
   memberId: string,
