@@ -8,6 +8,38 @@ export function formatDate(
   return dayjs(date).format(format);
 }
 
+export function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+export function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+export function daysBetween(a: Date, b: Date): number {
+  return Math.round(
+    (startOfDay(b).getTime() - startOfDay(a).getTime()) / 86_400_000
+  );
+}
+
+export function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+export function fmtShort(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const sec = Math.floor(diff / 1000);

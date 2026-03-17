@@ -21,4 +21,5 @@ export const PATHS = {
   SUBSCRIPTION:"/subscription",
   SETTINGS_SUBSCRIPTION: "/settings/subscription",
   ANNOUNCEMENTS: "/announcements",
+  TIMELINE: "/timeline",
 } as const;
