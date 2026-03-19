@@ -24,14 +24,16 @@ export default function TimelineChart() {
   // ── pan (drag timeline to scroll days) ──
   const [isPanning, setIsPanning] = useState(false);
   const panRef = useRef<{ startX: number; startViewStart: Date } | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const onPanStart = (e: React.MouseEvent) => {
+  const onPanStart = (e: React.PointerEvent) => {
+    e.preventDefault();
     panRef.current = { startX: e.clientX, startViewStart: viewStart };
     setIsPanning(true);
   };
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!panRef.current) return;
       const dx = e.clientX - panRef.current.startX;
       const deltaDays = -Math.round(dx / DAY_W);
@@ -41,12 +43,23 @@ export default function TimelineChart() {
       panRef.current = null;
       setIsPanning(false);
     };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
     return () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
     };
+  }, []);
+
+  // disable wheel/trackpad scroll on the chart — only grab navigates
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => e.preventDefault();
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
   // group by assignee
@@ -71,7 +84,7 @@ export default function TimelineChart() {
 
       {/* ── chart ── */}
       <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
-        <div className="overflow-auto flex-1">
+        <div ref={scrollContainerRef} className="overflow-y-auto overflow-x-hidden flex-1">
           <div style={{ minWidth: SIDEBAR_W + timelineW }}>
 
             {/* day-number header */}
@@ -106,7 +119,7 @@ export default function TimelineChart() {
                       "shrink-0 flex flex-col items-center justify-center border-r border-gray-100 text-sm select-none",
                       isToday ? "text-indigo-600 font-bold" : "text-gray-400 font-normal"
                     )}
-                    onMouseDown={onPanStart}
+                    onPointerDown={onPanStart}
                   >
                     <span className="text-[11px] uppercase">
                       {day.toLocaleDateString("en-US", { weekday: "short" })}
@@ -149,11 +162,11 @@ export default function TimelineChart() {
                     <MoreHorizontal className="size-4 text-gray-300 ml-auto shrink-0 mt-0.5" />
                   </div>
 
-                  {/* task cards — mousedown starts pan, cards stop propagation */}
+                  {/* task cards — pointerdown starts pan, cards stop propagation */}
                   <div
                     className="relative"
                     style={{ width: timelineW, cursor: isPanning ? "grabbing" : "grab" }}
-                    onMouseDown={onPanStart}
+                    onPointerDown={onPanStart}
                   >
                     {/* column grid lines */}
                     {days.map((day, i) => (
@@ -192,7 +205,7 @@ export default function TimelineChart() {
                             key={task.id}
                             className="absolute bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2.5 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
                             style={{ left: x, top: cardTop(lane), width: w, height: CARD_H }}
-                            onMouseDown={(e) => e.stopPropagation()}
+                            onPointerDown={onPanStart}
                           >
                             <div className="flex items-start gap-2 h-full">
                               {/* checkbox */}
