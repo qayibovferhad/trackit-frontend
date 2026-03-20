@@ -1,9 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, MoreHorizontal } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { SAMPLE_TASKS } from "../data/sampleData";
 import type { TimelineTask } from "../types/timeline.types";
+import type { TeamOption } from "@/features/tasks/types/tasks";
+import { getTeamMembersPaginated } from "@/features/teams/services/teams.service";
+import { getTasksByTeam } from "@/features/tasks/services/tasks.service";
 import { DAY_W, HEADER_H, SIDEBAR_W, CARD_H, VISIBLE_DAYS, STATUS_COLOR } from "../constants";
 import { assignLanes, cardTop, rowHeight } from "../utils";
 import { addDays, daysBetween, fmtShort, isSameDay, startOfDay } from "@/shared/utils/date";
@@ -15,7 +18,40 @@ export default function TimelineChart() {
 
   // viewStart = first day shown (default: 5 days before today)
   const [viewStart, setViewStart] = useState(() => startOfDay(addDays(today, -5)));
-  const [tasks] = useState<TimelineTask[]>(SAMPLE_TASKS);
+  const [selectedTeam, setSelectedTeam] = useState<TeamOption | null>(null);
+  const [memberPage, setMemberPage] = useState(1);
+
+  const handleTeamChange = (team: TeamOption | null) => {
+    setSelectedTeam(team);
+    setMemberPage(1);
+  };
+  const teamId = selectedTeam?.id ?? null;
+
+  const { data: membersResult } = useQuery({
+    queryKey: ["timeline-members", teamId, memberPage],
+    queryFn: () => getTeamMembersPaginated(teamId!, memberPage),
+    enabled: !!teamId,
+  });
+
+  const members = membersResult?.data ?? [];
+  const totalMembers = membersResult?.total ?? 0;
+  const totalPages = Math.ceil(totalMembers / 5);
+
+  const { data: tasks = [] } = useQuery<TimelineTask[]>({
+    queryKey: ["timeline-tasks", teamId],
+    queryFn: async () => {
+      const raw = await getTasksByTeam(teamId!);
+      return raw.map((t) => ({
+        ...t,
+        startDate: new Date(t.createdAt),
+        dueAt: t.dueAt ? new Date(t.dueAt) : new Date(t.createdAt),
+        status: (t as any).column?.type ?? "TODO",
+        groupId: teamId!,
+        groupName: selectedTeam!.label,
+      }));
+    },
+    enabled: !!teamId,
+  });
 
   const days = Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(viewStart, i));
 
@@ -24,6 +60,7 @@ export default function TimelineChart() {
   // ── pan (drag timeline to scroll days) ──
   const [isPanning, setIsPanning] = useState(false);
   const panRef = useRef<{ startX: number; startViewStart: Date } | null>(null);
+  const rafRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const onPanStart = (e: React.PointerEvent) => {
@@ -35,11 +72,20 @@ export default function TimelineChart() {
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!panRef.current) return;
-      const dx = e.clientX - panRef.current.startX;
-      const deltaDays = -Math.round(dx / DAY_W);
-      setViewStart(addDays(panRef.current.startViewStart, deltaDays));
+      if (rafRef.current !== null) return; // already queued for this frame
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        if (!panRef.current) return;
+        const dx = e.clientX - panRef.current.startX;
+        const deltaDays = -Math.round(dx / DAY_W);
+        setViewStart(addDays(panRef.current.startViewStart, deltaDays));
+      });
     };
     const onUp = () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       panRef.current = null;
       setIsPanning(false);
     };
@@ -62,16 +108,15 @@ export default function TimelineChart() {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // group by assignee
-  const groups = (() => {
-    const map = new Map<string, { name: string; img?: string; tasks: TimelineTask[] }>();
-    tasks.forEach((t) => {
-      const { id, name, username, profileImage } = t.assignee;
-      if (!map.has(id)) map.set(id, { name: name ?? username, img: profileImage, tasks: [] });
-      map.get(id)!.tasks.push(t);
-    });
-    return [...map.entries()].map(([id, v]) => ({ id, ...v }));
-  })();
+  // group by member — each team member is a row, tasks filtered by assignee
+  const groups = useMemo(() => {
+    return members.map((m) => ({
+      id: m.userId,
+      name: m.user.name ?? m.user.username ?? m.user.email,
+      img: m.user.profileImage,
+      tasks: tasks.filter((t) => t.assignee.id === m.userId),
+    }));
+  }, [members, tasks]);
 
   // x offset (relative to timeline area, i.e. right of sidebar)
   const toX = (d: Date) => daysBetween(viewStart, d) * DAY_W;
@@ -80,7 +125,12 @@ export default function TimelineChart() {
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      <TimelineHeader viewStart={viewStart} onNavigate={setViewStart} />
+      <TimelineHeader
+        viewStart={viewStart}
+        onNavigate={setViewStart}
+        selectedTeam={selectedTeam}
+        onTeamChange={handleTeamChange}
+      />
 
       {/* ── chart ── */}
       <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
@@ -249,12 +299,39 @@ export default function TimelineChart() {
             </div>
 
             {/* footer */}
-            <div className="py-5 text-center text-sm text-gray-400 border-t border-gray-100">
-              Add more members by{" "}
-              <span className="text-indigo-500 cursor-pointer hover:underline font-medium">
-                +Inviting
-              </span>{" "}
-              and assign task to anyone
+            <div className="py-3 px-4 flex items-center justify-between border-t border-gray-100">
+              <span className="text-sm text-gray-400">
+                Add more members by{" "}
+                <span className="text-indigo-500 cursor-pointer hover:underline font-medium">
+                  +Inviting
+                </span>
+              </span>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={memberPage === 1}
+                    onClick={() => setMemberPage((p) => p - 1)}
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <span className="text-xs text-gray-500">
+                    {memberPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={memberPage === totalPages}
+                    onClick={() => setMemberPage((p) => p + 1)}
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

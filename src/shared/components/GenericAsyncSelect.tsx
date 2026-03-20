@@ -23,6 +23,7 @@ interface GenericAsyncSelectProps<T extends BaseOption> {
   allowCreateOption?: boolean;
   isDisabled?: boolean;
   isMulti?: boolean;
+  menuPortalTarget?: HTMLElement | null;
 }
 
 const EMPTY_ARRAY: BaseOption[] = [];
@@ -41,6 +42,7 @@ export default function GenericAsyncSelect<T extends BaseOption>({
   allowCreateOption = false,
   isDisabled = false,
   isMulti = true,
+  menuPortalTarget,
 }: GenericAsyncSelectProps<T>) {
   const timeoutRef = useRef<NodeJS.Timeout>(null);
 
@@ -92,6 +94,7 @@ export default function GenericAsyncSelect<T extends BaseOption>({
     placeholder,
     noOptionsMessage,
     isDisabled,
+    ...(menuPortalTarget !== undefined && { menuPortalTarget, menuPosition: "fixed" }),
   };
 
   if (!allowCreateOption) {

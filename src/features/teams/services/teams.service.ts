@@ -92,6 +92,15 @@ export async function getTeamMembers(
   return data;
 }
 
+export async function getTeamMembersPaginated(
+  teamId: string,
+  page: number = 1,
+  take: number = 5,
+): Promise<{ data: import("../types").TeamMember[]; total: number; page: number; take: number }> {
+  const { data } = await api.get(`/teams/${teamId}/members/paginated`, { params: { page, take } });
+  return data;
+}
+
 export async function joinToTeam(teamId: string) {
   const response = await api.post(`/teams/${teamId}/request-join`);
   return response.data;

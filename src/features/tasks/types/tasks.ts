@@ -8,6 +8,7 @@ export interface TaskType {
   title: string;
   description: string;
   dueAt: Date;
+  createdAt: Date;
   tags?: string[];
   priority: string;
   teamId: string;
