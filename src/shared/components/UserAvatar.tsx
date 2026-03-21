@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/shared/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 
@@ -26,15 +27,17 @@ type Props = {
   size?: Size;
   className?: string;
   imageClassName?: string;
+  fallbackClassName?: string;
 };
 
-export default function UserAvatar({
+const UserAvatar = memo(function UserAvatar({
   src,
   name,
   email,
   size = "md",
   className,
   imageClassName,
+  fallbackClassName,
 }: Props) {
   const label = name || email || "User";
   return (
@@ -50,9 +53,12 @@ export default function UserAvatar({
         alt={label}
         className={cn("h-full w-full object-cover", imageClassName)}
       />
-      <AvatarFallback className="text-[14px] bg-gray-100 text-gray-700">
+      <AvatarFallback className={cn("text-[14px] bg-gray-100 text-gray-700", fallbackClassName)}>
         {initials(name || email || "")}
       </AvatarFallback>
     </Avatar>
   );
-}
+});
+
+UserAvatar.displayName = "UserAvatar";
+export default UserAvatar;

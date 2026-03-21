@@ -1,4 +1,12 @@
-import { useState, useRef, useEffect, useMemo, memo, useCallback, startTransition } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  memo,
+  useCallback,
+  startTransition,
+} from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { TeamOption } from "@/features/tasks/types/tasks";
 import { getTeamMembersPaginated } from "@/features/teams/services/teams.service";
@@ -12,13 +20,18 @@ import TimelineDayHeader from "./TimelineDayHeader";
 import TimelineAssigneeRow from "./TimelineAssigneeRow";
 import TimelinePagination from "./TimelinePagination";
 
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_SHORT = [
+  "Jan","Feb","Mar","Apr","May","Jun",
+  "Jul","Aug","Sep","Oct","Nov","Dec",
+];
+
 
 const StableTimelineHeader = memo(TimelineHeader, (prev, next) =>
   prev.viewStart.getMonth() === next.viewStart.getMonth() &&
   prev.viewStart.getFullYear() === next.viewStart.getFullYear() &&
-  prev.selectedTeam?.id === next.selectedTeam?.id
+  prev.selectedTeam?.id === next.selectedTeam?.id,
 );
+StableTimelineHeader.displayName = "StableTimelineHeader";
 
 export default function TimelineChart() {
   const today = new Date();
@@ -38,12 +51,20 @@ export default function TimelineChart() {
   const CHUNK = 7;
   const epoch = useMemo(() => new Date(0), []);
   const chunkIndex = useMemo(() => {
-    const daysSinceEpoch = Math.floor((viewStart.getTime() - epoch.getTime()) / (86400 * 1000));
+    const daysSinceEpoch = Math.floor(
+      (viewStart.getTime() - epoch.getTime()) / (86400 * 1000),
+    );
     return Math.floor(daysSinceEpoch / CHUNK);
   }, [viewStart, epoch]);
 
-  const fetchFrom = useMemo(() => addDays(epoch, (chunkIndex - 1) * CHUNK), [chunkIndex, epoch]);
-  const fetchTo   = useMemo(() => addDays(epoch, (chunkIndex + 3) * CHUNK), [chunkIndex, epoch]);
+  const fetchFrom = useMemo(
+    () => addDays(epoch, (chunkIndex - 1) * CHUNK),
+    [chunkIndex, epoch],
+  );
+  const fetchTo = useMemo(
+    () => addDays(epoch, (chunkIndex + 3) * CHUNK),
+    [chunkIndex, epoch],
+  );
 
   const { data: membersResult } = useQuery({
     queryKey: ["timeline-members", teamId, memberPage],
@@ -62,7 +83,7 @@ export default function TimelineChart() {
         status: (t as any).column?.type ?? "TODO",
         groupId: teamId!,
         groupName: selectedTeam!.label,
-        cardW: 0, // placeholder, overwritten below in groups
+        cardW: 0,
       }));
     },
     enabled: !!teamId,
@@ -79,7 +100,10 @@ export default function TimelineChart() {
       const { laneMap, laneCount } = assignLanes(memberTasks);
       const tasks = memberTasks.map((t) => ({
         ...t,
-        cardW: Math.max(DAY_W - 8, (daysBetween(t.startDate, t.dueAt ?? t.startDate) + 1) * DAY_W - 8),
+        cardW: Math.max(
+          DAY_W - 8,
+          (daysBetween(t.startDate, t.dueAt ?? t.startDate) + 1) * DAY_W - 8,
+        ),
       }));
       return {
         id: m.userId,
@@ -91,29 +115,25 @@ export default function TimelineChart() {
       };
     });
   }, [membersResult, rawTasks]);
-
-  const viewStartMs = useMemo(() => startOfDay(viewStart).getTime(), [viewStart]);
-  const days = useMemo(
-    () => Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(viewStart, i)),
-    [viewStart]
-  );
-  const toX = useCallback(
-    (d: Date) => Math.round((startOfDay(d).getTime() - viewStartMs) / 86_400_000) * DAY_W,
-    [viewStartMs]
-  );
+  const viewStartMs = viewStart.getTime();
 
   const timelineW = VISIBLE_DAYS * DAY_W;
+
   const shiftPrev = useCallback(() => setViewStart((d) => addDays(d, -7)), []);
   const shiftNext = useCallback(() => setViewStart((d) => addDays(d, 7)), []);
-  const navLabel = `${MONTHS_SHORT[viewStart.getMonth()]} ${viewStart.getFullYear()}`;
-  const todayX = toX(today) + DAY_W / 2;
+  const pagePrev = useCallback(() => setMemberPage((p) => p - 1), []);
+  const pageNext = useCallback(() => setMemberPage((p) => p + 1), []);
+
+  const navLabel = useMemo(
+    () => `${MONTHS_SHORT[viewStart.getMonth()]} ${viewStart.getFullYear()}`,
+    [viewStart],
+  );
 
   const chartRef = useRef<HTMLDivElement>(null);
   const panRef = useRef<{ startX: number } | null>(null);
   const rafRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // pan: zero re-renders during drag
   const onPanStart = useCallback((e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
     e.preventDefault();
@@ -133,7 +153,10 @@ export default function TimelineChart() {
       });
     };
     const onUp = (e: PointerEvent) => {
-      if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       if (panRef.current && chartRef.current) {
         const dx = e.clientX - panRef.current.startX;
         const deltaDays = -Math.round(dx / DAY_W);
@@ -153,12 +176,13 @@ export default function TimelineChart() {
     };
   }, []);
 
-  // wheel: RAF throttle + startTransition
   const wheelAccRef = useRef(0);
   const wheelRafRef = useRef<number | null>(null);
+
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const delta = Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
@@ -173,6 +197,7 @@ export default function TimelineChart() {
         }
       });
     };
+
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       el.removeEventListener("wheel", onWheel);
@@ -197,7 +222,7 @@ export default function TimelineChart() {
             onPointerDown={onPanStart}
           >
             <TimelineDayHeader
-              days={days}
+              viewStartMs={viewStartMs}
               todayStart={todayStart}
               navLabel={navLabel}
               onPrev={shiftPrev}
@@ -209,11 +234,9 @@ export default function TimelineChart() {
                 <TimelineAssigneeRow
                   key={group.id}
                   group={group}
-                  days={days}
+                  viewStartMs={viewStartMs}
                   todayStart={todayStart}
-                  todayX={todayX}
                   timelineW={timelineW}
-                  toX={toX}
                 />
               ))}
             </div>
@@ -221,8 +244,8 @@ export default function TimelineChart() {
             <TimelinePagination
               page={memberPage}
               totalPages={totalPages}
-              onPrev={() => setMemberPage((p) => p - 1)}
-              onNext={() => setMemberPage((p) => p + 1)}
+              onPrev={pagePrev}
+              onNext={pageNext}
             />
           </div>
         </div>

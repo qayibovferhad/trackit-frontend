@@ -14,6 +14,7 @@ const TimelineNavButtons = memo(function TimelineNavButtons({
   onPrev,
   onNext,
 }: TimelineNavButtonsProps) {
+  console.log("[render] TimelineNavButtons", { label });
   return (
     <div
       className="sticky left-0 z-30 bg-white border-r border-gray-100 flex items-center gap-2 px-4 shrink-0"

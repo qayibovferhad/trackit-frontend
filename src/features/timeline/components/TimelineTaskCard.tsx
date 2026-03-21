@@ -1,19 +1,21 @@
 import { memo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { fmtShort } from "@/shared/utils/date";
 import type { TimelineTask } from "../types/timeline.types";
 import { STATUS_COLOR } from "../constants";
+import UserAvatar from "@/shared/components/UserAvatar";
 
 interface TimelineTaskCardProps {
   task: TimelineTask;
-  onTitleClick: () => void;
 }
 
 const TimelineTaskCard = memo(function TimelineTaskCard({
   task,
-  onTitleClick,
 }: TimelineTaskCardProps) {
+  console.log("[render] TimelineTaskCard", { taskId: task.id, title: task.title });
+  const navigate = useNavigate();
   const isDone = task.status === "DONE";
   return (
     <div className="flex items-start gap-2 h-full">
@@ -30,18 +32,12 @@ const TimelineTaskCard = memo(function TimelineTaskCard({
             isDone ? "text-gray-400 line-through" : "text-gray-800"
           )}
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={onTitleClick}
+          onClick={() => navigate(`/task/${task.id}`)}
         >
           {task.title}
         </p>
         <div className="flex items-center gap-1.5 mt-1.5">
-          {task.assignee.profileImage ? (
-            <img src={task.assignee.profileImage} className="size-4 rounded-full" />
-          ) : (
-            <div className="size-4 rounded-full bg-indigo-400 flex items-center justify-center text-[9px] text-white font-bold shrink-0">
-              {(task.assignee.name ?? task.assignee.username).charAt(0).toUpperCase()}
-            </div>
-          )}
+          <UserAvatar src={task.assignee.profileImage} name={task.assignee.name} size="sm" className="h-4 w-4" fallbackClassName="text-[9px]" />
           <span className="text-[11px] text-gray-400 truncate">
             {fmtShort(task.startDate)} to {fmtShort(task.dueAt)}
           </span>
@@ -51,4 +47,5 @@ const TimelineTaskCard = memo(function TimelineTaskCard({
   );
 });
 
+TimelineTaskCard.displayName = "TimelineTaskCard";
 export default TimelineTaskCard;

@@ -12,6 +12,7 @@ const TimelineAssigneeSidebar = memo(function TimelineAssigneeSidebar({
   name,
   img,
 }: TimelineAssigneeSidebarProps) {
+  console.log("[render] TimelineAssigneeSidebar", { name });
   return (
     <div
       className="sticky left-0 z-10 bg-white border-r border-gray-100 flex items-start gap-2.5 px-4 pt-4 shrink-0"
@@ -24,4 +25,5 @@ const TimelineAssigneeSidebar = memo(function TimelineAssigneeSidebar({
   );
 });
 
+TimelineAssigneeSidebar.displayName = "TimelineAssigneeSidebar";
 export default TimelineAssigneeSidebar;

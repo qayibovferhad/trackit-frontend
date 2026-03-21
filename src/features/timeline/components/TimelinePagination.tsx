@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
@@ -8,12 +9,13 @@ interface TimelinePaginationProps {
   onNext: () => void;
 }
 
-export default function TimelinePagination({
+const TimelinePagination = memo(function TimelinePagination({
   page,
   totalPages,
   onPrev,
   onNext,
 }: TimelinePaginationProps) {
+  console.log("[render] TimelinePagination", { page, totalPages });
   if (totalPages <= 1) return null;
   return (
     <div className="py-3 px-4 flex items-center justify-end border-t border-gray-100">
@@ -28,4 +30,6 @@ export default function TimelinePagination({
       </div>
     </div>
   );
-}
+});
+
+export default TimelinePagination;
