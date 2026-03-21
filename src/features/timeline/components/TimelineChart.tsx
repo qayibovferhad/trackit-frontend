@@ -11,6 +11,7 @@ import { DAY_W, HEADER_H, SIDEBAR_W, CARD_H, VISIBLE_DAYS, STATUS_COLOR } from "
 import { assignLanes, cardTop, rowHeight } from "../utils";
 import { addDays, daysBetween, fmtShort, isSameDay, startOfDay } from "@/shared/utils/date";
 import TimelineHeader from "./TimelineHeader";
+import UserAvatar from "@/shared/components/UserAvatar";
 
 // ── component ─────────────────────────────────────────────────────────────────
 export default function TimelineChart() {
@@ -27,6 +28,14 @@ export default function TimelineChart() {
   };
   const teamId = selectedTeam?.id ?? null;
 
+  // snap viewStart to 7-day block boundaries so query key only changes every 7 days
+  const CHUNK = 7;
+  const epoch = new Date(0);
+  const daysSinceEpoch = Math.floor((viewStart.getTime() - epoch.getTime()) / (86400 * 1000));
+  const chunkIndex = Math.floor(daysSinceEpoch / CHUNK);
+  const fetchFrom = addDays(epoch, (chunkIndex - 1) * CHUNK); // 1 chunk before
+  const fetchTo   = addDays(epoch, (chunkIndex + 3) * CHUNK); // 2 chunks after
+
   const { data: membersResult } = useQuery({
     queryKey: ["timeline-members", teamId, memberPage],
     queryFn: () => getTeamMembersPaginated(teamId!, memberPage),
@@ -38,9 +47,9 @@ export default function TimelineChart() {
   const totalPages = Math.ceil(totalMembers / 5);
 
   const { data: tasks = [] } = useQuery<TimelineTask[]>({
-    queryKey: ["timeline-tasks", teamId],
+    queryKey: ["timeline-tasks", teamId, chunkIndex],
     queryFn: async () => {
-      const raw = await getTasksByTeam(teamId!);
+      const raw = await getTasksByTeam(teamId!, fetchFrom, fetchTo);
       return raw.map((t) => ({
         ...t,
         startDate: new Date(t.createdAt),
@@ -51,6 +60,7 @@ export default function TimelineChart() {
       }));
     },
     enabled: !!teamId,
+    staleTime: 2 * 60 * 1000,
   });
 
   const days = Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(viewStart, i));
@@ -99,11 +109,21 @@ export default function TimelineChart() {
     };
   }, []);
 
-  // disable wheel/trackpad scroll on the chart — only grab navigates
+  // wheel/trackpad → horizontal day navigation, block vertical scroll
+  const wheelAccRef = useRef(0);
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
-    const onWheel = (e: WheelEvent) => e.preventDefault();
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      wheelAccRef.current += delta;
+      const days = Math.trunc(wheelAccRef.current / DAY_W);
+      if (days !== 0) {
+        wheelAccRef.current -= days * DAY_W;
+        setViewStart((d) => addDays(d, days));
+      }
+    };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
@@ -201,13 +221,7 @@ export default function TimelineChart() {
                     className="sticky left-0 z-10 bg-white border-r border-gray-100 flex items-start gap-2.5 px-4 pt-4 shrink-0"
                     style={{ width: SIDEBAR_W }}
                   >
-                    {group.img ? (
-                      <img src={group.img} className="size-7 rounded-full border border-gray-200 shrink-0" />
-                    ) : (
-                      <div className="size-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600 shrink-0">
-                        {group.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar src={group.img} name={group.name}/>
                     <span className="text-sm font-medium text-gray-700 truncate mt-0.5">{group.name}</span>
                     <MoreHorizontal className="size-4 text-gray-300 ml-auto shrink-0 mt-0.5" />
                   </div>
@@ -298,16 +312,8 @@ export default function TimelineChart() {
               })}
             </div>
 
-            {/* footer */}
-            <div className="py-3 px-4 flex items-center justify-between border-t border-gray-100">
-              <span className="text-sm text-gray-400">
-                Add more members by{" "}
-                <span className="text-indigo-500 cursor-pointer hover:underline font-medium">
-                  +Inviting
-                </span>
-              </span>
-
-              {totalPages > 1 && (
+            {totalPages > 1 && (
+              <div className="py-3 px-4 flex items-center justify-end border-t border-gray-100">
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -331,8 +337,8 @@ export default function TimelineChart() {
                     <ChevronRight className="size-4" />
                   </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

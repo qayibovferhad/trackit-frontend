@@ -77,7 +77,9 @@ export const getTaskStatusStats = async ():Promise<TaskStatusStatsResponse>=>{
   return data
 }
 
-export const getTasksByTeam = async (teamId: string): Promise<TaskType[]> => {
-  const { data } = await api.get(`/tasks/team/${teamId}`);
+export const getTasksByTeam = async (teamId: string, from: Date, to: Date): Promise<TaskType[]> => {
+  const { data } = await api.get(`/tasks/team/${teamId}`, {
+    params: { from: from.toISOString(), to: to.toISOString() },
+  });
   return data;
 };
