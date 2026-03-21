@@ -1,40 +1,49 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, memo, useCallback, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, MoreHorizontal } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import type { TimelineTask } from "../types/timeline.types";
 import type { TeamOption } from "@/features/tasks/types/tasks";
 import { getTeamMembersPaginated } from "@/features/teams/services/teams.service";
 import { getTasksByTeam } from "@/features/tasks/services/tasks.service";
-import { DAY_W, HEADER_H, SIDEBAR_W, CARD_H, VISIBLE_DAYS, STATUS_COLOR } from "../constants";
-import { assignLanes, cardTop, rowHeight } from "../utils";
-import { addDays, daysBetween, fmtShort, isSameDay, startOfDay } from "@/shared/utils/date";
+import { DAY_W, VISIBLE_DAYS, SIDEBAR_W } from "../constants";
+import { assignLanes } from "../utils";
+import { addDays, daysBetween, startOfDay } from "@/shared/utils/date";
+import type { TimelineGroup } from "../types/timeline.types";
 import TimelineHeader from "./TimelineHeader";
-import UserAvatar from "@/shared/components/UserAvatar";
+import TimelineDayHeader from "./TimelineDayHeader";
+import TimelineAssigneeRow from "./TimelineAssigneeRow";
+import TimelinePagination from "./TimelinePagination";
 
-// ── component ─────────────────────────────────────────────────────────────────
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const StableTimelineHeader = memo(TimelineHeader, (prev, next) =>
+  prev.viewStart.getMonth() === next.viewStart.getMonth() &&
+  prev.viewStart.getFullYear() === next.viewStart.getFullYear() &&
+  prev.selectedTeam?.id === next.selectedTeam?.id
+);
+
 export default function TimelineChart() {
   const today = new Date();
+  const todayStart = useMemo(() => startOfDay(today).getTime(), []);
 
-  // viewStart = first day shown (default: 5 days before today)
   const [viewStart, setViewStart] = useState(() => startOfDay(addDays(today, -5)));
   const [selectedTeam, setSelectedTeam] = useState<TeamOption | null>(null);
   const [memberPage, setMemberPage] = useState(1);
 
-  const handleTeamChange = (team: TeamOption | null) => {
+  const handleTeamChange = useCallback((team: TeamOption | null) => {
     setSelectedTeam(team);
     setMemberPage(1);
-  };
+  }, []);
+
   const teamId = selectedTeam?.id ?? null;
 
-  // snap viewStart to 7-day block boundaries so query key only changes every 7 days
   const CHUNK = 7;
-  const epoch = new Date(0);
-  const daysSinceEpoch = Math.floor((viewStart.getTime() - epoch.getTime()) / (86400 * 1000));
-  const chunkIndex = Math.floor(daysSinceEpoch / CHUNK);
-  const fetchFrom = addDays(epoch, (chunkIndex - 1) * CHUNK); // 1 chunk before
-  const fetchTo   = addDays(epoch, (chunkIndex + 3) * CHUNK); // 2 chunks after
+  const epoch = useMemo(() => new Date(0), []);
+  const chunkIndex = useMemo(() => {
+    const daysSinceEpoch = Math.floor((viewStart.getTime() - epoch.getTime()) / (86400 * 1000));
+    return Math.floor(daysSinceEpoch / CHUNK);
+  }, [viewStart, epoch]);
+
+  const fetchFrom = useMemo(() => addDays(epoch, (chunkIndex - 1) * CHUNK), [chunkIndex, epoch]);
+  const fetchTo   = useMemo(() => addDays(epoch, (chunkIndex + 3) * CHUNK), [chunkIndex, epoch]);
 
   const { data: membersResult } = useQuery({
     queryKey: ["timeline-members", teamId, memberPage],
@@ -42,11 +51,7 @@ export default function TimelineChart() {
     enabled: !!teamId,
   });
 
-  const members = membersResult?.data ?? [];
-  const totalMembers = membersResult?.total ?? 0;
-  const totalPages = Math.ceil(totalMembers / 5);
-
-  const { data: tasks = [] } = useQuery<TimelineTask[]>({
+  const { data: rawTasks = [] } = useQuery({
     queryKey: ["timeline-tasks", teamId, chunkIndex],
     queryFn: async () => {
       const raw = await getTasksByTeam(teamId!, fetchFrom, fetchTo);
@@ -57,47 +62,86 @@ export default function TimelineChart() {
         status: (t as any).column?.type ?? "TODO",
         groupId: teamId!,
         groupName: selectedTeam!.label,
+        cardW: 0, // placeholder, overwritten below in groups
       }));
     },
     enabled: !!teamId,
     staleTime: 2 * 60 * 1000,
   });
 
-  const days = Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(viewStart, i));
+  const totalMembers = membersResult?.total ?? 0;
+  const totalPages = Math.ceil(totalMembers / 5);
 
-  const shift = (n: number) => setViewStart((d) => addDays(d, n));
+  const groups = useMemo<TimelineGroup[]>(() => {
+    const memberList = membersResult?.data ?? [];
+    return memberList.map((m) => {
+      const memberTasks = rawTasks.filter((t) => t.assignee.id === m.userId);
+      const { laneMap, laneCount } = assignLanes(memberTasks);
+      const tasks = memberTasks.map((t) => ({
+        ...t,
+        cardW: Math.max(DAY_W - 8, (daysBetween(t.startDate, t.dueAt ?? t.startDate) + 1) * DAY_W - 8),
+      }));
+      return {
+        id: m.userId,
+        name: m.user.name ?? m.user.username ?? m.user.email,
+        img: m.user.profileImage,
+        tasks,
+        laneMap,
+        laneCount,
+      };
+    });
+  }, [membersResult, rawTasks]);
 
-  // ── pan (drag timeline to scroll days) ──
-  const [isPanning, setIsPanning] = useState(false);
-  const panRef = useRef<{ startX: number; startViewStart: Date } | null>(null);
+  const viewStartMs = useMemo(() => startOfDay(viewStart).getTime(), [viewStart]);
+  const days = useMemo(
+    () => Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(viewStart, i)),
+    [viewStart]
+  );
+  const toX = useCallback(
+    (d: Date) => Math.round((startOfDay(d).getTime() - viewStartMs) / 86_400_000) * DAY_W,
+    [viewStartMs]
+  );
+
+  const timelineW = VISIBLE_DAYS * DAY_W;
+  const shiftPrev = useCallback(() => setViewStart((d) => addDays(d, -7)), []);
+  const shiftNext = useCallback(() => setViewStart((d) => addDays(d, 7)), []);
+  const navLabel = `${MONTHS_SHORT[viewStart.getMonth()]} ${viewStart.getFullYear()}`;
+  const todayX = toX(today) + DAY_W / 2;
+
+  const chartRef = useRef<HTMLDivElement>(null);
+  const panRef = useRef<{ startX: number } | null>(null);
   const rafRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const onPanStart = (e: React.PointerEvent) => {
+  // pan: zero re-renders during drag
+  const onPanStart = useCallback((e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
     e.preventDefault();
-    panRef.current = { startX: e.clientX, startViewStart: viewStart };
-    setIsPanning(true);
-  };
+    panRef.current = { startX: e.clientX };
+    if (chartRef.current) chartRef.current.style.cursor = "grabbing";
+  }, []);
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!panRef.current) return;
-      if (rafRef.current !== null) return; // already queued for this frame
+      if (rafRef.current !== null) return;
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        if (!panRef.current) return;
+        if (!panRef.current || !chartRef.current) return;
         const dx = e.clientX - panRef.current.startX;
-        const deltaDays = -Math.round(dx / DAY_W);
-        setViewStart(addDays(panRef.current.startViewStart, deltaDays));
+        chartRef.current.style.setProperty("--timeline-shift", `${dx}px`);
       });
     };
-    const onUp = () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
+    const onUp = (e: PointerEvent) => {
+      if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      if (panRef.current && chartRef.current) {
+        const dx = e.clientX - panRef.current.startX;
+        const deltaDays = -Math.round(dx / DAY_W);
+        chartRef.current.style.removeProperty("--timeline-shift");
+        chartRef.current.style.cursor = "grab";
+        if (deltaDays !== 0) setViewStart((d) => addDays(d, deltaDays));
       }
       panRef.current = null;
-      setIsPanning(false);
     };
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
@@ -109,8 +153,9 @@ export default function TimelineChart() {
     };
   }, []);
 
-  // wheel/trackpad → horizontal day navigation, block vertical scroll
+  // wheel: RAF throttle + startTransition
   const wheelAccRef = useRef(0);
+  const wheelRafRef = useRef<number | null>(null);
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -118,227 +163,67 @@ export default function TimelineChart() {
       e.preventDefault();
       const delta = Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       wheelAccRef.current += delta;
-      const days = Math.trunc(wheelAccRef.current / DAY_W);
-      if (days !== 0) {
-        wheelAccRef.current -= days * DAY_W;
-        setViewStart((d) => addDays(d, days));
-      }
+      if (wheelRafRef.current !== null) return;
+      wheelRafRef.current = requestAnimationFrame(() => {
+        wheelRafRef.current = null;
+        const snapped = Math.trunc(wheelAccRef.current / DAY_W);
+        if (snapped !== 0) {
+          wheelAccRef.current -= snapped * DAY_W;
+          startTransition(() => setViewStart((d) => addDays(d, snapped)));
+        }
+      });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      if (wheelRafRef.current) cancelAnimationFrame(wheelRafRef.current);
+    };
   }, []);
-
-  // group by member — each team member is a row, tasks filtered by assignee
-  const groups = useMemo(() => {
-    return members.map((m) => ({
-      id: m.userId,
-      name: m.user.name ?? m.user.username ?? m.user.email,
-      img: m.user.profileImage,
-      tasks: tasks.filter((t) => t.assignee.id === m.userId),
-    }));
-  }, [members, tasks]);
-
-  // x offset (relative to timeline area, i.e. right of sidebar)
-  const toX = (d: Date) => daysBetween(viewStart, d) * DAY_W;
-
-  const timelineW = VISIBLE_DAYS * DAY_W;
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      <TimelineHeader
+      <StableTimelineHeader
         viewStart={viewStart}
         onNavigate={setViewStart}
         selectedTeam={selectedTeam}
         onTeamChange={handleTeamChange}
       />
 
-      {/* ── chart ── */}
       <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
         <div ref={scrollContainerRef} className="overflow-y-auto overflow-x-hidden flex-1">
-          <div style={{ minWidth: SIDEBAR_W + timelineW }}>
+          <div
+            ref={chartRef}
+            style={{ minWidth: SIDEBAR_W + timelineW, cursor: "grab" }}
+            onPointerDown={onPanStart}
+          >
+            <TimelineDayHeader
+              days={days}
+              todayStart={todayStart}
+              navLabel={navLabel}
+              onPrev={shiftPrev}
+              onNext={shiftNext}
+            />
 
-            {/* day-number header */}
-            <div
-              className="flex sticky top-0 z-20 bg-white border-b border-gray-100"
-              style={{ height: HEADER_H }}
-            >
-              {/* sidebar header */}
-              <div
-                className="sticky left-0 z-30 bg-white border-r border-gray-100 flex items-center gap-2 px-4 shrink-0"
-                style={{ width: SIDEBAR_W }}
-              >
-                <Button variant="ghost" size="icon" className="size-7" onClick={() => shift(-7)}>
-                  <ChevronLeft className="size-4" />
-                </Button>
-                <span className="text-xs font-semibold text-gray-500 flex-1 text-center">
-                  {viewStart.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                </span>
-                <Button variant="ghost" size="icon" className="size-7" onClick={() => shift(7)}>
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
-
-              {/* day numbers — draggable */}
-              {days.map((day) => {
-                const isToday = isSameDay(day, today);
-                return (
-                  <div
-                    key={day.getTime()}
-                    style={{ width: DAY_W, cursor: isPanning ? "grabbing" : "grab" }}
-                    className={cn(
-                      "shrink-0 flex flex-col items-center justify-center border-r border-gray-100 text-sm select-none",
-                      isToday ? "text-indigo-600 font-bold" : "text-gray-400 font-normal"
-                    )}
-                    onPointerDown={onPanStart}
-                  >
-                    <span className="text-[11px] uppercase">
-                      {day.toLocaleDateString("en-US", { weekday: "short" })}
-                    </span>
-                    <span className={cn(
-                      "text-sm leading-none mt-0.5",
-                      isToday && "bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    )}>
-                      {day.getDate()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* assignee rows */}
             <div className="relative">
-              {groups.map((group) => {
-                const { laneMap, laneCount } = assignLanes(group.tasks);
-                const rh = rowHeight(Math.max(1, laneCount));
-                return (
-                <div
+              {groups.map((group) => (
+                <TimelineAssigneeRow
                   key={group.id}
-                  className="flex border-b border-gray-100 last:border-b-0"
-                  style={{ height: rh }}
-                >
-                  {/* assignee cell */}
-                  <div
-                    className="sticky left-0 z-10 bg-white border-r border-gray-100 flex items-start gap-2.5 px-4 pt-4 shrink-0"
-                    style={{ width: SIDEBAR_W }}
-                  >
-                    <UserAvatar src={group.img} name={group.name}/>
-                    <span className="text-sm font-medium text-gray-700 truncate mt-0.5">{group.name}</span>
-                    <MoreHorizontal className="size-4 text-gray-300 ml-auto shrink-0 mt-0.5" />
-                  </div>
-
-                  {/* task cards — pointerdown starts pan, cards stop propagation */}
-                  <div
-                    className="relative"
-                    style={{ width: timelineW, cursor: isPanning ? "grabbing" : "grab" }}
-                    onPointerDown={onPanStart}
-                  >
-                    {/* column grid lines */}
-                    {days.map((day, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "absolute top-0 bottom-0 border-r border-gray-50",
-                          isSameDay(day, today) && "bg-indigo-50/40"
-                        )}
-                        style={{ left: i * DAY_W, width: DAY_W }}
-                      />
-                    ))}
-
-                    {/* today vertical line */}
-                    {(() => {
-                      const tx = toX(today) + DAY_W / 2;
-                      return tx >= 0 && tx <= timelineW ? (
-                        <div
-                          className="absolute top-0 bottom-0 w-px bg-indigo-300 opacity-60 z-10"
-                          style={{ left: tx }}
-                        />
-                      ) : null;
-                    })()}
-
-                    {group.tasks
-                      .filter((t) => toX(t.dueAt) + DAY_W > 0 && toX(t.startDate) < timelineW)
-                      .map((task) => {
-                        const x = toX(task.startDate) + 4;
-                        const spanDays = Math.max(1, daysBetween(task.startDate, task.dueAt) + 1);
-                        const w = Math.max(DAY_W - 8, spanDays * DAY_W - 8);
-                        const isDone = task.status === "DONE";
-                        const lane = laneMap.get(task.id) ?? 0;
-
-                        return (
-                          <div
-                            key={task.id}
-                            className="absolute bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2.5 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-                            style={{ left: x, top: cardTop(lane), width: w, height: CARD_H }}
-                            onPointerDown={onPanStart}
-                          >
-                            <div className="flex items-start gap-2 h-full">
-                              {/* checkbox */}
-                              <div
-                                className={cn(
-                                  "mt-0.5 size-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors",
-                                  STATUS_COLOR[task.status] ?? "border-gray-300"
-                                )}
-                              >
-                                {isDone && <Check className="size-2.5 text-white" strokeWidth={3} />}
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <p className={cn(
-                                  "text-sm font-semibold leading-tight truncate",
-                                  isDone ? "text-gray-400 line-through" : "text-gray-800"
-                                )}>
-                                  {task.title}
-                                </p>
-                                <div className="flex items-center gap-1.5 mt-1.5">
-                                  {task.assignee.profileImage ? (
-                                    <img src={task.assignee.profileImage} className="size-4 rounded-full" />
-                                  ) : (
-                                    <div className="size-4 rounded-full bg-indigo-400 flex items-center justify-center text-[9px] text-white font-bold shrink-0">
-                                      {(task.assignee.name ?? task.assignee.username).charAt(0).toUpperCase()}
-                                    </div>
-                                  )}
-                                  <span className="text-[11px] text-gray-400 truncate">
-                                    {fmtShort(task.startDate)} to {fmtShort(task.dueAt)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-                );
-              })}
+                  group={group}
+                  days={days}
+                  todayStart={todayStart}
+                  todayX={todayX}
+                  timelineW={timelineW}
+                  toX={toX}
+                />
+              ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="py-3 px-4 flex items-center justify-end border-t border-gray-100">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={memberPage === 1}
-                    onClick={() => setMemberPage((p) => p - 1)}
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <span className="text-xs text-gray-500">
-                    {memberPage} / {totalPages}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={memberPage === totalPages}
-                    onClick={() => setMemberPage((p) => p + 1)}
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
+            <TimelinePagination
+              page={memberPage}
+              totalPages={totalPages}
+              onPrev={() => setMemberPage((p) => p - 1)}
+              onNext={() => setMemberPage((p) => p + 1)}
+            />
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import AsyncCreatableSelect from "react-select/async-creatable";
 import type { GroupBase, MultiValue, SingleValue } from "react-select";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, memo } from "react";
 import AsyncSelect from "react-select/async";
 
 export interface BaseOption {
@@ -28,7 +28,7 @@ interface GenericAsyncSelectProps<T extends BaseOption> {
 
 const EMPTY_ARRAY: BaseOption[] = [];
 
-export default function GenericAsyncSelect<T extends BaseOption>({
+function GenericAsyncSelectInner<T extends BaseOption>({
   value = EMPTY_ARRAY as T[],
   onChange,
   placeholder = "Type to search...",
@@ -110,3 +110,6 @@ export default function GenericAsyncSelect<T extends BaseOption>({
 
   return <AsyncCreatableSelect<T, true, GroupBase<T>> {...creatableProps} />;
 }
+
+const GenericAsyncSelect = memo(GenericAsyncSelectInner) as typeof GenericAsyncSelectInner;
+export default GenericAsyncSelect;

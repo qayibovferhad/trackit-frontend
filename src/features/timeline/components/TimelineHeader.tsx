@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Calendar, Plus, UserPlus } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
@@ -30,7 +30,7 @@ export default function TimelineHeader({ viewStart, onNavigate, selectedTeam, on
   const [year, setYear] = useState(viewStart.getFullYear());
   const user = useUserStore((s) => s.user);
 
-  async function fetchTeamOptions(input: string): Promise<TeamOption[]> {
+  const fetchTeamOptions = useCallback(async (input: string): Promise<TeamOption[]> => {
     if (!input || input.length < 2) return [];
     try {
       const data = await fetchSharedTeams(input, user?.id ?? "");
@@ -38,7 +38,7 @@ export default function TimelineHeader({ viewStart, onNavigate, selectedTeam, on
     } catch {
       return [];
     }
-  }
+  }, [user?.id]);
 
   const apply = () => {
     onNavigate(new Date(year, month, 1));
