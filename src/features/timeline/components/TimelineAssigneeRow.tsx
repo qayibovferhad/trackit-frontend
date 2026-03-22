@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback } from "react";
+import { memo, useMemo } from "react";
 import { DAY_W, CARD_H, VISIBLE_DAYS } from "../constants";
 import { cardTop, rowHeight } from "../utils";
 import { startOfDay } from "@/shared/utils/date";
