@@ -8,8 +8,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { usePageTitle } from "../../../shared/hooks/usePageTitle";
-import { memo, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
 import { Input } from "@/shared/ui/input";
@@ -24,6 +24,9 @@ import UserAvatar from "@/shared/components/UserAvatar";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchUnreadCount } from "@/features/notifications/services/notifications.service";
 import { logoutRequest } from "@/features/auth/services/auth.service";
+import SearchDropdown from "@/features/search/components/SearchDropdown";
+import { addRecentSearch } from "@/features/search/services/search.service";
+import { PATHS } from "@/shared/constants/routes";
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -42,12 +45,38 @@ export default function Topbar({
   const computedTitle = usePageTitle(menus, "Back");
   const { user, logout } = useUserStore();
   const [q, setQ] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Sync input with URL when on search page
+  useEffect(() => {
+    const urlQ = searchParams.get("q");
+    if (urlQ && window.location.pathname === PATHS.SEARCH) {
+      setQ(urlQ);
+    }
+  }, [searchParams]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const submit = useCallback(() => {
     const value = q.trim();
     if (!value) return;
+    addRecentSearch(value);
+    navigate(`${PATHS.SEARCH}?q=${encodeURIComponent(value)}`);
+    setDropdownOpen(false);
     onSearchSubmit?.(value);
-  }, [q, onSearchSubmit]);
+  }, [q, navigate, onSearchSubmit]);
 
   const { mutate: handleLogout } = useMutation({
     mutationFn: logoutRequest,
@@ -78,16 +107,29 @@ export default function Topbar({
       </div>
 
       <div className="mx-auto flex w-full max-w-xl items-center gap-2">
-        <div className="flex w-full items-center gap-2 rounded-md border px-2 bg-gray-200">
-          <Search size={16} />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Search…"
-            className="h-9 w-full bg-transparent text-sm outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
-            aria-label="Search"
-          />
+        <div ref={searchRef} className="relative w-full">
+          <div className="flex w-full items-center gap-2 rounded-md border px-2 bg-gray-200">
+            <Search size={16} />
+            <Input
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setDropdownOpen(true);
+              }}
+              onFocus={() => setDropdownOpen(true)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder="Search…"
+              className="h-9 w-full bg-transparent text-sm outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
+              aria-label="Search"
+            />
+          </div>
+          {dropdownOpen && (
+            <SearchDropdown
+              query={q}
+              onClose={() => setDropdownOpen(false)}
+              onSelectRecent={(val) => setQ(val)}
+            />
+          )}
         </div>
       </div>
 
