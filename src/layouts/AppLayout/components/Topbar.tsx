@@ -1,14 +1,17 @@
 import {
   Bell,
   ChevronLeft,
+  ClipboardList,
   LogOut,
+  Megaphone,
   NotepadTextIcon,
   Plus,
   Search,
+  Users,
   UserPlus,
 } from "lucide-react";
 import { usePageTitle } from "../../../shared/hooks/usePageTitle";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import type { NavItem } from "@/shared/types/nav.types";
@@ -21,12 +24,21 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import UserAvatar from "@/shared/components/UserAvatar";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchUnreadCount } from "@/features/notifications/services/notifications.service";
 import { logoutRequest } from "@/features/auth/services/auth.service";
 import SearchDropdown from "@/features/search/components/SearchDropdown";
 import { addRecentSearch } from "@/features/search/services/search.service";
 import { PATHS } from "@/shared/constants/routes";
+import { createTask } from "@/features/tasks/services/tasks.service";
+import { createAnnouncement } from "@/features/announcements/services/announcements.service";
+import type { AnnouncementFormData } from "@/features/announcements/schemas/announcement.schema";
+import type { CreateTaskPayload } from "@/features/tasks/types/tasks";
+import { toast } from "sonner";
+
+const TaskModal = lazy(() => import("@/features/tasks/components/task/TaskModal"));
+const AnnouncementModal = lazy(() => import("@/features/announcements/components/AnnouncementModal"));
+const TeamModal = lazy(() => import("@/features/teams/components/TeamModal"));
 
 export const SIDEBAR_WIDTH_PX = 256;
 
@@ -46,9 +58,34 @@ export default function Topbar({
   const { user, logout } = useUserStore();
   const [q, setQ] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [announcementModalOpen, setAnnouncementModalOpen] = useState(false);
+  const [teamModalOpen, setTeamModalOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const isCompany = user?.accountType === "company";
+
+  const { mutate: handleCreateTask } = useMutation({
+    mutationFn: (payload: CreateTaskPayload) => createTask(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setTaskModalOpen(false);
+      toast.success("Task created");
+    },
+    onError: () => toast.error("Failed to create task"),
+  });
+
+  const { mutate: handleCreateAnnouncement, isPending: announcementPending } = useMutation({
+    mutationFn: (data: AnnouncementFormData) => createAnnouncement(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      setAnnouncementModalOpen(false);
+      toast.success("Announcement created");
+    },
+    onError: () => toast.error("Failed to create announcement"),
+  });
 
   // Sync input with URL when on search page
   useEffect(() => {
@@ -134,14 +171,40 @@ export default function Topbar({
       </div>
 
       <div className="ml-auto flex items-center gap-1">
-        <Button
-          variant="iconSoft"
-          size="icon"
-          className="rounded-md p-2 hover:bg-muted [&>svg]:size-6"
-          aria-label="New"
-        >
-          <Plus className="!size-4" />
-        </Button>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="iconSoft"
+              size="icon"
+              className="rounded-md p-2 hover:bg-muted [&>svg]:size-6"
+              aria-label="New"
+            >
+              <Plus className="!size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuRow
+              iconCircle
+              icon={<ClipboardList className="!size-5" />}
+              label="New Task"
+              onClick={() => setTaskModalOpen(true)}
+            />
+            <DropdownMenuRow
+              iconCircle
+              icon={<Megaphone className="!size-5" />}
+              label="New Announcement"
+              onClick={() => setAnnouncementModalOpen(true)}
+            />
+            {isCompany && (
+              <DropdownMenuRow
+                iconCircle
+                icon={<Users className="!size-5" />}
+                label="New Team"
+                onClick={() => setTeamModalOpen(true)}
+              />
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <NotificationBell />
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
@@ -206,6 +269,33 @@ export default function Topbar({
 
         {rightSlot}
       </div>
+
+      <Suspense fallback={null}>
+        <TaskModal
+          open={taskModalOpen}
+          onOpenChange={setTaskModalOpen}
+          onAddTask={(payload) => handleCreateTask(payload)}
+        />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <AnnouncementModal
+          open={announcementModalOpen}
+          onOpenChange={setAnnouncementModalOpen}
+          mode="create"
+          onSubmit={(data) => handleCreateAnnouncement(data)}
+          isLoading={announcementPending}
+        />
+      </Suspense>
+
+      {isCompany && (
+        <Suspense fallback={null}>
+          <TeamModal
+            open={teamModalOpen}
+            onOpenChange={setTeamModalOpen}
+          />
+        </Suspense>
+      )}
     </header>
   );
 }

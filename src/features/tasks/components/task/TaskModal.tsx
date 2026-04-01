@@ -13,6 +13,7 @@ import TaskBasicFields from "./TaskBasicFields";
 import TaskAssigneeField from "./TaskAssigneeField";
 import TaskTeamBoardColumn from "./TaskTeamBoardColumn";
 import TaskTagsField from "./TaskTagsField";
+import { useUserStore } from "@/stores/userStore";
 
 type TaskModalProps = {
   open: boolean;
@@ -40,11 +41,14 @@ export default function TaskModal({
   editingTask,
   onEditTask,
 }: TaskModalProps) {
+  const currentUser = useUserStore((s) => s.user);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTeamOption, setSelectedTeamOption] = useState<TeamOption | null>(null);
   const [columnsOptions, setColumnsOptions] = useState<Column[] | null>(null);
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
+
+  const activeUserId = (defaultUser ?? currentUser)?.id ?? "";
 
   const { register, handleSubmit, setValue, watch, unregister, formState: { errors }, reset } =
     useZodForm(taskSchema);
@@ -80,6 +84,14 @@ export default function TaskModal({
       }
     } else if (open && !editingTask) {
       reset();
+      if (defaultUser) {
+        setValue("assignee", {
+          id: defaultUser.id,
+          email: defaultUser.email,
+          username: defaultUser.username,
+          profileImage: defaultUser.profileImage,
+        });
+      }
     }
 
     if (!open) {
@@ -182,9 +194,9 @@ export default function TaskModal({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-5">
         <TaskBasicFields register={register} errors={errors} isSubtask={!!parentTaskId} />
 
-        {defaultUser && (
+        {!teamId && (
           <TaskTeamBoardColumn
-            defaultUserId={defaultUser.id}
+            defaultUserId={activeUserId}
             selectedTeamOption={selectedTeamOption}
             boards={boards}
             boardsLoading={boardsLoading}
@@ -198,8 +210,8 @@ export default function TaskModal({
         <TaskAssigneeField
           value={currentAssignee}
           onChange={handleAssigneeChange}
-          teamId={defaultUser ? selectedTeam : teamId}
-          isDisabled={defaultUser ? !selectedTeam : false}
+          teamId={teamId ?? selectedTeam}
+          isDisabled={!teamId && !selectedTeam}
           error={Array.isArray(errors.assignee) ? errors.assignee.find(Boolean) : errors.assignee}
         />
 
